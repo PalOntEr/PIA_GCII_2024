@@ -13,6 +13,7 @@
 
 #define SCREEN_X 1920
 #define SCREEN_Y 1080
+#define SENSIBILITY 2
 
 LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
@@ -54,8 +55,11 @@ int WINAPI WinMain(HINSTANCE hInstance,
     HWND hWnd;
     WNDCLASSEX wc;
     DEVMODE dmScreenSettings;
-    int posX, posY;
+    int posX, posY, sizeX, sizeY;
     ZeroMemory(&wc, sizeof(WNDCLASSEX));
+
+    sizeX = GetSystemMetrics(SM_CXFULLSCREEN);
+    sizeY = GetSystemMetrics(SM_CYFULLSCREEN);
 
     wc.cbSize = sizeof(WNDCLASSEX);
     wc.style = CS_HREDRAW | CS_VREDRAW;
@@ -71,8 +75,8 @@ int WINAPI WinMain(HINSTANCE hInstance,
     // If full screen set the screen to maximum size of the users desktop and 32bit.
     memset(&dmScreenSettings, 0, sizeof(dmScreenSettings));
     dmScreenSettings.dmSize = sizeof(dmScreenSettings);
-    dmScreenSettings.dmPelsWidth = (unsigned long)SCREEN_X;
-    dmScreenSettings.dmPelsHeight = (unsigned long)SCREEN_Y;
+    dmScreenSettings.dmPelsWidth = (unsigned long)sizeX;
+    dmScreenSettings.dmPelsHeight = (unsigned long)sizeY;
     dmScreenSettings.dmBitsPerPel = 32;
     dmScreenSettings.dmFields = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT;
 
@@ -85,17 +89,17 @@ int WINAPI WinMain(HINSTANCE hInstance,
     //RECT wr = {0, 0, SCREEN_X, SCREEN_Y};
     //AdjustWindowRect(&wr, WS_OVERLAPPEDWINDOW, FALSE);
     hWnd = CreateWindowEx(WS_EX_APPWINDOW,
-                          L"DXRR_E1",
-                          L"PLANTILLA PROYECTO",
-                          WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_POPUP,
-        posX,
-        posY,
-        SCREEN_X,
-        SCREEN_Y,
-                          NULL,
-                          NULL,
-                          hInstance,
-                          NULL);
+                        L"DXRR_E1",
+                        L"AntDefender",
+                        WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_POPUP,
+                        posX,
+                        posY,
+                        sizeX,
+                        sizeY,
+                        NULL,
+                        NULL,
+                        hInstance,
+                        NULL);
 
     ShowWindow(hWnd, nCmdShow);
 	dxrr = new DXRR(hWnd, 800, 600);
@@ -103,8 +107,8 @@ int WINAPI WinMain(HINSTANCE hInstance,
     gamePad = new GamePadRR(1);
 
     ClientToScreen(hWnd, &initialPoint);
-    actualPoint.x = initialPoint.x + SCREEN_X / 2;
-    actualPoint.y = initialPoint.y + SCREEN_Y / 2;
+    actualPoint.x = initialPoint.x + sizeX / 2;
+    actualPoint.y = initialPoint.y + sizeY / 2;
 
 	SetTimer(hWnd, 100, 33, NULL);
     MSG msg;
@@ -203,8 +207,8 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
             m_pMouseDevice->GetDeviceState(sizeof(mouseData), (void*)&mouseData);
 
             // Mouse move
-            dxrr->izqder = (mouseData.lX / 1000.0f);
-            dxrr->arriaba = -(mouseData.lY / 1000.0f);
+            dxrr->izqder = (mouseData.lX / 1000.0f) * SENSIBILITY;
+            dxrr->arriaba = -(mouseData.lY / 1000.0f) * SENSIBILITY;
 
             if (gamePad->IsConnected())
             {
