@@ -58,16 +58,17 @@ int WINAPI WinMain(HINSTANCE hInstance,
     int posX, posY, sizeX, sizeY;
     ZeroMemory(&wc, sizeof(WNDCLASSEX));
 
-    sizeX = GetSystemMetrics(SM_CXFULLSCREEN);
-    sizeY = GetSystemMetrics(SM_CYFULLSCREEN);
+    wchar_t* applicationName = L"AntDefender";
 
-    wc.cbSize = sizeof(WNDCLASSEX);
-    wc.style = CS_HREDRAW | CS_VREDRAW;
-    wc.lpfnWndProc = WindowProc;
-    wc.hInstance = hInstance;
-    wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-    wc.lpszClassName = L"DXRR_E1";
-    wc.cbSize = sizeof(WNDCLASSEX);
+    sizeX = GetSystemMetrics(SM_CXSCREEN);
+    sizeY = GetSystemMetrics(SM_CYSCREEN);
+
+	wc.cbSize = sizeof(WNDCLASSEX);
+	wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
+	wc.lpfnWndProc = WindowProc;
+	wc.hInstance = hInstance;
+	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+	wc.lpszClassName = applicationName;
 
 
     RegisterClassEx(&wc);
@@ -89,8 +90,8 @@ int WINAPI WinMain(HINSTANCE hInstance,
     //RECT wr = {0, 0, SCREEN_X, SCREEN_Y};
     //AdjustWindowRect(&wr, WS_OVERLAPPEDWINDOW, FALSE);
     hWnd = CreateWindowEx(WS_EX_APPWINDOW,
-                        L"DXRR_E1",
-                        L"AntDefender",
+                        applicationName,
+                        applicationName,
                         WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_POPUP,
                         posX,
                         posY,
@@ -101,7 +102,9 @@ int WINAPI WinMain(HINSTANCE hInstance,
                         hInstance,
                         NULL);
 
-    ShowWindow(hWnd, nCmdShow);
+    ShowWindow(hWnd, SW_SHOW);
+    SetForegroundWindow(hWnd);
+    SetFocus(hWnd);
 	dxrr = new DXRR(hWnd, 800, 600);
 	dxrr->vel=0;
     gamePad = new GamePadRR(1);
@@ -112,6 +115,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
 
 	SetTimer(hWnd, 100, 33, NULL);
     MSG msg;
+    ZeroMemory(&msg, sizeof(MSG));
     ::DirectInput8Create(
         hInstance, DIRECTINPUT_VERSION,
         IID_IDirectInput8, (void**)&m_pDirectInput, 0);
@@ -158,6 +162,10 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 
     switch(message)
     {
+        case WM_KILLFOCUS: {
+            return 0;
+            }
+
         case WM_DESTROY:
             {
 				KillTimer(hWnd, 100);
@@ -165,9 +173,16 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
                 return 0;
             } break;
 
+        case WM_CLOSE:
+            {
+                KillTimer(hWnd, 100);
+                PostQuitMessage(0);
+                return 0;
+            } break;
+
 		case WM_TIMER:
 			{
-
+                return 0;
 			} break;
         
         case WM_MOUSEMOVE: {
@@ -234,12 +249,15 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
                 }
 
             }
+            return 0;
 
         }break;
 
+        default: 
+        {
+            return DefWindowProc(hWnd, message, wParam, lParam);
+        }
     }
-
-    return DefWindowProc (hWnd, message, wParam, lParam);
 }
 
 
