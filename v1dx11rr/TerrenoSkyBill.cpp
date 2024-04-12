@@ -1,5 +1,6 @@
 #include <windows.h>
 #include <windowsx.h>
+#include <sstream>
 
 #include "DXRR.h"
 #include "GamePadRR.h"
@@ -24,6 +25,8 @@ tagPOINT actualPoint;
 LPDIRECTINPUT8 m_pDirectInput = NULL;
 LPDIRECTINPUTDEVICE8 m_pKeyboardDevice = NULL;
 LPDIRECTINPUTDEVICE8 m_pMouseDevice = NULL;
+bool windowInit = false;
+bool windowFocused = false;
 
 void createMouseDevice(HWND hWnd) {
     m_pDirectInput->CreateDevice(GUID_SysMouse, &m_pMouseDevice, 0);
@@ -101,7 +104,6 @@ int WINAPI WinMain(HINSTANCE hInstance,
                         NULL,
                         hInstance,
                         NULL);
-
     ShowWindow(hWnd, SW_SHOW);
     SetForegroundWindow(hWnd);
     SetFocus(hWnd);
@@ -121,6 +123,9 @@ int WINAPI WinMain(HINSTANCE hInstance,
         IID_IDirectInput8, (void**)&m_pDirectInput, 0);
     createMouseDevice(hWnd);
     createKeyboardDevice(hWnd);
+
+    windowInit = true;
+
     while(TRUE)
     {
         if(PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
@@ -131,8 +136,8 @@ int WINAPI WinMain(HINSTANCE hInstance,
             if(msg.message == WM_QUIT)
                 break;
         }
-
-        dxrr->Render();
+        if(windowFocused)
+            dxrr->Render();
     }
 
     if (m_pMouseDevice) {
@@ -163,8 +168,29 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
     switch(message)
     {
         case WM_KILLFOCUS: {
-            return 0;
+
+            if (windowInit) {
+                m_pMouseDevice->Unacquire();
+                m_pKeyboardDevice->Unacquire();
             }
+            windowFocused = false;
+            ShowCursor(!windowFocused);
+            return 0;
+        }
+
+        case WM_SETFOCUS: {
+
+            if (windowInit) {
+                m_pMouseDevice->Acquire();
+                m_pKeyboardDevice->Acquire();
+            }
+            windowFocused = true;
+            ShowCursor(!windowFocused);
+            SetCursorPos(actualPoint.x + 1, actualPoint.y + 1);
+            if(windowInit)
+                SendMessageW(hWnd, WM_MOUSEMOVE, wParam, lParam);
+            return 0;
+        }
 
         case WM_DESTROY:
             {
@@ -187,7 +213,11 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
         
         case WM_MOUSEMOVE: {
 
-            SetCursorPos(actualPoint.x, actualPoint.y);
+            if (windowFocused)
+                SetCursorPos(actualPoint.x, actualPoint.y);
+            else
+                return 0;
+
             dxrr->frameBillboard++;
             if (dxrr->frameBillboard == 32)
                 dxrr->frameBillboard = 0;
@@ -204,7 +234,7 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 
             if (keyboardData[DIK_S] & 0x80 || keyboardData[DIK_W] & 0x80 || keyboardData[DIK_A] & 0x80 || keyboardData[DIK_D] & 0x80) {
 
-                dxrr->vel = 1.0f;
+                dxrr->vel += 0.5f;
 
                 if (keyboardData[DIK_S] & 0x80) {
                     dxrr->velDir[0] -= 1.0f;
@@ -226,6 +256,14 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 
             if (keyboardData[DIK_B] & 0x80) {
                 dxrr->breakpoint = true;
+            }
+
+            if (keyboardData[DIK_Q] & 0x80) {
+                wstringstream wss;
+                wss << "X: " << dxrr->camara->posCam.x << endl;
+                wss << "Y: " << dxrr->camara->posCam.y << endl;
+                wss << "Z: " << dxrr->camara->posCam.z << endl;
+                MessageBox(hWnd, wss.str().c_str(), L"Coordinates", MB_OK);
             }
 
             if (keyboardData[DIK_ESCAPE] & 0x80) {
