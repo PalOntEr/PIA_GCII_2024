@@ -13,6 +13,7 @@
 
 #define SCREEN_X 1920
 #define SCREEN_Y 1080
+#define SENSIBILITY 2
 
 LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
@@ -54,16 +55,20 @@ int WINAPI WinMain(HINSTANCE hInstance,
     HWND hWnd;
     WNDCLASSEX wc;
     DEVMODE dmScreenSettings;
-    int posX, posY;
+    int posX, posY, sizeX, sizeY;
     ZeroMemory(&wc, sizeof(WNDCLASSEX));
 
-    wc.cbSize = sizeof(WNDCLASSEX);
-    wc.style = CS_HREDRAW | CS_VREDRAW;
-    wc.lpfnWndProc = WindowProc;
-    wc.hInstance = hInstance;
-    wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-    wc.lpszClassName = L"DXRR_E1";
-    wc.cbSize = sizeof(WNDCLASSEX);
+    wchar_t* applicationName = L"AntDefender";
+
+    sizeX = GetSystemMetrics(SM_CXSCREEN);
+    sizeY = GetSystemMetrics(SM_CYSCREEN);
+
+	wc.cbSize = sizeof(WNDCLASSEX);
+	wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
+	wc.lpfnWndProc = WindowProc;
+	wc.hInstance = hInstance;
+	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+	wc.lpszClassName = applicationName;
 
 
     RegisterClassEx(&wc);
@@ -71,8 +76,8 @@ int WINAPI WinMain(HINSTANCE hInstance,
     // If full screen set the screen to maximum size of the users desktop and 32bit.
     memset(&dmScreenSettings, 0, sizeof(dmScreenSettings));
     dmScreenSettings.dmSize = sizeof(dmScreenSettings);
-    dmScreenSettings.dmPelsWidth = (unsigned long)SCREEN_X;
-    dmScreenSettings.dmPelsHeight = (unsigned long)SCREEN_Y;
+    dmScreenSettings.dmPelsWidth = (unsigned long)sizeX;
+    dmScreenSettings.dmPelsHeight = (unsigned long)sizeY;
     dmScreenSettings.dmBitsPerPel = 32;
     dmScreenSettings.dmFields = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT;
 
@@ -85,29 +90,32 @@ int WINAPI WinMain(HINSTANCE hInstance,
     //RECT wr = {0, 0, SCREEN_X, SCREEN_Y};
     //AdjustWindowRect(&wr, WS_OVERLAPPEDWINDOW, FALSE);
     hWnd = CreateWindowEx(WS_EX_APPWINDOW,
-                          L"DXRR_E1",
-                          L"PLANTILLA PROYECTO",
-                          WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_POPUP,
-        posX,
-        posY,
-        SCREEN_X,
-        SCREEN_Y,
-                          NULL,
-                          NULL,
-                          hInstance,
-                          NULL);
+                        applicationName,
+                        applicationName,
+                        WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_POPUP,
+                        posX,
+                        posY,
+                        sizeX,
+                        sizeY,
+                        NULL,
+                        NULL,
+                        hInstance,
+                        NULL);
 
-    ShowWindow(hWnd, nCmdShow);
-	dxrr = new DXRR(hWnd, 800, 600);
-	dxrr->vel=0;
+    ShowWindow(hWnd, SW_SHOW);
+    SetForegroundWindow(hWnd);
+    SetFocus(hWnd);
+	dxrr = new DXRR(hWnd, sizeX, sizeY);
+    dxrr->vel = 0;
     gamePad = new GamePadRR(1);
 
     ClientToScreen(hWnd, &initialPoint);
-    actualPoint.x = initialPoint.x + SCREEN_X / 2;
-    actualPoint.y = initialPoint.y + SCREEN_Y / 2;
+    actualPoint.x = initialPoint.x + sizeX / 2;
+    actualPoint.y = initialPoint.y + sizeY / 2;
 
 	SetTimer(hWnd, 100, 33, NULL);
     MSG msg;
+    ZeroMemory(&msg, sizeof(MSG));
     ::DirectInput8Create(
         hInstance, DIRECTINPUT_VERSION,
         IID_IDirectInput8, (void**)&m_pDirectInput, 0);
@@ -154,6 +162,10 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 
     switch(message)
     {
+        case WM_KILLFOCUS: {
+            return 0;
+            }
+
         case WM_DESTROY:
             {
 				KillTimer(hWnd, 100);
@@ -161,9 +173,16 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
                 return 0;
             } break;
 
+        case WM_CLOSE:
+            {
+                KillTimer(hWnd, 100);
+                PostQuitMessage(0);
+                return 0;
+            } break;
+
 		case WM_TIMER:
 			{
-
+                return 0;
 			} break;
         
         case WM_MOUSEMOVE: {
@@ -176,17 +195,33 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
             dxrr->izqder = 0;
             dxrr->arriaba = 0;
             dxrr->vel = 0;
+            dxrr->velDir[0] = 0;
+            dxrr->velDir[1] = 0;
+            dxrr->velDir[2] = 0;
 
             char keyboardData[256];
             m_pKeyboardDevice->GetDeviceState(sizeof(keyboardData), (void*)&keyboardData);
 
-            if (keyboardData[DIK_S] & 0x80) {
-                dxrr->vel = -5.f;
-            }
+            if (keyboardData[DIK_S] & 0x80 || keyboardData[DIK_W] & 0x80 || keyboardData[DIK_A] & 0x80 || keyboardData[DIK_D] & 0x80) {
 
+                dxrr->vel = 1.0f;
 
-            if (keyboardData[DIK_W] & 0x80) {
-                dxrr->vel = 5.f;
+                if (keyboardData[DIK_S] & 0x80) {
+                    dxrr->velDir[0] -= 1.0f;
+                }
+
+                if (keyboardData[DIK_W] & 0x80) {
+                    dxrr->velDir[0] += 1.0f;
+                }
+
+                if (keyboardData[DIK_A] & 0x80) {
+                    dxrr->velDir[2] += 1.0f;
+                }
+
+                if (keyboardData[DIK_D] & 0x80) {
+                    dxrr->velDir[2] -= 1.0f;
+                }
+
             }
 
             if (keyboardData[DIK_B] & 0x80) {
@@ -203,8 +238,8 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
             m_pMouseDevice->GetDeviceState(sizeof(mouseData), (void*)&mouseData);
 
             // Mouse move
-            dxrr->izqder = (mouseData.lX / 1000.0f);
-            dxrr->arriaba = -(mouseData.lY / 1000.0f);
+            dxrr->izqder = (mouseData.lX / 1000.0f) * SENSIBILITY;
+            dxrr->arriaba = -(mouseData.lY / 1000.0f) * SENSIBILITY;
 
             if (gamePad->IsConnected())
             {
@@ -225,17 +260,26 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
                         velocidad *= 14.5;
                     else if (gamePad->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER) velocidad /= 3;
                     else velocidad *= 2.5;
-                    if (velocidad > 0.19) dxrr->vel = velocidad;
-                    else if (velocidad < -0.19) dxrr->vel = velocidad;
+                    if (velocidad > 0.19) {
+                        dxrr->vel = velocidad;
+                        dxrr->velDir[0] += 1.0f;
+                    }
+                    else if (velocidad < -0.19) {
+                        dxrr->vel = velocidad;
+                        dxrr->velDir[0] += 1.0f;
+                    }
                 }
 
             }
+            return 0;
 
         }break;
 
+        default: 
+        {
+            return DefWindowProc(hWnd, message, wParam, lParam);
+        }
     }
-
-    return DefWindowProc (hWnd, message, wParam, lParam);
 }
 
 
