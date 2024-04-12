@@ -1,5 +1,6 @@
 #include <windows.h>
 #include <windowsx.h>
+#include <sstream>
 
 #include "DXRR.h"
 #include "GamePadRR.h"
@@ -233,7 +234,7 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 
             if (keyboardData[DIK_S] & 0x80 || keyboardData[DIK_W] & 0x80 || keyboardData[DIK_A] & 0x80 || keyboardData[DIK_D] & 0x80) {
 
-                dxrr->vel = 0.5f;
+                dxrr->vel += 0.5f;
 
                 if (keyboardData[DIK_S] & 0x80) {
                     dxrr->velDir[0] -= 1.0f;
@@ -255,6 +256,14 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 
             if (keyboardData[DIK_B] & 0x80) {
                 dxrr->breakpoint = true;
+            }
+
+            if (keyboardData[DIK_Q] & 0x80) {
+                wstringstream wss;
+                wss << "X: " << dxrr->camara->posCam.x << endl;
+                wss << "Y: " << dxrr->camara->posCam.y << endl;
+                wss << "Z: " << dxrr->camara->posCam.z << endl;
+                MessageBox(hWnd, wss.str().c_str(), L"Coordinates", MB_OK);
             }
 
             if (keyboardData[DIK_ESCAPE] & 0x80) {
