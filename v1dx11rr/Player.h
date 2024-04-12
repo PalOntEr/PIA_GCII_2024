@@ -20,6 +20,8 @@ private:
 	D3DXVECTOR3 m_refUp;
 	D3DXVECTOR3 m_refRight;
 	D3DXVECTOR3 m_refFront;
+	D3DXVECTOR3 m_refRight2d;
+	D3DXVECTOR3 m_refFront2d;
 	Camara* m_firstPerson;
 	Camara* m_thirdPerson;
 	float height;
@@ -33,7 +35,7 @@ public:
 	D3DXVECTOR3 m_startPosition;
 
 
-	Player(D3DXVECTOR3 startPoint, int Ancho, int Alto, ModeloRR** models, int animations = 1, int frames = 1) {
+	Player(D3DXVECTOR3 startPoint, int Ancho, int Alto, ModeloRR** models = NULL, int animations = 1, int frames = 1) {
 
 		m_position = m_startPosition = startPoint;
 
@@ -48,6 +50,9 @@ public:
 
 		D3DXVec3Cross(&m_refRight, &m_refFront, &m_refUp);
 		D3DXVec3Normalize(&m_refRight, &m_refRight);
+
+		m_refFront2d = m_refFront;
+		m_refRight2d = m_refRight;
 
 		height = 5.0f;
 
@@ -95,6 +100,11 @@ public:
 		D3DXVec3Normalize(&m_refFront, &m_refFront);
 		//Con el vector de referencia y el nuevo front calculamos right de nuevo
 		D3DXVec3Cross(&m_refRight, &m_refFront, &m_refUp);
+		m_refRight2d = m_refRight;
+
+		D3DXVec3Transform(&tempo, &m_refFront2d, &giraUp);
+		m_refFront2d = (D3DXVECTOR3)tempo;
+		D3DXVec3Normalize(&m_refFront2d, &m_refFront2d);
 
 		//una vez calculado right a partir de front y up ahora rotamos sobre right
 		//repetimos el procedimiento anterior
@@ -122,8 +132,8 @@ public:
 		if (velDir[2] != 0)
 			rightDistance = sin(radians) * vel;			
 
-		m_position += m_refFront * frontDistance;
-		m_position += m_refRight * rightDistance;
+		m_position += m_refFront2d * frontDistance;
+		m_position += m_refRight2d * rightDistance;
 
 		D3DXVECTOR3 cameraPosition = m_position;
 		cameraPosition.y += height;

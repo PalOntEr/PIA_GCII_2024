@@ -79,10 +79,7 @@ public:
 		skydome = new SkyDome(32, 32, 100.0f, &d3dDevice, &d3dContext, L"SkyDome.png");
 		billboard = new BillboardRR(L"Assets/Billboards/fuego-anim.png",L"Assets/Billboards/fuego-anim-normal.png", d3dDevice, d3dContext, 5);
 		model = new ModeloRR(d3dDevice, d3dContext, "Assets/Cofre/Cofre.obj", L"Assets/Cofre/Cofre-color.png", L"Assets/Cofre/Cofre-spec.png", 0, 0);
-		player = new Player(D3DXVECTOR3(0, 80, 0), Ancho, Alto, &model);
-
-		
-
+		player = new Player(D3DXVECTOR3(0, 80, 0), Ancho, Alto);
 		
 	}
 
