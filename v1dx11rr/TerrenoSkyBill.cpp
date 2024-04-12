@@ -260,9 +260,9 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 
             if (keyboardData[DIK_Q] & 0x80) {
                 wstringstream wss;
-                wss << "X: " << dxrr->camara->posCam.x << endl;
-                wss << "Y: " << dxrr->camara->posCam.y << endl;
-                wss << "Z: " << dxrr->camara->posCam.z << endl;
+                wss << "X: " << dxrr->player->GetPosition().x << endl;
+                wss << "Y: " << dxrr->player->GetPosition().y << endl;
+                wss << "Z: " << dxrr->player->GetPosition().z << endl;
                 MessageBox(hWnd, wss.str().c_str(), L"Coordinates", MB_OK);
             }
 
