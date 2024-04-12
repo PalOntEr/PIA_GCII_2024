@@ -21,7 +21,7 @@ public:
 	int ancho;
 	int alto;
 
-	Camara(D3DXVECTOR3 eye, D3DXVECTOR3 target, D3DXVECTOR3 up, int Ancho, int Alto)
+	Camara(D3DXVECTOR3 eye, D3DXVECTOR3 target, D3DXVECTOR3 up, float Ancho, float Alto)
 	{
 		//posicion de la camara
 		posCam = eye;
@@ -34,7 +34,7 @@ public:
 		//crea la matriz de vista
 		D3DXMatrixLookAtLH(&vista, &posCam, &hdveo, &refUp);
 		//la de proyeccion
-		D3DXMatrixPerspectiveFovLH( &proyeccion, D3DX_PI/4.0, ancho / alto, 0.01f, 1000.0f );
+		D3DXMatrixPerspectiveFovLH( &proyeccion, 1.3, Ancho / Alto, 0.01f, 1000.0f );
 		//las transpone para acelerar la multiplicacion
 		D3DXMatrixTranspose( &vista, &vista );
 		D3DXMatrixTranspose( &proyeccion, &proyeccion );
@@ -87,17 +87,16 @@ public:
 
 		long double radians = atan2f(velDir[2], velDir[0]);
 
-		//if (velDir[2] == 1 && velDir[0] == 1)
-		//	radians = radians;
-		//if(velDir[2] == -1 && velDir[0] == 0)
-		//	radians = radians;
+		if (velDir[2] == 1 && velDir[0] == 1)
+			radians = radians;
+		if(velDir[2] == -1 && velDir[0] == 0)
+			radians = radians;
 
-		frontDistance = cosf(radians) * vel;
-		if (velDir[0] == 0)
-			frontDistance = 0;
-		rightDistance = sinf(radians) * vel;
-		if (velDir[2] == 0)
-			rightDistance = 0;
+		if (velDir[0] != 0)
+			frontDistance = cos(radians) * vel;
+		if (velDir[2] != 0)
+			rightDistance = sin(radians) * vel;
+			
 
 		posCam += refFront * frontDistance;
 		posCam += refRight * rightDistance;
