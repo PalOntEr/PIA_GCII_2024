@@ -47,6 +47,7 @@ public:
 	float izqder;
 	float arriaba;
 	float vel;
+	float* velDir;
 	bool breakpoint;
 	vector2 uv1[32];
 	vector2 uv2[32];
@@ -68,6 +69,7 @@ public:
 		d3dContext = 0;
 		swapChain = 0;
 		backBufferTarget = 0;
+		velDir = 0;
 		IniciaD3D(hWnd);
 		izqder = 0;
 		arriaba = 0;
@@ -218,6 +220,8 @@ public:
 
 		d3dContext->OMSetRenderTargets(1, &backBufferTarget, depthStencilView);
 
+		velDir = new float[3] { 0.0f };
+
 		return true;			
 		
 	}
@@ -243,6 +247,11 @@ public:
 		d3dContext = 0;
 		swapChain = 0;
 		backBufferTarget = 0;
+
+		if (velDir)
+			delete[] velDir;
+		velDir = 0;
+
 	}
 	
 	void Render(void)
@@ -260,7 +269,7 @@ public:
 		d3dContext->ClearRenderTargetView( backBufferTarget, clearColor );
 		d3dContext->ClearDepthStencilView( depthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0 );
 		camara->posCam.y = terreno->Superficie(camara->posCam.x, camara->posCam.z) + 5 ;
-		camara->UpdateCam(vel, arriaba, izqder);
+		camara->UpdateCam(vel, velDir, arriaba, izqder);
 		skydome->Update(camara->vista, camara->proyeccion);
 
 		float camPosXZ[2] = { camara->posCam.x, camara->posCam.z };

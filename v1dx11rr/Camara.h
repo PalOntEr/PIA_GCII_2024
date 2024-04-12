@@ -49,7 +49,7 @@ public:
 		
 	}
 
-	D3DXMATRIX UpdateCam(float vel, float arriaba, float izqder)
+	D3DXMATRIX UpdateCam(float vel, float* velDir, float arriaba, float izqder)
 	{
 		D3DXVECTOR4 tempo;
 		D3DXQUATERNION quatern; //quaternion temporal para la camara
@@ -81,10 +81,29 @@ public:
 		refFront = (D3DXVECTOR3)tempo;
 		D3DXVec3Normalize(&refFront, &refFront);
 		
+		//calculamos cuanto nos debemos de mover en cada eje
+		long double frontDistance = 0.0f;
+		long double rightDistance = 0.0f;
+
+		long double radians = atan2f(velDir[2], velDir[0]);
+
+		//if (velDir[2] == 1 && velDir[0] == 1)
+		//	radians = radians;
+		//if(velDir[2] == -1 && velDir[0] == 0)
+		//	radians = radians;
+
+		frontDistance = cosf(radians) * vel;
+		if (velDir[0] == 0)
+			frontDistance = 0;
+		rightDistance = sinf(radians) * vel;
+		if (velDir[2] == 0)
+			rightDistance = 0;
+
+		posCam += refFront * frontDistance;
+		posCam += refRight * rightDistance;
+		hdveo = posCam + refFront;
 
 		//ajustamos la matriz de vista con lo obtenido
-		posCam += refFront * vel/10.0;
-		hdveo = posCam + refFront;
 		D3DXMatrixLookAtLH(&vista, &posCam, &hdveo, &refUp);
 		D3DXMatrixTranspose( &vista, &vista );
 		return vista;

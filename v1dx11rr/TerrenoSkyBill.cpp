@@ -105,8 +105,8 @@ int WINAPI WinMain(HINSTANCE hInstance,
     ShowWindow(hWnd, SW_SHOW);
     SetForegroundWindow(hWnd);
     SetFocus(hWnd);
-	dxrr = new DXRR(hWnd, 800, 600);
-	dxrr->vel=0;
+	dxrr = new DXRR(hWnd, sizeX, sizeY);
+    dxrr->vel = 0;
     gamePad = new GamePadRR(1);
 
     ClientToScreen(hWnd, &initialPoint);
@@ -195,17 +195,33 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
             dxrr->izqder = 0;
             dxrr->arriaba = 0;
             dxrr->vel = 0;
+            dxrr->velDir[0] = 0;
+            dxrr->velDir[1] = 0;
+            dxrr->velDir[2] = 0;
 
             char keyboardData[256];
             m_pKeyboardDevice->GetDeviceState(sizeof(keyboardData), (void*)&keyboardData);
 
-            if (keyboardData[DIK_S] & 0x80) {
-                dxrr->vel = -5.f;
-            }
+            if (keyboardData[DIK_S] & 0x80 || keyboardData[DIK_W] & 0x80 || keyboardData[DIK_A] & 0x80 || keyboardData[DIK_D] & 0x80) {
 
+                dxrr->vel = 1.0f;
 
-            if (keyboardData[DIK_W] & 0x80) {
-                dxrr->vel = 5.f;
+                if (keyboardData[DIK_S] & 0x80) {
+                    dxrr->velDir[0] -= 1.0f;
+                }
+
+                if (keyboardData[DIK_W] & 0x80) {
+                    dxrr->velDir[0] += 1.0f;
+                }
+
+                if (keyboardData[DIK_A] & 0x80) {
+                    dxrr->velDir[2] += 1.0f;
+                }
+
+                if (keyboardData[DIK_D] & 0x80) {
+                    dxrr->velDir[2] -= 1.0f;
+                }
+
             }
 
             if (keyboardData[DIK_B] & 0x80) {
@@ -244,8 +260,14 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
                         velocidad *= 14.5;
                     else if (gamePad->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER) velocidad /= 3;
                     else velocidad *= 2.5;
-                    if (velocidad > 0.19) dxrr->vel = velocidad;
-                    else if (velocidad < -0.19) dxrr->vel = velocidad;
+                    if (velocidad > 0.19) {
+                        dxrr->vel = velocidad;
+                        dxrr->velDir[0] += 1.0f;
+                    }
+                    else if (velocidad < -0.19) {
+                        dxrr->vel = velocidad;
+                        dxrr->velDir[0] += 1.0f;
+                    }
                 }
 
             }
