@@ -6,6 +6,7 @@
 #include <d3dx10math.h>
 #include "TerrenoRR.h"
 #include "Camara.h"
+#include "Player.h"
 #include "SkyDome.h"
 #include "Billboard.h"
 #include "ModeloRR.h"
@@ -41,7 +42,7 @@ public:
 	TerrenoRR *terreno;
 	SkyDome *skydome;
 	BillboardRR *billboard;
-	Camara *camara;
+	Player *player;
 	ModeloRR* model;
 	
 	float izqder;
@@ -74,14 +75,11 @@ public:
 		izqder = 0;
 		arriaba = 0;
 		billCargaFuego();
-		camara = new Camara(D3DXVECTOR3(0,80,6), D3DXVECTOR3(0,80,0), D3DXVECTOR3(0,1,0), Ancho, Alto);
 		terreno = new TerrenoRR(300, 300, d3dDevice, d3dContext);
 		skydome = new SkyDome(32, 32, 100.0f, &d3dDevice, &d3dContext, L"SkyDome.png");
 		billboard = new BillboardRR(L"Assets/Billboards/fuego-anim.png",L"Assets/Billboards/fuego-anim-normal.png", d3dDevice, d3dContext, 5);
 		model = new ModeloRR(d3dDevice, d3dContext, "Assets/Cofre/Cofre.obj", L"Assets/Cofre/Cofre-color.png", L"Assets/Cofre/Cofre-spec.png", 0, 0);
-
-		
-
+		player = new Player(D3DXVECTOR3(0, 80, 0), Ancho, Alto);
 		
 	}
 
@@ -257,7 +255,7 @@ public:
 	void Render(void)
 	{
 		float sphere[3] = { 0,0,0 };
-		float prevPos[3] = { camara->posCam.x, camara->posCam.z, camara->posCam.z };
+		float prevPos[3] = { player->GetPosition().x, player->GetPosition().z, player->GetPosition().z};
 		static float angle = 0.0f;
 		angle += 0.005;
 		if (angle >= 360) angle = 0.0f;
@@ -268,22 +266,25 @@ public:
 		float clearColor[4] = { 0, 0, 0, 1.0f };
 		d3dContext->ClearRenderTargetView( backBufferTarget, clearColor );
 		d3dContext->ClearDepthStencilView( depthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0 );
-		camara->posCam.y = terreno->Superficie(camara->posCam.x, camara->posCam.z) + 5 ;
-		camara->UpdateCam(vel, velDir, arriaba, izqder);
-		skydome->Update(camara->vista, camara->proyeccion);
+		player->SetPosition(2, terreno->Superficie(player->GetPosition().x, player->GetPosition().z));
+		player->MovePlayer(vel, velDir, arriaba, izqder);
 
-		float camPosXZ[2] = { camara->posCam.x, camara->posCam.z };
+		Camara* playerCamera = player->GetCamera(true);
+
+		skydome->Update(playerCamera->vista, playerCamera->proyeccion);
+
+		float camPosXZ[2] = { player->GetPosition().x, player->GetPosition().z };
 
 		TurnOffDepth();
-		skydome->Render(camara->posCam);
+		skydome->Render(player->GetPosition());
 		TurnOnDepth();
-		terreno->Draw(camara->vista, camara->proyeccion);
+		terreno->Draw(playerCamera->vista, playerCamera->proyeccion);
 		//TurnOnAlphaBlending();
-		billboard->Draw(camara->vista, camara->proyeccion, camara->posCam,
+		billboard->Draw(playerCamera->vista, playerCamera->proyeccion, player->GetPosition(),
 			-11, -78, 4, 5, uv1, uv2, uv3, uv4, frameBillboard);
 
 		//TurnOffAlphaBlending();
-		model->Draw(camara->vista, camara->proyeccion, terreno->Superficie(100, 20), camara->posCam, 10.0f, 0, 'A', 1);
+		model->Draw(playerCamera->vista, playerCamera->proyeccion, terreno->Superficie(100, 20), player->GetPosition(), 10.0f, 0, 'A', 1);
 
 		swapChain->Present( 1, 0 );
 	}

@@ -49,6 +49,18 @@ public:
 		
 	}
 
+	D3DXMATRIX UpdateCam(D3DXVECTOR3 Front, D3DXVECTOR3 Right)
+	{
+		refFront = Front;
+		refRight = Right;
+		
+		hdveo = posCam + refFront;
+
+		//ajustamos la matriz de vista con lo obtenido
+		D3DXMatrixLookAtLH(&vista, &posCam, &hdveo, &refUp);
+		D3DXMatrixTranspose( &vista, &vista );
+		return vista;
+	}
 	D3DXMATRIX UpdateCam(float vel, float* velDir, float arriaba, float izqder)
 	{
 		D3DXVECTOR4 tempo;
@@ -80,7 +92,7 @@ public:
 		D3DXVec3Transform(&tempo, &refFront, &giraRight);
 		refFront = (D3DXVECTOR3)tempo;
 		D3DXVec3Normalize(&refFront, &refFront);
-		
+
 		//calculamos cuanto nos debemos de mover en cada eje
 		long double frontDistance = 0.0f;
 		long double rightDistance = 0.0f;
@@ -96,7 +108,7 @@ public:
 			frontDistance = cos(radians) * vel;
 		if (velDir[2] != 0)
 			rightDistance = sin(radians) * vel;
-			
+
 
 		posCam += refFront * frontDistance;
 		posCam += refRight * rightDistance;
