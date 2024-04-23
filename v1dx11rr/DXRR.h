@@ -52,6 +52,9 @@ public:
 	ModeloRR* Tree1; 
 	ModeloRR** Sticks; 
 	ModeloRR** Crystals; 
+	ModeloRR* BallRock;
+	ModeloRR* House;
+	ModeloRR* Cap;
 	
 
 
@@ -97,6 +100,11 @@ public:
 		pilarRoca1 = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/pilarRoca1.obj", L"Assets/Cofre/Cofre-color.png", L"Assets/Cofre/Cofre-spec.png", 10, 10);
 		//biolaRoca = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/biolaRoca.obj", L"Assets/Cofre/Cofre-color.png", L"Assets/Cofre/Cofre-spec.png", 0, 0);
 		AntModel_Rigged_Smooth = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/AntModel_Rigged_Smooth.obj", L"Assets/Cofre/Cofre-color.png", L"Assets/Cofre/Cofre-spec.png", 0, 0);
+		BallRock  = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/BallRock.obj", L"Assets/Cofre/Cofre-color.png", L"Assets/Cofre/Cofre-spec.png", 0, 0);
+		House = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/Old_stone_house.obj", L"Assets/Cofre/Cofre-color.png", L"Assets/Cofre/Cofre-spec.png", 20, 0);
+		Cap = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/cap.obj", L"Assets/Cofre/Cofre-color.png", L"Assets/Cofre/Cofre-spec.png", 0, 0);
+		Tree1 = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/Tree1.obj", L"Assets/Cofre/Cofre-color.png", L"Assets/Cofre/Cofre-spec.png", 0, 0);
+		
 		Crystals = new ModeloRR *[3];
 		Crystals[0] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/Cristal1.obj", L"Assets/Cofre/Cofre-color.png", L"Assets/Cofre/Cofre-spec.png", 5, -5);
 		Crystals[1] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/Cristal2.obj", L"Assets/Cofre/Cofre-color.png", L"Assets/Cofre/Cofre-spec.png", 5, -5);
@@ -105,8 +113,8 @@ public:
 		Hojas = new ModeloRR * [3]; 
 		Hojas[0] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/Hoja1.obj", L"Assets/Cofre/Cofre-color.png", L"Assets/Cofre/Cofre-spec.png", 10, 15);
 		Hojas[1] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/Hoja2.obj", L"Assets/Cofre/Cofre-color.png", L"Assets/Cofre/Cofre-spec.png", 15, 10);
-		Hojas[2] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/Hoja3.obj", L"Assets/Cofre/Cofre-color.png", L"Assets/Cofre/Cofre-spec.png", 20, 15)
-			;
+		Hojas[2] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/Hoja3.obj", L"Assets/Cofre/Cofre-color.png", L"Assets/Cofre/Cofre-spec.png", 20, 15);
+			
 		Sticks = new ModeloRR*[3]; 
 		Sticks[0] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/Stick1.obj", L"Assets/Cofre/Cofre-color.png", L"Assets/Cofre/Cofre-spec.png", 5, -5);
 		Sticks[1] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/Stick2.obj", L"Assets/Cofre/Cofre-color.png", L"Assets/Cofre/Cofre-spec.png", -5, 5);
@@ -252,7 +260,7 @@ public:
 		}
 
 		d3dContext->OMSetRenderTargets(1, &backBufferTarget, depthStencilView);
-
+			
 		velDir = new float[3] { 0.0f };
 
 		return true;			
@@ -312,11 +320,10 @@ public:
 
 		TurnOffDepth();
 		skydome->Render(player->GetPosition());
-		TurnOnDepth();
+		TurnOnDepth();	
 		terreno->Draw(playerCamera->vista, playerCamera->proyeccion);
 		//TurnOnAlphaBlending();
-		billboard->Draw(playerCamera->vista, playerCamera->proyeccion, player->GetPosition(),
-			-11, -78, 4, 5, uv1, uv2, uv3, uv4, frameBillboard);
+		billboard->Draw(playerCamera->vista, playerCamera->proyeccion, player->GetPosition(),-11, -78, 4, 5, uv1, uv2, uv3, uv4, frameBillboard);
 
 		//TurnOffAlphaBlending();
 
@@ -324,7 +331,11 @@ public:
 		botella->Draw(playerCamera->vista, playerCamera->proyeccion, terreno->Superficie(botella->getPosX(), botella->getPosZ()), player->GetPosition(), 10.0f, 0, 'A', 1);
 		//biolaRoca->Draw(playerCamera->vista, playerCamera->proyeccion, terreno->Superficie(90, 20), player->GetPosition(), 10.0f, 0, 'A', 1);
 		AntModel_Rigged_Smooth->Draw(playerCamera->vista, playerCamera->proyeccion, terreno->Superficie(AntModel_Rigged_Smooth->getPosX(), AntModel_Rigged_Smooth->getPosZ()), player->GetPosition(), 10.0f, 0, 'A', 1);
-		pilarRoca1->Draw(playerCamera->vista, playerCamera->proyeccion, terreno->Superficie(AntModel_Rigged_Smooth->getPosX(), AntModel_Rigged_Smooth->getPosZ()), player->GetPosition(), 10.0f, 0, 'A', 1);
+		pilarRoca1->Draw(playerCamera->vista, playerCamera->proyeccion, terreno->Superficie(pilarRoca1->getPosX(), pilarRoca1->getPosZ()), player->GetPosition(), 10.0f, 0, 'A', 1);
+		House->Draw(playerCamera->vista, playerCamera->proyeccion, terreno->Superficie(House->getPosX(), House->getPosZ()), player->GetPosition(), 10.0f, 0, 'A', 1);
+		BallRock->Draw(playerCamera->vista, playerCamera->proyeccion, terreno->Superficie(BallRock->getPosX(), BallRock->getPosZ()), player->GetPosition(), 10.0f, 0, 'A', 1);
+		Cap->Draw(playerCamera->vista, playerCamera->proyeccion, terreno->Superficie(Cap->getPosX(), Cap->getPosZ()), player->GetPosition(), 10.0f, 0, 'A', 0.1);
+		Tree1->Draw(playerCamera->vista, playerCamera->proyeccion, terreno->Superficie(Tree1->getPosX(), Tree1->getPosZ()), player->GetPosition(), 10.0f, 0, 'A', 0.1);
 		
 
 		for (int i = 0; i < 3; i++)
