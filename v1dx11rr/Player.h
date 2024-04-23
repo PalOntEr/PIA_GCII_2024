@@ -11,6 +11,8 @@
 #include "Camara.h"
 #include "ModeloRR.h"
 
+
+
 class Player {
 
 private:
@@ -27,6 +29,7 @@ private:
 	float height;
 
 public:
+
 	ModeloRR** m_playerModels;
 
 	int m_animations;
