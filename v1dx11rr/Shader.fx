@@ -60,8 +60,8 @@ float4 PS_Main(PS_Input pix) : SV_TARGET
 
 	float3 ambient = float3(0.1f, 0.1f, 0.1f);
 
-	float4 text = colorMap.Sample(colorSampler, pix.tex0);
-	float4 text2 = colorMap2.Sample(colorSampler, pix.tex0);
+	float4 text = colorMap.Sample(colorSampler, pix.tex0 * 0.5f);
+	float4 text2 = colorMap2.Sample(colorSampler, pix.tex0 * 0.5f);
 	float4 alphaBlend = blendMap.Sample(colorSampler, pix.blendTex);
 	float4 textf = (text * alphaBlend) + ((1.0 - alphaBlend) * text2);
 
