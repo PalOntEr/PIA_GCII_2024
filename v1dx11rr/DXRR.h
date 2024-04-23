@@ -127,8 +127,6 @@ public:
 		Sticks[1] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/Stick2.obj", L"Assets/Textures/Stick.png", L"Assets/Textures/NoSpecular.png", -18, 88);
 		Sticks[2] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/Stick3.obj", L"Assets/Textures/Stick.png", L"Assets/Textures/NoSpecular.png", -39, 70);
 		
-
-
 		player = new Player(D3DXVECTOR3(0, 80, 0), Ancho, Alto);
 		
 	}
