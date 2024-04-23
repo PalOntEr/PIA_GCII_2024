@@ -58,6 +58,7 @@ private:
 	XMFLOAT3 camPos;
 	ID3D11Buffer* specForceCB;
 	float specForce;
+	ID3D11Buffer* timerBufferCB;
 
 	int ancho, alto;
 	int anchoTexTerr, altoTexTerr;
@@ -284,6 +285,13 @@ public:
 		{
 			return false;
 		}
+		
+		d3dResult = d3dDevice->CreateBuffer(&constDesc, 0, &timerBufferCB);
+
+		if (FAILED(d3dResult))
+		{
+			return false;
+		}
 
 		//posicion de la camara
 		D3DXVECTOR3 eye = D3DXVECTOR3(0.0f, 100.0f, 200.0f);
@@ -329,6 +337,8 @@ public:
 			cameraPosCB->Release();
 		if (specForceCB)
 			specForceCB->Release();
+		if (timerBufferCB)
+			timerBufferCB->Release();
 		
 
 		colorMapSampler = 0;
@@ -351,7 +361,7 @@ public:
 
 	}
 
-	void Draw(D3DXMATRIX vista, D3DXMATRIX proyeccion, float ypos, D3DXVECTOR3 posCam, float specForce, float rot, char angle, float scale)
+	void Draw(D3DXMATRIX vista, D3DXMATRIX proyeccion, float ypos, D3DXVECTOR3 posCam, float specForce, float rot, char angle, float scale, XMFLOAT4* timer)
 	{
 		static float rotation = 0.0f;
 		rotation += 0.01;
@@ -412,6 +422,10 @@ public:
 		d3dContext->VSSetConstantBuffers(2, 1, &projCB);
 		d3dContext->VSSetConstantBuffers(3, 1, &cameraPosCB);
 		d3dContext->VSSetConstantBuffers(4, 1, &specForceCB);
+
+		d3dContext->UpdateSubresource(timerBufferCB, 0, 0, timer, sizeof(XMFLOAT4), 0);
+		d3dContext->PSSetConstantBuffers(5, 1, &timerBufferCB);
+
 		//cantidad de trabajos
 		
 		d3dContext->Draw(m_ObjParser.m_nVertexCount, 0);
@@ -419,7 +433,7 @@ public:
 
 	}
 
-	void Draw(D3DXMATRIX vista, D3DXMATRIX proyeccion, float* pos, D3DXVECTOR3 posCam, float specForce, float rot, char angle, float scale)
+	void Draw(D3DXMATRIX vista, D3DXMATRIX proyeccion, float* pos, D3DXVECTOR3 posCam, float specForce, float rot, char angle, float scale, XMFLOAT4* timer)
 	{
 		static float rotation = 0.0f;
 		rotation += 0.01;
@@ -480,6 +494,10 @@ public:
 		d3dContext->VSSetConstantBuffers(2, 1, &projCB);
 		d3dContext->VSSetConstantBuffers(3, 1, &cameraPosCB);
 		d3dContext->VSSetConstantBuffers(4, 1, &specForceCB);
+
+		d3dContext->UpdateSubresource(timerBufferCB, 0, 0, timer, sizeof(XMFLOAT4), 0);
+		d3dContext->PSSetConstantBuffers(5, 1, &timerBufferCB);
+
 		//cantidad de trabajos
 		
 		d3dContext->Draw(m_ObjParser.m_nVertexCount, 0);

@@ -12,6 +12,7 @@
 #include "Billboard.h"
 #include "ModeloRR.h"
 #include "XACT3Util.h"
+#define DAYCYCLESPEED 0.001f
 
 class DXRR{	
 
@@ -57,10 +58,7 @@ public:
 	ModeloRR* Cap = NULL;
 	ModeloRR* Anthole = NULL;
 	
-
-
-
-
+	XMFLOAT4* timer;
 	
 	float izqder;
 	float arriaba;
@@ -93,8 +91,14 @@ public:
 		arriaba = 0;
 		billCargaFuego();
 
+		timer = new XMFLOAT4;
+		timer->x = 0.0f;
+		timer->y = 0.0f;
+		timer->z = 0.0f;
+		timer->w = 0.0f;
+
 		terreno = new TerrenoRR(300, 300, d3dDevice, d3dContext);
-		skydome = new SkyDome(32, 32, 100.0f, &d3dDevice, &d3dContext, L"Assets/Skydomes/clear.jpg");
+		skydome = new SkyDome(32, 32, 100.0f, &d3dDevice, &d3dContext, L"Assets/Skydomes/clear.jpg", L"Assets/Skydomes/night.png");
 		//billboard = new BillboardRR(L"Assets/Billboards/fuego-anim.png",L"Assets/Billboards/fuego-anim-normal.png", d3dDevice, d3dContext, 5);
 		//model = new ModeloRR(d3dDevice, d3dContext, "Assets/Cofre/Cofre.obj", L"Assets/Cofre/Cofre-color.png", L"Assets/Cofre/Cofre-spec.png", 0, 0);
 		House = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/Old_stone_house.obj", L"Assets/Textures/Old_stone_house_BaseColor.png", L"Assets/Textures/NoSpecular.png", 20, 0);
@@ -287,6 +291,7 @@ public:
 		d3dContext = 0;
 		swapChain = 0;
 		backBufferTarget = 0;
+		timer = 0;
 
 		if (velDir)
 			delete[] velDir;
@@ -296,6 +301,17 @@ public:
 	
 	void Render(void)
 	{
+
+		if (timer->y == 0.0f)
+			timer->x += DAYCYCLESPEED;
+		else
+			timer->x -= DAYCYCLESPEED;
+
+		if (timer->x >= 1.0f)
+			timer->y = 1.0f;
+		else if (timer->x <= 0.0f)
+			timer->y = 0.0f;
+
 		float sphere[3] = { 0,0,0 };
 		float prevPos[3] = { player->GetPosition().x, player->GetPosition().z, player->GetPosition().z};
 		static float angle = 0.0f;
@@ -318,9 +334,9 @@ public:
 		float camPosXZ[2] = { player->GetPosition().x, player->GetPosition().z };
 
 		TurnOffDepth();
-		skydome->Render(player->GetPosition());
+		skydome->Render(player->GetPosition(), timer);
 		TurnOnDepth();	
-		terreno->Draw(playerCamera->vista, playerCamera->proyeccion);
+		terreno->Draw(playerCamera->vista, playerCamera->proyeccion, (float*)timer);
 		//TurnOnAlphaBlending();
 		//billboard->Draw(playerCamera->vista, playerCamera->proyeccion, player->GetPosition(),-11, -78, 4, 5, uv1, uv2, uv3, uv4, frameBillboard);
 
@@ -334,7 +350,7 @@ public:
 			newPosition[0] = 55.0f;
 			newPosition[1] = terreno->Superficie(botella->getPosX(), botella->getPosZ()) - 2.6f;
 			newPosition[2] = -73.0f;
-			botella->Draw(playerCamera->vista, playerCamera->proyeccion, newPosition, player->GetPosition(), 10.0f, 45, 'X', 1);
+			botella->Draw(playerCamera->vista, playerCamera->proyeccion, newPosition, player->GetPosition(), 10.0f, 45, 'X', 1, timer);
 		}
 
 		if (AntModel_Rigged_Smooth) {
@@ -344,57 +360,57 @@ public:
 			D3DXVECTOR3 playerRef = player->GetFrontReference2D();
 			float rotAngle = playerRef.z > 0 ? atanf(playerRef.x / playerRef.z) : atanf(playerRef.x / playerRef.z) + D3DX_PI;
 
-			AntModel_Rigged_Smooth->Draw(playerCamera->vista, playerCamera->proyeccion, newPosition, player->GetPosition(), 10.0f, rotAngle, 'Y', 1);
+			AntModel_Rigged_Smooth->Draw(playerCamera->vista, playerCamera->proyeccion, newPosition, player->GetPosition(), 10.0f, rotAngle, 'Y', 1, timer);
 		}
 
 		if(pilarRoca1)
-			pilarRoca1->Draw(playerCamera->vista, playerCamera->proyeccion, terreno->Superficie(pilarRoca1->getPosX(), pilarRoca1->getPosZ()), player->GetPosition(), 10.0f, 0, 'A', 1);
+			pilarRoca1->Draw(playerCamera->vista, playerCamera->proyeccion, terreno->Superficie(pilarRoca1->getPosX(), pilarRoca1->getPosZ()), player->GetPosition(), 10.0f, 0, 'A', 1, timer);
 
 		if (House) {
 			newPosition[0] = 95.0f;
 			newPosition[1] = terreno->Superficie(House->getPosX(), House->getPosZ());
 			newPosition[2] = -122.0f;
-			House->Draw(playerCamera->vista, playerCamera->proyeccion, newPosition, player->GetPosition(), 10.0f, 0, 'A', 1);
+			House->Draw(playerCamera->vista, playerCamera->proyeccion, newPosition, player->GetPosition(), 10.0f, 0, 'A', 1, timer);
 		}
 
 		if (Anthole) {
 			newPosition[0] = 0.0f;
 			newPosition[1] = terreno->Superficie(Anthole->getPosX(), Anthole->getPosZ()) - 2.0f;
 			newPosition[2] = 0.0f;
-			Anthole->Draw(playerCamera->vista, playerCamera->proyeccion, newPosition, player->GetPosition(), 10.0f, 0, 'A', 4.0f);
+			Anthole->Draw(playerCamera->vista, playerCamera->proyeccion, newPosition, player->GetPosition(), 10.0f, 0, 'A', 4.0f, timer);
 		}
 
 		if(BallRock)
-			BallRock->Draw(playerCamera->vista, playerCamera->proyeccion, terreno->Superficie(BallRock->getPosX(), BallRock->getPosZ()), player->GetPosition(), 10.0f, 0, 'A', 1);
+			BallRock->Draw(playerCamera->vista, playerCamera->proyeccion, terreno->Superficie(BallRock->getPosX(), BallRock->getPosZ()), player->GetPosition(), 10.0f, 0, 'A', 1, timer);
 
 		if (Cap) {
 			newPosition[0] = -24.0f;
 			newPosition[1] = terreno->Superficie(Cap->getPosX(), Cap->getPosZ());
 			newPosition[2] = -28.0f;
-			Cap->Draw(playerCamera->vista, playerCamera->proyeccion, newPosition, player->GetPosition(), 10.0f, 0, 'A', 0.1);
+			Cap->Draw(playerCamera->vista, playerCamera->proyeccion, newPosition, player->GetPosition(), 10.0f, 0, 'A', 0.1, timer);
 		}
 
 		if (Tree1) {
 			newPosition[0] = -24.0f;
 			newPosition[1] = terreno->Superficie(Tree1->getPosX(), Tree1->getPosZ());
 			newPosition[2] = -28.0f;
-			Tree1->Draw(playerCamera->vista, playerCamera->proyeccion, newPosition, player->GetPosition(), 10.0f, 0, 'A', 1.0);
+			Tree1->Draw(playerCamera->vista, playerCamera->proyeccion, newPosition, player->GetPosition(), 10.0f, 0, 'A', 1.0, timer);
 		}
 
 		if(Hojas)
 			for (int i = 0; i < 3; i++)
 				if(Hojas[i])
-					Hojas[i]->Draw(playerCamera->vista, playerCamera->proyeccion, terreno->Superficie(Hojas[i]->getPosX(), Hojas[i]->getPosZ()), player->GetPosition(), 10.0f, 0, 'A', 1);
+					Hojas[i]->Draw(playerCamera->vista, playerCamera->proyeccion, terreno->Superficie(Hojas[i]->getPosX(), Hojas[i]->getPosZ()), player->GetPosition(), 10.0f, 0, 'A', 1, timer);
 
 		if(Crystals)
 			for (int i = 0; i < 3; i++)
 				if(Crystals[i])
-					Crystals[i]->Draw(playerCamera->vista, playerCamera->proyeccion, terreno->Superficie(Crystals[i]->getPosX(), Crystals[i]->getPosZ()), player->GetPosition(), 10.0f, 0, 'A', 1);
+					Crystals[i]->Draw(playerCamera->vista, playerCamera->proyeccion, terreno->Superficie(Crystals[i]->getPosX(), Crystals[i]->getPosZ()), player->GetPosition(), 10.0f, 0, 'A', 1, timer);
 
 		if(Sticks)
 			for (int i = 0; i < 3; i++) 
 				if(Sticks[i])
-					Sticks[i]->Draw(playerCamera->vista, playerCamera->proyeccion, terreno->Superficie(Sticks[i]->getPosX(), Sticks[i]->getPosZ()), player->GetPosition(), 10.0f, 0, 'A', 1);
+					Sticks[i]->Draw(playerCamera->vista, playerCamera->proyeccion, terreno->Superficie(Sticks[i]->getPosX(), Sticks[i]->getPosZ()), player->GetPosition(), 10.0f, 0, 'A', 1, timer);
 
 		swapChain->Present( 1, 0 );
 	}
