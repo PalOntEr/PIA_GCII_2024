@@ -336,9 +336,9 @@ public:
 
 		if (botella) {
 			newPosition[0] = 55.0f;
-			newPosition[1] = terreno->Superficie(botella->getPosX(), botella->getPosZ()) - 2.6f;
+			newPosition[1] = terreno->Superficie(botella->getPosX(), botella->getPosZ()) - 5.0f;
 			newPosition[2] = -73.0f;
-			botella->Draw(playerCamera->vista, playerCamera->proyeccion, newPosition, player->GetPosition(), 10.0f, 45, 'X', 1);
+			botella->Draw(playerCamera->vista, playerCamera->proyeccion, newPosition, player->GetPosition(), 10.0f, 45, 'X', 4.0f);
 		}
 
 		if (AntModel_Rigged_Smooth) {
