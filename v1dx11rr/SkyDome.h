@@ -34,9 +34,12 @@ private:
 	ID3D11Buffer* indexBuffer;
 
 	ID3D11ShaderResourceView* textura;
+	ID3D11ShaderResourceView* night;
 	ID3D11SamplerState* texSampler;
 
+	XMFLOAT4* timer;
 	ID3D11Buffer* matrixBufferCB;
+	ID3D11Buffer* timerBufferCB;
 	MatrixType* matrices;
 
 	SkyComponent* vertices;
@@ -48,7 +51,7 @@ private:
 
 public:
 	SkyDome(int slices, int stacks, float radio, ID3D11Device** d3dDevice,
-		ID3D11DeviceContext** d3dContext, WCHAR* diffuseTex)
+		ID3D11DeviceContext** d3dContext, WCHAR* diffuseTex, WCHAR* nightTex = NULL)
 	{
 		this->slices = slices;
 		this->stacks = stacks;
@@ -57,7 +60,10 @@ public:
 		vertices = NULL;
 		this->d3dDevice = d3dDevice;
 		this->d3dContext = d3dContext;
-		LoadContent(diffuseTex);
+		if (!nightTex)
+			LoadContent(diffuseTex);
+		else 
+			LoadContent(diffuseTex, nightTex);
 	}
 
 	~SkyDome()
@@ -235,6 +241,178 @@ public:
 			return false;
 		}
 		matrices = new MatrixType;
+		matrices->valores.x = 0;
+		matrices->valores.y = 0;
+
+		return true;
+	}
+
+	bool LoadContent(WCHAR* diffuseTex, WCHAR* nightTex)
+	{
+		HRESULT d3dResult;
+
+		ID3DBlob* vsBuffer = 0;
+
+		bool compileResult = CompileD3DShader(L"Skydome.fx", "VS_Main", "vs_4_0", &vsBuffer);
+
+		if (compileResult == false)
+		{
+			return false;
+		}
+
+
+		d3dResult = (*d3dDevice)->CreateVertexShader(vsBuffer->GetBufferPointer(),
+			vsBuffer->GetBufferSize(), 0, &solidColorVS);
+
+		if (FAILED(d3dResult))
+		{
+
+			if (vsBuffer)
+				vsBuffer->Release();
+
+			return false;
+		}
+
+		D3D11_INPUT_ELEMENT_DESC solidColorLayout[] =
+		{
+			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+		};
+
+		unsigned int totalLayoutElements = ARRAYSIZE(solidColorLayout);
+
+		d3dResult = (*d3dDevice)->CreateInputLayout(solidColorLayout, totalLayoutElements,
+			vsBuffer->GetBufferPointer(), vsBuffer->GetBufferSize(), &inputLayout);
+
+		vsBuffer->Release();
+
+		if (FAILED(d3dResult))
+		{
+			return false;
+		}
+
+		ID3DBlob* psBuffer = 0;
+
+		compileResult = CompileD3DShader(L"Skydome.fx", "PS_Main", "ps_4_0", &psBuffer);
+
+		if (compileResult == false)
+		{
+			return false;
+		}
+
+		d3dResult = (*d3dDevice)->CreatePixelShader(psBuffer->GetBufferPointer(),
+			psBuffer->GetBufferSize(), 0, &solidColorPS);
+
+		psBuffer->Release();
+
+		if (FAILED(d3dResult))
+		{
+			return false;
+		}
+
+		int cantVert = slices * stacks;
+		vertices = new SkyComponent[cantVert];
+		float dx = slices - 1.0f;
+		float dy = stacks - 1.0f;
+		float maxY = 0;
+
+		for (int x = 0; x < slices; x++)
+		{
+			for (int y = 0; y < stacks; y++)
+			{
+				float u = (float)(((double)((dx - x)*0.5f) / dx) *
+					sin(D3DX_PI * y * 2.0f / dx)) + 0.5f;
+				float v = (float)(((double)((dy - x)*0.5f) / dy) *
+					cos(D3DX_PI * y * 2.0 / dy)) + 0.5f;
+
+				int indiceArreglo = x * slices + y;
+				vertices[indiceArreglo].pos = D3DXVECTOR3((float)(radio*cos(((double)x / dx)* D3DX_PI / 2) *
+					cos(2.0 * D3DX_PI * (double)y / dx)), (float)(radio*sin(((double)x / dx) * D3DX_PI / 2)),
+					(float)(radio*cos(((double)x / dy) * D3DX_PI / 2)*sin(2.0f * D3DX_PI * (double)y / dy)));
+				vertices[indiceArreglo].UV = D3DXVECTOR2(u, v);
+			}
+		}
+		D3D11_BUFFER_DESC vertexDesc;
+		ZeroMemory(&vertexDesc, sizeof(vertexDesc));
+		vertexDesc.Usage = D3D11_USAGE_DEFAULT;
+		vertexDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+		vertexDesc.ByteWidth = sizeof(SkyComponent) * cantVert;
+
+		D3D11_SUBRESOURCE_DATA resourceData;
+		ZeroMemory(&resourceData, sizeof(resourceData));
+		resourceData.pSysMem = vertices;
+
+		d3dResult = (*d3dDevice)->CreateBuffer(&vertexDesc, &resourceData, &vertexBuffer);
+
+		if (FAILED(d3dResult))
+		{
+			MessageBox(0, L"Error", L"Error al crear vertex buffer", MB_OK);
+			return false;
+		}
+		delete vertices;
+
+		creaIndices();
+
+		d3dResult = D3DX11CreateShaderResourceViewFromFile((*d3dDevice), diffuseTex, 0, 0, &textura, 0);
+
+		if (FAILED(d3dResult))
+		{
+			return false;
+		}
+
+		d3dResult = D3DX11CreateShaderResourceViewFromFile((*d3dDevice), nightTex, 0, 0, &night, 0);
+
+		if (FAILED(d3dResult))
+		{
+			return false;
+		}
+
+		D3D11_SAMPLER_DESC colorMapDesc;
+		ZeroMemory(&colorMapDesc, sizeof(colorMapDesc));
+		colorMapDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+		colorMapDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+		colorMapDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+		colorMapDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+		colorMapDesc.Filter = D3D11_FILTER_ANISOTROPIC;
+		colorMapDesc.MaxAnisotropy = 8;
+		colorMapDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+		d3dResult = (*d3dDevice)->CreateSamplerState(&colorMapDesc, &texSampler);
+
+		if (FAILED(d3dResult))
+		{
+			return false;
+		}
+
+
+		D3D11_BUFFER_DESC constDesc;
+		ZeroMemory(&constDesc, sizeof(constDesc));
+		constDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+		constDesc.ByteWidth = sizeof(MatrixType);
+		constDesc.Usage = D3D11_USAGE_DEFAULT;
+
+		d3dResult = (*d3dDevice)->CreateBuffer(&constDesc, 0, &matrixBufferCB);
+
+		if (FAILED(d3dResult))
+		{
+			return false;
+		}
+		matrices = new MatrixType;
+
+
+		constDesc.ByteWidth = sizeof(XMFLOAT4);
+
+		d3dResult = (*d3dDevice)->CreateBuffer(&constDesc, 0, &timerBufferCB);
+
+		if (FAILED(d3dResult))
+		{
+			return false;
+		}
+		timer = new XMFLOAT4;
+		timer->x = 0.0f;
+		timer->y = 0.0f;
+		timer->z = 0.0f;
+		timer->w = 0.0f;
 
 		return true;
 	}
@@ -257,15 +435,20 @@ public:
 			indexBuffer->Release();
 		if (matrixBufferCB)
 			matrixBufferCB->Release();
+		if (timerBufferCB)
+			timerBufferCB->Release();
 
 		texSampler = 0;
 		textura = 0;
+		night = 0;
 		solidColorVS = 0;
 		solidColorPS = 0;
 		inputLayout = 0;
 		vertexBuffer = 0;
 		indexBuffer = 0;
 		matrixBufferCB = 0;
+		timerBufferCB = 0;
+		timer = 0;
 
 		return true;
 	}
@@ -278,6 +461,7 @@ public:
 
 	void Render(D3DXVECTOR3 trans)
 	{
+
 		if (d3dContext == 0)
 			return;
 
@@ -292,6 +476,7 @@ public:
 		(*d3dContext)->VSSetShader(solidColorVS, 0, 0);
 		(*d3dContext)->PSSetShader(solidColorPS, 0, 0);
 		(*d3dContext)->PSSetShaderResources(0, 1, &textura);
+		(*d3dContext)->PSSetShaderResources(1, 1, &night);
 		(*d3dContext)->PSSetSamplers(0, 1, &texSampler);
 
 		D3DXMATRIX worldMat;
@@ -301,6 +486,54 @@ public:
 
 		(*d3dContext)->UpdateSubresource(matrixBufferCB, 0, 0, matrices, sizeof(MatrixType), 0);
 		(*d3dContext)->VSSetConstantBuffers(0, 1, &matrixBufferCB);
+
+		if (timer->y == 0.0f)
+			timer->x += 0.001f;
+		else
+			timer->x -= 0.001f;
+
+		if (timer->x >= 1.0f)
+			timer->y = 1.0f;
+		else if (timer->x <= 0.0f)
+			timer->y = 0.0f;
+
+		(*d3dContext)->UpdateSubresource(timerBufferCB, 0, 0, timer, sizeof(XMFLOAT4), 0);
+		(*d3dContext)->PSSetConstantBuffers(1, 1, &timerBufferCB);
+
+		(*d3dContext)->DrawIndexed(cantIndex, 0, 0);
+	}
+
+	void Render(D3DXVECTOR3 trans, XMFLOAT4* timer)
+	{
+
+		if (d3dContext == 0)
+			return;
+
+		unsigned int stride = sizeof(SkyComponent);
+		unsigned int offset = 0;
+
+		(*d3dContext)->IASetInputLayout(inputLayout);
+		(*d3dContext)->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
+		(*d3dContext)->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R16_UINT, 0);
+		(*d3dContext)->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+		(*d3dContext)->VSSetShader(solidColorVS, 0, 0);
+		(*d3dContext)->PSSetShader(solidColorPS, 0, 0);
+		(*d3dContext)->PSSetShaderResources(0, 1, &textura);
+		(*d3dContext)->PSSetShaderResources(1, 1, &night);
+		(*d3dContext)->PSSetSamplers(0, 1, &texSampler);
+
+		D3DXMATRIX worldMat;
+		D3DXMatrixTranslation(&worldMat, trans.x, trans.y - 50.0f, trans.z);
+		D3DXMatrixTranspose(&worldMat, &worldMat);
+		matrices->worldMatrix = worldMat;
+
+		(*d3dContext)->UpdateSubresource(matrixBufferCB, 0, 0, matrices, sizeof(MatrixType), 0);
+		(*d3dContext)->VSSetConstantBuffers(0, 1, &matrixBufferCB);
+
+		this->timer = timer;
+		(*d3dContext)->UpdateSubresource(timerBufferCB, 0, 0, timer, sizeof(XMFLOAT4), 0);
+		(*d3dContext)->PSSetConstantBuffers(1, 1, &timerBufferCB);
 
 		(*d3dContext)->DrawIndexed(cantIndex, 0, 0);
 	}

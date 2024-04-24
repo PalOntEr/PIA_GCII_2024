@@ -28,6 +28,11 @@ cbuffer cbChangesOccasionally : register(b4)
 	float specForce;
 };
 
+cbuffer TimerBuffer : register(b5)
+{
+    float4 timer;
+};
+
 struct VS_Input
 {
 	float4 pos : POSITION;
@@ -92,7 +97,7 @@ float4 PS_Main(PS_Input pix) : SV_TARGET
 
 	if (lightIntensity > 0) {
 		// Determine the final diffuse color based on the diffuse color and the amount of light intensity.
-		color += (float4(1.0f, 1.f, 1.f, 1.0f)/*diffuse color*/ * lightIntensity);
+        color += (float4((timer.x - 1) * -1, (timer.x - 1) * -1, (timer.x - 1) * -1, (timer.x - 1) * -1) /*diffuse color*/ * lightIntensity);
 
 		// Saturate the ambient and diffuse color.
 		color = saturate(color);
