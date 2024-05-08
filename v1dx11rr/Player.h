@@ -11,6 +11,8 @@
 #include "Camara.h"
 #include "ModeloRR.h"
 
+
+
 class Player {
 
 private:
@@ -27,6 +29,7 @@ private:
 	float height;
 
 public:
+
 	ModeloRR** m_playerModels;
 
 	int m_animations;
@@ -54,7 +57,7 @@ public:
 		m_refFront2d = m_refFront;
 		m_refRight2d = m_refRight;
 
-		height = 5.0f;
+		height = 2.5f;
 
 		front.y += height;
 		m_firstPerson = new Camara(D3DXVECTOR3(m_position.x, m_position.y + height, m_position.z), front, D3DXVECTOR3(0, 1, 0), Ancho, Alto);
@@ -120,12 +123,7 @@ public:
 		long double frontDistance = 0.0f;
 		long double rightDistance = 0.0f;
 
-		long double radians = atan2f(velDir[2], velDir[0]);
-
-		if (velDir[2] == 1 && velDir[0] == 1)
-			radians = radians;
-		if(velDir[2] == -1 && velDir[0] == 0)
-			radians = radians;
+		long double radians = atan2f(velDir[2], velDir[0]);	
 
 		if (velDir[0] != 0)
 			frontDistance = cos(radians) * vel;
@@ -151,6 +149,13 @@ public:
 			return m_firstPerson;
 		else
 			return m_thirdPerson;
+	}
+
+	D3DXVECTOR3 GetFrontReference() {
+		return m_refFront;
+	}
+	D3DXVECTOR3 GetFrontReference2D() {
+		return m_refFront2d;
 	}
 
 	void SetPosition(D3DXVECTOR3 position) {

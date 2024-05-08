@@ -41,6 +41,7 @@ private:
 	ID3D11Buffer* viewCB;
 	ID3D11Buffer* projCB;
 	ID3D11Buffer* worldCB;
+	ID3D11Buffer* timerBufferCB;
 	D3DXMATRIX viewMatrix;
 	D3DXMATRIX projMatrix;
 
@@ -67,8 +68,10 @@ public:
 		this->ancho = ancho;
 		this->alto = alto;
 		//aqui cargamos las texturas de alturas y el cesped
-		CargaParametros(L"vckmabus_2K_Albedo.jpg", L"alturas.jpg", 100.0f);
+		CargaParametros(L"tierraBuena.jpg", L"heightMapReynosaWater.png ", 100.0f); 
+
 	}
+
 
 	~TerrenoRR()
 	{
@@ -246,13 +249,17 @@ public:
 		estableceIndices();
 		//crea los accesos de las texturas para los shaders 
 		d3dResult = D3DX11CreateShaderResourceViewFromFile( d3dDevice, diffuseTex, 0, 0, &colorMap, 0 );
-		d3dResult = D3DX11CreateShaderResourceViewFromFile( d3dDevice, L"ugsnfawlw_2K_Albedo.jpg", 0, 0, &colorMap2, 0 );
-		d3dResult = D3DX11CreateShaderResourceViewFromFile( d3dDevice, L"alturas.jpg", 0, 0, &blendMap, 0 );
+		d3dResult = D3DX11CreateShaderResourceViewFromFile( d3dDevice, L"cespedGood.jpg", 0, 0, &colorMap2, 0 );
+		d3dResult = D3DX11CreateShaderResourceViewFromFile( d3dDevice, L"heightMapReynosaBlur.png", 0, 0, &blendMap, 0 );
+
+
 
 		if( FAILED( d3dResult ) )
 		{
 			return false;
 		}
+
+
 		//aqui creamos el sampler
 		D3D11_SAMPLER_DESC colorMapDesc;
 		ZeroMemory( &colorMapDesc, sizeof(colorMapDesc) );
@@ -298,6 +305,16 @@ public:
 			return false;
 		}
 
+
+		constDesc.ByteWidth = sizeof(float[4]);
+
+		d3dResult = d3dDevice->CreateBuffer(&constDesc, 0, &timerBufferCB);
+
+		if (FAILED(d3dResult))
+		{
+			return false;
+		}
+
 		//posicion de la camara
 		D3DXVECTOR3 eye = D3DXVECTOR3(0.0f, 100.0f, 200.0f);
 		//a donde ve
@@ -335,6 +352,8 @@ public:
 			projCB->Release();
 		if(worldCB)
 			worldCB->Release();
+		if (timerBufferCB)
+			timerBufferCB->Release();
 		if(heightMap)
 			heightMap->Release();
 		if(alturaData)
@@ -357,6 +376,7 @@ public:
 		viewCB = 0;
 		projCB = 0;
 		worldCB = 0;
+		timerBufferCB = 0;
 	}
 
 	void Update(float dt)
@@ -410,6 +430,64 @@ public:
 		d3dContext->VSSetConstantBuffers( 0, 1, &worldCB );
 		d3dContext->VSSetConstantBuffers( 1, 1, &viewCB );
 		d3dContext->VSSetConstantBuffers( 2, 1, &projCB );
+		//cantidad de trabajos
+		int cuenta = (anchoTexTerr - 1) * (altoTexTerr - 1) * 6;
+		d3dContext->DrawIndexed( cuenta, 0, 0 );
+
+		
+	}
+
+	void Draw(D3DXMATRIX vista, D3DXMATRIX proyeccion, float* timer)
+	{
+		static float rotation = 0.0f;
+		rotation += 0.01;		
+
+		//paso de datos, es decir cuanto es el ancho de la estructura
+		unsigned int stride = sizeof( VertexComponent );
+		unsigned int offset = 0;
+
+		//define la estructura del vertice a traves de layout
+		d3dContext->IASetInputLayout( inputLayout );
+		
+		//define con que buffer trabajara
+		d3dContext->IASetVertexBuffers( 0, 1, &vertexBuffer, &stride, &offset );
+		//define con buffer de indices trabajara
+		d3dContext->IASetIndexBuffer( indexBuffer, DXGI_FORMAT_R32_UINT, 0 );
+		//define la forma de conexion de los vertices
+		d3dContext->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
+
+		//Establece el vertex y pixel shader que utilizara
+		d3dContext->VSSetShader( VertexShaderVS, 0, 0 );
+		d3dContext->PSSetShader( solidColorPS, 0, 0 );
+		//pasa lo sbuffers al shader
+		d3dContext->PSSetShaderResources( 0, 1, &colorMap );
+		d3dContext->PSSetShaderResources( 1, 1, &colorMap2 );
+		d3dContext->PSSetShaderResources( 2, 1, &blendMap );
+		d3dContext->PSSetSamplers( 0, 1, &colorMapSampler );
+
+		//mueve la camara
+		D3DXMATRIX rotationMat;
+		D3DXMatrixRotationYawPitchRoll( &rotationMat, 0.0f, 0.0f, 0.0f );
+		D3DXMATRIX translationMat;
+		D3DXMatrixTranslation( &translationMat, 0.0f, 0.0f, 6.0f );
+		D3DXMATRIX ry;
+		D3DXMatrixRotationY(&ry,0.01);
+		viewMatrix *= ry;
+    
+		D3DXMATRIX worldMat = rotationMat;//= rotationMat * translationMat;
+		D3DXMatrixTranspose( &worldMat, &worldMat );
+		//actualiza los buffers del shader
+		d3dContext->UpdateSubresource( worldCB, 0, 0, &worldMat, 0, 0 );
+		d3dContext->UpdateSubresource( viewCB, 0, 0, &vista, 0, 0 );
+		d3dContext->UpdateSubresource( projCB, 0, 0, &proyeccion, 0, 0 );
+		//le pasa al shader los buffers
+		d3dContext->VSSetConstantBuffers( 0, 1, &worldCB );
+		d3dContext->VSSetConstantBuffers( 1, 1, &viewCB );
+		d3dContext->VSSetConstantBuffers( 2, 1, &projCB );
+
+		d3dContext->UpdateSubresource(timerBufferCB, 0, 0, timer, sizeof(float[4]), 0);
+		d3dContext->PSSetConstantBuffers(3, 1, &timerBufferCB);
+
 		//cantidad de trabajos
 		int cuenta = (anchoTexTerr - 1) * (altoTexTerr - 1) * 6;
 		d3dContext->DrawIndexed( cuenta, 0, 0 );

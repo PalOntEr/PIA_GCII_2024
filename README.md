@@ -1,16 +1,16 @@
-Final proyect for our Computer Graphics university's class.
+Final assignment for our Computer Graphics university class.
 
-The proyect is a tower defense game called AntDefender made in c++ using DirectX11.
+The project is called AntDefender, a tower defense game written in C++ with DirectX11.
 
-In the game you play as an Ant that is trying to defend its anthole from being destroyed by other animals or insects.
-You can collect leafs that spawn randomly through out the map, this leafs are usefull for two things:
-1-Make insects that help you protect your anthole or collect even more leafs
-2-Survive the winter
+In the game, you take on the role of an ant, seeking to protect its anthole from other insects or animals.
+On the map, leaves will occasionally spawn and you can gather them. There are two uses for these leaves:
+1. Grow insects to assist you in your defense or gather additional leaves.
+2. Get through the winter.
 
-The game ends when winter comes (about 3 minutes) then if you collected enough leafs to survive the winter you win!
-The amount of leafs needed to survive depends on how many other insects you made are alive at the end of your playthrough.
+In roughly three minutes, the game ends with the arrival of winter. If you gather enough leaves to make it through the season, you win!
+Depending on how many other insects you managed to keep alive at the end of your playthrough, you will require different amounts of leaves to pass the winter.
 
-It was made through out 6 months.
-That's about it, we hope you have fun playing it!
+It was made over 6 months.
+That's about it; we hope you have fun playing it!
 
 -AntDefender Team
