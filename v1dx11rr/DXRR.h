@@ -393,9 +393,9 @@ public:
 		}
 
 		if (Tree1) {
-			newPosition[0] = -24.0f;
+			newPosition[0] = -18.0f;
 			newPosition[1] = terreno->Superficie(Tree1->getPosX(), Tree1->getPosZ());
-			newPosition[2] = -28.0f;
+			newPosition[2] = 72.0f;
 			Tree1->Draw(playerCamera->vista, playerCamera->proyeccion, newPosition, player->GetPosition(), 10.0f, 0, 'A', 1.0, timer);
 		}
 
