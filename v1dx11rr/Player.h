@@ -145,7 +145,7 @@ public:
 	}
 
 	Camara* GetCamera(bool firstPerson) {
-		if (firstPerson = true)
+		if (firstPerson)
 			return m_firstPerson;
 		else
 			return m_thirdPerson;

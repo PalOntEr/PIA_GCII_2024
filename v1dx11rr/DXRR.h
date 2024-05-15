@@ -106,8 +106,8 @@ public:
 		//billboard = new BillboardRR(L"Assets/Billboards/fuego-anim.png",L"Assets/Billboards/fuego-anim-normal.png", d3dDevice, d3dContext, 5);
 		//model = new ModeloRR(d3dDevice, d3dContext, "Assets/Cofre/Cofre.obj", L"Assets/Cofre/Cofre-color.png", L"Assets/Cofre/Cofre-spec.png", 0, 0);
 		House = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/Old_stone_house.obj", L"Assets/Textures/Old_stone_house_BaseColor.png", L"Assets/Textures/NoSpecular.png", 20, 0);
-		Cap = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/cap.obj", L"Assets/Textures/cap.png", L"Assets/Textures/NoSpecular.png", 0, 0);
-		Tree1 = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/Tree1.obj", L"Assets/Textures/Stick.png", L"Assets/Textures/NoSpecular.png", 0, 0);
+		Cap = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/cap.obj", L"Assets/Textures/cap.png", L"Assets/Textures/NoSpecular.png", -24.0f, -28.0f);
+		Tree1 = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/Tree1.obj", L"Assets/Textures/Stick.png", L"Assets/Textures/NoSpecular.png", -24.0f, -28.0f);
 		botella = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/Botella.obj", L"Assets/Textures/Botella.png", L"Assets/Textures/NoSpecular.png", 10, 10);
 		Anthole = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/Hormiguero.obj", L"Assets/Textures/Hormiguero.png", L"Assets/Textures/NoSpecular.png", 0, 0);
 		pilarRoca1 = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/pilarRoca1.obj", L"Assets/Textures/pilarRoca1_Color.png", L"Assets/Textures/NoSpecular.png", 65, 6);
@@ -268,7 +268,26 @@ public:
 			
 		velDir = new float[3] { 0.0f };
 
-		return true;			
+		if (!m_XACT3.Initialize()) {
+			MessageBox(hWnd, L"Error initializing XACT", L"ERROR", MB_OK | MB_ICONERROR);
+			return false;
+		}
+
+		if (!m_XACT3.LoadWaveBank(L"Assets\\Audio\\WaveBank.xwb")) {
+			MessageBox(hWnd, L"Error loading Wave Bank", L"ERROR", MB_OK | MB_ICONERROR);
+			return false;
+		}
+
+		if (!m_XACT3.LoadSoundBank(L"Assets\\Audio\\SoundBank.xsb")) {
+			MessageBox(hWnd, L"Error loading Sound Bank", L"ERROR", MB_OK | MB_ICONERROR);
+			return false;
+		}
+
+		// Cargar los indeces de los Cues
+		cueIndex = m_XACT3.m_pSoundBank->GetCueIndex("Fondo");
+		m_XACT3.m_pSoundBank->Play(cueIndex, 0, 0, 0);
+
+		return true;
 		
 	}
 
@@ -346,12 +365,10 @@ public:
 
 		float newPosition[3] = { 0.0f };
 
-		//model->Draw(playerCamera->vista, playerCamera->proyeccion, terreno->Superficie(model->getPosX(), model->getPosZ()), player->GetPosition(), 10.0f, 0, 'A', 1);
-
 		if (botella) {
 			newPosition[0] = 55.0f;
-			newPosition[1] = terreno->Superficie(botella->getPosX(), botella->getPosZ()) - 5.0f;
 			newPosition[2] = -73.0f;
+			newPosition[1] = terreno->Superficie(botella->getPosX(), botella->getPosZ()) - 5.0f;
 			botella->Draw(playerCamera->vista, playerCamera->proyeccion, newPosition, player->GetPosition(), 10.0f, 45, 'X', 4.0f, timer);
 		}
 
@@ -370,15 +387,15 @@ public:
 
 		if (House) {
 			newPosition[0] = 95.0f;
-			newPosition[1] = terreno->Superficie(House->getPosX(), House->getPosZ());
 			newPosition[2] = -122.0f;
+			newPosition[1] = terreno->Superficie(House->getPosX(), House->getPosZ());
 			House->Draw(playerCamera->vista, playerCamera->proyeccion, newPosition, player->GetPosition(), 10.0f, 0, 'A', 1, timer);
 		}
 
 		if (Anthole) {
 			newPosition[0] = 0.0f;
-			newPosition[1] = terreno->Superficie(Anthole->getPosX(), Anthole->getPosZ()) - 2.0f;
 			newPosition[2] = 0.0f;
+			newPosition[1] = terreno->Superficie(Anthole->getPosX(), Anthole->getPosZ()) - 2.0f;
 			Anthole->Draw(playerCamera->vista, playerCamera->proyeccion, newPosition, player->GetPosition(), 10.0f, 0, 'A', 4.0f, timer);
 		}
 
@@ -387,15 +404,15 @@ public:
 
 		if (Cap) {
 			newPosition[0] = -24.0f;
-			newPosition[1] = terreno->Superficie(Cap->getPosX(), Cap->getPosZ());
 			newPosition[2] = -28.0f;
+			newPosition[1] = terreno->Superficie(Cap->getPosX(), Cap->getPosZ());
 			Cap->Draw(playerCamera->vista, playerCamera->proyeccion, newPosition, player->GetPosition(), 10.0f, 0, 'A', 0.1, timer);
 		}
 
 		if (Tree1) {
 			newPosition[0] = -24.0f;
-			newPosition[1] = terreno->Superficie(Tree1->getPosX(), Tree1->getPosZ());
 			newPosition[2] = -28.0f;
+			newPosition[1] = terreno->Superficie(Tree1->getPosX(), Tree1->getPosZ());
 			Tree1->Draw(playerCamera->vista, playerCamera->proyeccion, newPosition, player->GetPosition(), 10.0f, 0, 'A', 1.0, timer);
 		}
 
@@ -413,6 +430,9 @@ public:
 			for (int i = 0; i < 3; i++) 
 				if(Sticks[i])
 					Sticks[i]->Draw(playerCamera->vista, playerCamera->proyeccion, terreno->Superficie(Sticks[i]->getPosX(), Sticks[i]->getPosZ()), player->GetPosition(), 10.0f, 0, 'A', 1, timer);
+
+		if (isPointInsideSphere(new float[2]{ player->GetPosition().x, player->GetPosition().z}, Cap->GetSphere(1)))
+			MessageBox(hWnd, L"You have collided with the Cap", L"COLLIDED", MB_OK);
 
 		swapChain->Present( 1, 0 );
 	}
