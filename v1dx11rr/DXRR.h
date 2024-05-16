@@ -61,6 +61,8 @@ public:
 	ModeloRR* House = NULL;
 	ModeloRR* Cap = NULL;
 	ModeloRR* Anthole = NULL;
+	ModeloRR* wormVehicle = NULL;
+	ModeloRR* spider = NULL;
 	
 	XMFLOAT4* timer;
 	
@@ -126,6 +128,9 @@ public:
 		Sticks[0] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/Stick1.obj", L"Assets/Textures/Stick.png", L"Assets/Textures/NoSpecular.png", -14, 62);
 		Sticks[1] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/Stick2.obj", L"Assets/Textures/Stick.png", L"Assets/Textures/NoSpecular.png", -18, 88);
 		Sticks[2] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/Stick3.obj", L"Assets/Textures/Stick.png", L"Assets/Textures/NoSpecular.png", -39, 70);
+
+		spider = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/spider.obj", L"Assets/Textures/Botella.png", L"Assets/Textures/NoSpecular.png", 10, 10);
+		wormVehicle = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/wormVehicle.obj", L"Assets/Textures/Botella.png", L"Assets/Textures/NoSpecular.png", 10, 10);
 		
 		player = new Player(D3DXVECTOR3(0, 80, 0), Ancho, Alto);
 		
@@ -413,7 +418,20 @@ public:
 			for (int i = 0; i < 3; i++) 
 				if(Sticks[i])
 					Sticks[i]->Draw(playerCamera->vista, playerCamera->proyeccion, terreno->Superficie(Sticks[i]->getPosX(), Sticks[i]->getPosZ()), player->GetPosition(), 10.0f, 0, 'A', 1, timer);
+	
+		if (spider) {
+			newPosition[0] = -24.0f;
+			newPosition[1] = terreno->Superficie(spider->getPosX(), spider->getPosZ());
+			newPosition[2] = -28.0f;
+			spider->Draw(playerCamera->vista, playerCamera->proyeccion, newPosition, player->GetPosition(), 10.0f, 0, 'A', 0.1, timer);
+		}
 
+		if (wormVehicle) {
+			newPosition[0] = -24.0f;
+			newPosition[1] = terreno->Superficie(wormVehicle->getPosX(), wormVehicle->getPosZ());
+			newPosition[2] = -28.0f;
+			wormVehicle->Draw(playerCamera->vista, playerCamera->proyeccion, newPosition, player->GetPosition(), 10.0f, 0, 'A', 0.1, timer);
+		}
 		swapChain->Present( 1, 0 );
 	}
 
