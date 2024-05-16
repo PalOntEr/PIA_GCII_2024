@@ -12,7 +12,6 @@
 #include "ModeloRR.h"
 
 
-
 class Player {
 
 private:
@@ -25,8 +24,20 @@ private:
 	D3DXVECTOR3 m_refRight2d;
 	D3DXVECTOR3 m_refFront2d;
 	Camara** m_Camera;
+	bool m_isOnVehicle;
 	int m_currentCamera;
 	float height[2];
+
+	bool isPointInsideSphere(float* point, float* sphere) {
+		bool collition = false;
+
+		float distance = sqrt((point[0] - sphere[0]) * (point[0] - sphere[0]) +
+			(point[1] - sphere[1]) * (point[1] - sphere[1]));
+
+		if (distance < sphere[2])
+			collition = true;
+		return collition;
+	}
 
 public:
 
@@ -98,42 +109,51 @@ public:
 		Release();
 	}
 
-	void MovePlayer(float vel, float* velDir, float arriaba, float izqder) {
+	void MovePlayer(float vel, float* velDir, float arriaba, float izqder, float*** sceneModels = NULL, int numModels = 0) {
 		
 		D3DXVECTOR4 tempo;
 		D3DXQUATERNION quatern; //quaternion temporal para la camara
 		D3DXMATRIX giraUp, giraRight; //matrices temporales para los giros
+		D3DXVECTOR3 tempPosition = m_position;
+		D3DXVECTOR3 tempRefUp = m_refUp;
+		D3DXVECTOR3 tempRefRight = m_refRight;
+		D3DXVECTOR3 tempRefFront = m_refFront;
+		D3DXVECTOR3 tempRefFrontPreRight;
+		D3DXVECTOR3 tempRefRight2d = m_refRight2d;
+		D3DXVECTOR3 tempRefFront2d = m_refFront2d;
+		bool collided = false;
 
 		//creamos al quaternion segun el vector up
-		D3DXQuaternionRotationAxis(&quatern, &m_refUp, izqder);
+		D3DXQuaternionRotationAxis(&quatern, &tempRefUp, izqder);
 		//lo normalizamos para que no acumule error
 		D3DXQuaternionNormalize(&quatern, &quatern);
 		//creamos la matriz de rotacion basados en el quaternion
 		D3DXMatrixRotationQuaternion(&giraUp, &quatern);
 
 		//transformamos a los vectores ded la camara
-		D3DXVec3Transform(&tempo, &m_refFront, &giraUp);
+		D3DXVec3Transform(&tempo, &tempRefFront, &giraUp);
 		//como el resultado de la operacion anterior es Vec4 lo casteamos para hacerlo vec3
-		m_refFront = (D3DXVECTOR3)tempo;
+		tempRefFront = (D3DXVECTOR3)tempo;
+		tempRefFrontPreRight = tempRefFront;
 		//normalizamos para no acumular error
-		D3DXVec3Normalize(&m_refFront, &m_refFront);
+		D3DXVec3Normalize(&tempRefFront, &tempRefFront);
 		//Con el vector de referencia y el nuevo front calculamos right de nuevo
-		D3DXVec3Cross(&m_refRight, &m_refFront, &m_refUp);
-		m_refRight2d = m_refRight;
+		D3DXVec3Cross(&tempRefRight, &tempRefFront, &tempRefUp);
+		tempRefRight2d = tempRefRight;
 
-		D3DXVec3Transform(&tempo, &m_refFront2d, &giraUp);
-		m_refFront2d = (D3DXVECTOR3)tempo;
-		D3DXVec3Normalize(&m_refFront2d, &m_refFront2d);
+		D3DXVec3Transform(&tempo, &tempRefFront2d, &giraUp);
+		tempRefFront2d = (D3DXVECTOR3)tempo;
+		D3DXVec3Normalize(&tempRefFront2d, &tempRefFront2d);
 
 		//una vez calculado right a partir de front y up ahora rotamos sobre right
 		//repetimos el procedimiento anterior
-		D3DXQuaternionRotationAxis(&quatern, &m_refRight, arriaba);
+		D3DXQuaternionRotationAxis(&quatern, &tempRefRight, arriaba);
 		D3DXQuaternionNormalize(&quatern, &quatern);
 		D3DXMatrixRotationQuaternion(&giraRight, &quatern);
 
-		D3DXVec3Transform(&tempo, &m_refFront, &giraRight);
-		m_refFront = (D3DXVECTOR3)tempo;
-		D3DXVec3Normalize(&m_refFront, &m_refFront);
+		D3DXVec3Transform(&tempo, &tempRefFront, &giraRight);
+		tempRefFront = (D3DXVECTOR3)tempo;
+		D3DXVec3Normalize(&tempRefFront, &tempRefFront);
 
 		//calculamos cuanto nos debemos de mover en cada eje
 		long double frontDistance = 0.0f;
@@ -146,10 +166,36 @@ public:
 		if (velDir[2] != 0)
 			rightDistance = sin(radians) * vel;			
 
-		m_position += m_refFront2d * frontDistance;
-		m_position += m_refRight2d * rightDistance;
+		tempPosition += tempRefFront2d * frontDistance;
+		tempPosition += tempRefRight2d * rightDistance;
 
-		D3DXVECTOR3 cameraPosition = m_position;
+		if (sceneModels) {
+			for (int i = 1; i < numModels; i++) {
+				if (sceneModels[i][4][0] == 1.0f)
+					if (isPointInsideSphere(new float[2] { tempPosition.x, tempPosition.z}, new float[3] { sceneModels[i][1][0], sceneModels[i][1][2], sceneModels[i][4][1]})) {
+						collided = true;
+						break;
+					}
+			}
+		}
+
+		D3DXVECTOR3 cameraPosition = tempPosition;
+		cameraPosition.y += height[thirdPerson];
+		if (!(cameraPosition.y - tempRefFront.y * 10.0f < tempPosition.y + 1.0f) && !(cameraPosition.y - tempRefFront.y * 10.0f > 10.0f)) {
+			m_refFront = tempRefFront;
+		}
+		else {
+			m_refFront = tempRefFrontPreRight;
+		}
+
+		m_refUp = tempRefUp;
+		m_refRight2d = tempRefRight2d;
+		m_refFront2d = tempRefFront2d;
+		m_refRight = tempRefRight;
+		if(!collided)
+			m_position = tempPosition;
+
+		cameraPosition = m_position;
 		cameraPosition.y += height[firstPerson];
 		m_Camera[firstPerson]->posCam = cameraPosition + m_refFront2d * 1.4f;
 		m_Camera[firstPerson]->UpdateCam(m_refFront, m_refRight);
@@ -158,6 +204,8 @@ public:
 		cameraPosition.y += height[thirdPerson];
 		m_Camera[thirdPerson]->posCam = cameraPosition - m_refFront * 10.0f;
 		m_Camera[thirdPerson]->UpdateCam(m_refFront, m_refRight);
+
+		return;
 
 	}
 
