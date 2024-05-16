@@ -14,7 +14,7 @@
 #include "XACT3Util.h"
 #include "GUI.h"
 #include "Text.h"
-#define DAYCYCLESPEED 0.001f
+#define DAYCYCLESPEED 0.0001f
 
 //MAX ANDRES ZERTUCHE PEREZ #2003051
 //MATEO ZAMORA GRAJEDA #2001215
@@ -153,7 +153,7 @@ public:
 		
 		sceneAssets[ant][0] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/AntModel_Rigged_Smooth.obj", L"Assets/Textures/AntModel_Rigged_Smooth.png", L"Assets/Textures/NoSpecular.png", 0, 0);
 		sceneAssets[anthole][0] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/Hormiguero.obj", L"Assets/Textures/Hormiguero.png", L"Assets/Textures/NoSpecular.png", 0, 0);
-		sceneAssets[house][0] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/Old_stone_house.obj", L"Assets/Textures/Old_stone_house_BaseColor.png", L"Assets/Textures/NoSpecular.png", 20, 0);
+		/*sceneAssets[house][0] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/Old_stone_house.obj", L"Assets/Textures/Old_stone_house_BaseColor.png", L"Assets/Textures/NoSpecular.png", 20, 0);
 		sceneAssets[rockPillar][0] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/pilarRoca1.obj", L"Assets/Textures/pilarRoca1_Color.png", L"Assets/Textures/NoSpecular.png", 65, 6);
 		sceneAssets[rock][0] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/ballRock.obj", L"Assets/Textures/ballRock.png", L"Assets/Textures/NoSpecular.png", 5, -5);
 		sceneAssets[crystal][0] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/Cristal1.obj", L"Assets/Textures/Cristal.png", L"Assets/Textures/NoSpecular.png", -14, -7);
@@ -165,7 +165,7 @@ public:
 		sceneAssets[leaf][2] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/Hoja3.obj", L"Assets/Textures/Hoja.png", L"Assets/Textures/NoSpecular.png", -36, 74);
 		sceneAssets[sticks][0] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/Stick1.obj", L"Assets/Textures/Stick.png", L"Assets/Textures/NoSpecular.png", -14, 62);
 		sceneAssets[sticks][1] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/Stick2.obj", L"Assets/Textures/Stick.png", L"Assets/Textures/NoSpecular.png", -18, 88);
-		sceneAssets[sticks][2] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/Stick3.obj", L"Assets/Textures/Stick.png", L"Assets/Textures/NoSpecular.png", -39, 70);
+		sceneAssets[sticks][2] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/Stick3.obj", L"Assets/Textures/Stick.png", L"Assets/Textures/NoSpecular.png", -39, 70);*/
 		sceneAssets[bottle][0] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/Botella.obj", L"Assets/Textures/Botella.png", L"Assets/Textures/NoSpecular.png", 10, 10);
 		sceneAssets[cap][0] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/cap.obj", L"Assets/Textures/cap.png", L"Assets/Textures/NoSpecular.png", -24.0f, -28.0f);
 
@@ -182,6 +182,10 @@ public:
 			for (int j = 0; j < 5; j++) {
 				sceneModels[i][j] = new float[3] {0.0f};
 			}
+		}
+
+		for (int i = 1; i < totalModels; i++) {
+			sceneModels[i][position][y] = terreno->Superficie(sceneModels[i][position][x], sceneModels[i][position][z]);
 		}
 
 		sceneModels[0][asset][assetModel] = ant;
@@ -275,8 +279,10 @@ public:
 		sceneModels[14][radius][0] = 1.0f;
 
 		sceneModels[15][asset][assetModel] = bottle;
-		sceneModels[15][position][x] = 10;
-		sceneModels[15][position][z] = 10;
+		sceneModels[15][position][x] = 10.0f;
+		sceneModels[15][position][y] -= 5.0f;
+		sceneModels[15][position][z] = -60.0f;
+		sceneModels[15][rotation][x] = 45.0f;
 		sceneModels[15][scale][0] = 4.0f;
 		sceneModels[15][radius][0] = 1.0f;
 
@@ -285,7 +291,6 @@ public:
 		sceneModels[16][position][z] = -28.0f;
 		sceneModels[16][scale][0] = 0.1f;
 		sceneModels[16][radius][0] = 1.0f;
-
 
 		vida = new GUI(d3dDevice, d3dContext, 0.1f, 0.2f, L"Assets/GUI/health_full.png");
 		prueba = new Text(d3dDevice, d3dContext, 3.6f, 1.2f, L"Assets/GUI/font.png", XMFLOAT4(0.7f, 0.7f, 0.7f, 0.0f));
@@ -546,17 +551,17 @@ public:
 			float s = sceneModels[i][scale][0];
 			float* p = sceneModels[i][position];
 
-			p[y] = terreno->Superficie(p[x], p[z]);
-
-			if (sceneModels[i][rotation][x] == 0 && sceneModels[i][rotation][y] == 0 && sceneModels[i][rotation][z] == 0)
-				sceneAssets[a][t]->Draw(playerCamera->vista, playerCamera->proyeccion, p, playerCamera->posCam, 1.0f, 0, 'X', s, timer);
-			else {
-				if (sceneModels[i][rotation][x] != 0)
-					sceneAssets[a][t]->Draw(playerCamera->vista, playerCamera->proyeccion, p, playerCamera->posCam, 1.0f, sceneModels[i][rotation][x], 'X', s, timer);
-				else if (sceneModels[i][rotation][y] != 0)
-					sceneAssets[a][t]->Draw(playerCamera->vista, playerCamera->proyeccion, p, playerCamera->posCam, 1.0f, sceneModels[i][rotation][y], 'Y', s, timer);
-				else if (sceneModels[i][rotation][z] != 0)
-					sceneAssets[a][t]->Draw(playerCamera->vista, playerCamera->proyeccion, p, playerCamera->posCam, 1.0f, sceneModels[i][rotation][z], 'Z', s, timer);
+			if (sceneAssets[a][t]) {
+				if (sceneModels[i][rotation][x] == 0 && sceneModels[i][rotation][y] == 0 && sceneModels[i][rotation][z] == 0)
+					sceneAssets[a][t]->Draw(playerCamera->vista, playerCamera->proyeccion, p, playerCamera->posCam, 1.0f, 0, 'X', s, timer);
+				else {
+					if (sceneModels[i][rotation][x] != 0)
+						sceneAssets[a][t]->Draw(playerCamera->vista, playerCamera->proyeccion, p, playerCamera->posCam, 1.0f, sceneModels[i][rotation][x], 'X', s, timer);
+					else if (sceneModels[i][rotation][y] != 0)
+						sceneAssets[a][t]->Draw(playerCamera->vista, playerCamera->proyeccion, p, playerCamera->posCam, 1.0f, sceneModels[i][rotation][y], 'Y', s, timer);
+					else if (sceneModels[i][rotation][z] != 0)
+						sceneAssets[a][t]->Draw(playerCamera->vista, playerCamera->proyeccion, p, playerCamera->posCam, 1.0f, sceneModels[i][rotation][z], 'Z', s, timer);
+				}
 			}
 		}
 
