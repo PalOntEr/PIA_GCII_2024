@@ -234,7 +234,7 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
             char keyboardData[256];
             m_pKeyboardDevice->GetDeviceState(sizeof(keyboardData), (void*)&keyboardData);
 
-            if (keyboardData[DIK_S] & 0x80 || keyboardData[DIK_W] & 0x80 || keyboardData[DIK_A] & 0x80 || keyboardData[DIK_D] & 0x80 || keyboardData[DIK_SPACE] & 0x80) {
+            if (keyboardData[DIK_S] & 0x80 || keyboardData[DIK_W] & 0x80 || keyboardData[DIK_A] & 0x80 || keyboardData[DIK_D] & 0x80) {
 
                 dxrr->vel += 0.5f;
                 if (keyboardData[DIK_LSHIFT]) {
@@ -267,16 +267,17 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
                     dxrr->velDir[2] -= 1.0f;
                 }
 
-                if (keyboardData[DIK_SPACE] & 0x80) {
-                    if (!SpaceisPressed && !dxrr->player->isJumping) {
-                        dxrr->velDir[1] += 0.5f;
-                        dxrr->player->isJumping = true;
-                        SpaceisPressed = true;
-                    }
-                }
-                else
-                    SpaceisPressed = false;
             }
+
+            if (keyboardData[DIK_SPACE] & 0x80) {
+                if (!SpaceisPressed && !dxrr->player->isJumping) {
+                    dxrr->velDir[1] += 0.5f;
+                    dxrr->player->isJumping = true;
+                    SpaceisPressed = true;
+                }
+            }
+            else
+                SpaceisPressed = false;
 
             if (keyboardData[DIK_F5] & 0x80) {
                 if (!F5isPressed) {

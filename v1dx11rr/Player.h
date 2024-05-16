@@ -1,6 +1,6 @@
 #ifndef _player
 #define _player
-#define DECELERATION 0.025f
+#define DECELERATION 0.035f
 #define MAXACCELERATION 0.05f
 #define MAXSPEED 1.0f
 #define MAXRUNNINGSPEED 1.5f
@@ -275,6 +275,8 @@ public:
 				if (sceneModels[i][4][0] == 1.0f)
 					if (isPointInsideSphere(new float[2] { tempPosition.x, tempPosition.z}, new float[3] { sceneModels[i][1][0], sceneModels[i][1][2], sceneModels[i][4][1]})) {
 						collided = true;
+						m_speed[0] = 0;
+						m_speed[2] = 0;
 						break;
 					}
 			}
@@ -316,8 +318,11 @@ public:
 		m_refRight2d = tempRefRight2d;
 		m_refFront2d = tempRefFront2d;
 		m_refRight = tempRefRight;
-		if(!collided)
-			m_position = tempPosition;
+		if (!collided) {
+			m_position.x = tempPosition.x;
+			m_position.z = tempPosition.z;
+		}
+		m_position.y = tempPosition.y;
 
 		D3DXVECTOR3 cameraPosition = m_position;
 		cameraPosition.y += height[firstPerson];
