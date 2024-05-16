@@ -26,7 +26,7 @@ private:
 	D3DXVECTOR3 m_refFront2d;
 	Camara** m_Camera;
 	int m_currentCamera;
-	float height;
+	float height[2];
 
 public:
 
@@ -61,14 +61,21 @@ public:
 		m_refFront2d = m_refFront;
 		m_refRight2d = m_refRight;
 
-		height = 2.5f;
+		height[firstPerson] = 1.2f;
 
-		front.y += height;
+		front.y += height[firstPerson];
 
 		m_Camera = new Camara*[2];
 
-		m_Camera[firstPerson] = new Camara(D3DXVECTOR3(m_position.x, m_position.y + height, m_position.z), front, D3DXVECTOR3(0, 1, 0), Ancho, Alto);
-		m_Camera[thirdPerson] = new Camara(D3DXVECTOR3(m_position.x, m_position.y + height, m_position.z), front, D3DXVECTOR3(0, 1, 0), Ancho, Alto);
+		m_Camera[firstPerson] = new Camara(D3DXVECTOR3(m_position.x, m_position.y + height[firstPerson], m_position.z), front, D3DXVECTOR3(0, 1, 0), Ancho, Alto);
+
+		front = D3DXVECTOR3(m_position.x, m_position.y, m_position.z - 6);
+
+		height[thirdPerson] = 2.5f;
+
+		front.y += height[thirdPerson];
+
+		m_Camera[thirdPerson] = new Camara(D3DXVECTOR3(m_position.x, m_position.y + height[thirdPerson], m_position.z), front, D3DXVECTOR3(0, 1, 0), Ancho, Alto);
 
 		m_currentCamera = firstPerson;
 
@@ -143,11 +150,13 @@ public:
 		m_position += m_refRight2d * rightDistance;
 
 		D3DXVECTOR3 cameraPosition = m_position;
-		cameraPosition.y += height;
-		m_Camera[firstPerson]->posCam = cameraPosition + m_refFront2d;
+		cameraPosition.y += height[firstPerson];
+		m_Camera[firstPerson]->posCam = cameraPosition + m_refFront2d * 1.4f;
 		m_Camera[firstPerson]->UpdateCam(m_refFront, m_refRight);
 
-		m_Camera[thirdPerson]->posCam = cameraPosition - m_refFront * 10;
+		cameraPosition = m_position;
+		cameraPosition.y += height[thirdPerson];
+		m_Camera[thirdPerson]->posCam = cameraPosition - m_refFront * 10.0f;
 		m_Camera[thirdPerson]->UpdateCam(m_refFront, m_refRight);
 
 	}
