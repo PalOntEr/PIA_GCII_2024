@@ -29,6 +29,7 @@ bool windowInit = false;
 bool windowFocused = false;
 bool F5isPressed = false;
 bool SpaceisPressed = false;
+bool LMBisPressed = false;
 
 void createMouseDevice(HWND hWnd) {
     m_pDirectInput->CreateDevice(GUID_SysMouse, &m_pMouseDevice, 0);
@@ -279,23 +280,6 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
             else
                 SpaceisPressed = false;
 
-            if (keyboardData[DIK_F5] & 0x80) {
-                if (!F5isPressed) {
-                    switch (dxrr->player->GetCameraInt())
-                    {
-                    case Player::firstPerson:
-                        dxrr->player->setCamera(Player::thirdPerson);
-                        break;
-                    case Player::thirdPerson:
-                        dxrr->player->setCamera(Player::firstPerson);
-                        break;
-                    }
-                    F5isPressed = true;
-                }
-            }
-            else
-                F5isPressed = false;
-
             if (keyboardData[DIK_B] & 0x80) {
                 dxrr->breakpoint = true;
             }
@@ -316,6 +300,37 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 
             DIMOUSESTATE mouseData;
             m_pMouseDevice->GetDeviceState(sizeof(mouseData), (void*)&mouseData);
+
+            if (mouseData.rgbButtons[0] & 0x80) {
+                if (!LMBisPressed)
+                    if (dxrr->isPointInsideSphere(new float[2] {dxrr->player->GetPosition().x, dxrr->player->GetPosition().z}, new float[3] { dxrr->sceneVehicle[1][0], dxrr->sceneVehicle[1][2], dxrr->sceneVehicle[4][1]})) {
+                        if (!dxrr->player->isDriving) {
+                            dxrr->player->SetCurrentVehicle(dxrr->sceneVehicle);
+                        }
+                        dxrr->player->isDriving = !dxrr->player->isDriving;
+                    }
+                LMBisPressed = true;
+                //MessageBox(hWnd, L"Left MB pressed", L"INFO", MB_OK | MB_ICONINFORMATION);
+            }
+            else
+                LMBisPressed = false;
+
+            if (keyboardData[DIK_F5] & 0x80 || mouseData.rgbButtons[3] & 0x80) {
+                if (!F5isPressed) {
+                    switch (dxrr->player->GetCameraInt())
+                    {
+                    case Player::firstPerson:
+                        dxrr->player->setCamera(Player::thirdPerson);
+                        break;
+                    case Player::thirdPerson:
+                        dxrr->player->setCamera(Player::firstPerson);
+                        break;
+                    }
+                    F5isPressed = true;
+                }
+            }
+            else
+                F5isPressed = false;
 
             // Mouse move
             dxrr->izqder = (mouseData.lX / 1000.0f) * SENSIBILITY;

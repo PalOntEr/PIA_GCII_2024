@@ -16,6 +16,7 @@
 #include "Text.h"
 #define DAYCYCLESPEED 0.0f/*0.0001f*/
 #define GRAVITYFORCE -0.03f
+#define QUICKLOAD false
 
 //MAX ANDRES ZERTUCHE PEREZ #2003051
 //MATEO ZAMORA GRAJEDA #2001215
@@ -158,22 +159,24 @@ public:
 		skydome = new SkyDome(32, 32, 100.0f, &d3dDevice, &d3dContext, L"Assets/Skydomes/clear.jpg", L"Assets/Skydomes/night.png");
 		
 		sceneAssets[ant][0] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/AntModel_Rigged_Smooth.obj", L"Assets/Textures/AntModel_Rigged_Smooth.png", L"Assets/Textures/NoSpecular.png", 0, 0);
-		sceneAssets[anthole][0] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/Hormiguero.obj", L"Assets/Textures/Hormiguero.png", L"Assets/Textures/NoSpecular.png", 0, 0);
-		sceneAssets[house][0] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/Old_stone_house.obj", L"Assets/Textures/Old_stone_house_BaseColor.png", L"Assets/Textures/NoSpecular.png", 20, 0);
-		sceneAssets[rockPillar][0] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/pilarRoca1.obj", L"Assets/Textures/pilarRoca1_Color.png", L"Assets/Textures/NoSpecular.png", 65, 6);
-		sceneAssets[rock][0] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/ballRock.obj", L"Assets/Textures/ballRock.png", L"Assets/Textures/NoSpecular.png", 5, -5);
-		sceneAssets[crystal][0] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/Cristal1.obj", L"Assets/Textures/Cristal.png", L"Assets/Textures/NoSpecular.png", -14, -7);
-		sceneAssets[crystal][1] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/Cristal2.obj", L"Assets/Textures/Cristal.png", L"Assets/Textures/NoSpecular.png", 4, -17);
-		sceneAssets[crystal][2] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/Cristal3.obj", L"Assets/Textures/Cristal.png", L"Assets/Textures/NoSpecular.png", 14, 8);
-		sceneAssets[tree][0] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/Tree1.obj", L"Assets/Textures/Stick.png", L"Assets/Textures/NoSpecular.png", -24.0f, -28.0f);
-		sceneAssets[leaf][0] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/Hoja1.obj", L"Assets/Textures/Hoja.png", L"Assets/Textures/NoSpecular.png", -8, 73);
-		sceneAssets[leaf][1] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/Hoja2.obj", L"Assets/Textures/Hoja.png", L"Assets/Textures/NoSpecular.png", -29, 54);
-		sceneAssets[leaf][2] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/Hoja3.obj", L"Assets/Textures/Hoja.png", L"Assets/Textures/NoSpecular.png", -36, 74);
-		sceneAssets[sticks][0] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/Stick1.obj", L"Assets/Textures/Stick.png", L"Assets/Textures/NoSpecular.png", -14, 62);
-		sceneAssets[sticks][1] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/Stick2.obj", L"Assets/Textures/Stick.png", L"Assets/Textures/NoSpecular.png", -18, 88);
-		sceneAssets[sticks][2] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/Stick3.obj", L"Assets/Textures/Stick.png", L"Assets/Textures/NoSpecular.png", -39, 70);
-		sceneAssets[bottle][0] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/Botella.obj", L"Assets/Textures/Botella.png", L"Assets/Textures/NoSpecular.png", 10, 10);
-		sceneAssets[cap][0] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/cap.obj", L"Assets/Textures/cap.png", L"Assets/Textures/NoSpecular.png", -24.0f, -28.0f);
+		if (!QUICKLOAD) {
+			sceneAssets[anthole][0] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/Hormiguero.obj", L"Assets/Textures/Hormiguero.png", L"Assets/Textures/NoSpecular.png", 0, 0);
+			sceneAssets[house][0] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/Old_stone_house.obj", L"Assets/Textures/Old_stone_house_BaseColor.png", L"Assets/Textures/NoSpecular.png", 20, 0);
+			sceneAssets[rockPillar][0] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/pilarRoca1.obj", L"Assets/Textures/pilarRoca1_Color.png", L"Assets/Textures/NoSpecular.png", 65, 6);
+			sceneAssets[rock][0] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/ballRock.obj", L"Assets/Textures/ballRock.png", L"Assets/Textures/NoSpecular.png", 5, -5);
+			sceneAssets[crystal][0] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/Cristal1.obj", L"Assets/Textures/Cristal.png", L"Assets/Textures/NoSpecular.png", -14, -7);
+			sceneAssets[crystal][1] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/Cristal2.obj", L"Assets/Textures/Cristal.png", L"Assets/Textures/NoSpecular.png", 4, -17);
+			sceneAssets[crystal][2] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/Cristal3.obj", L"Assets/Textures/Cristal.png", L"Assets/Textures/NoSpecular.png", 14, 8);
+			sceneAssets[tree][0] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/Tree1.obj", L"Assets/Textures/Stick.png", L"Assets/Textures/NoSpecular.png", -24.0f, -28.0f);
+			sceneAssets[leaf][0] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/Hoja1.obj", L"Assets/Textures/Hoja.png", L"Assets/Textures/NoSpecular.png", -8, 73);
+			sceneAssets[leaf][1] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/Hoja2.obj", L"Assets/Textures/Hoja.png", L"Assets/Textures/NoSpecular.png", -29, 54);
+			sceneAssets[leaf][2] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/Hoja3.obj", L"Assets/Textures/Hoja.png", L"Assets/Textures/NoSpecular.png", -36, 74);
+			sceneAssets[sticks][0] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/Stick1.obj", L"Assets/Textures/Stick.png", L"Assets/Textures/NoSpecular.png", -14, 62);
+			sceneAssets[sticks][1] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/Stick2.obj", L"Assets/Textures/Stick.png", L"Assets/Textures/NoSpecular.png", -18, 88);
+			sceneAssets[sticks][2] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/Stick3.obj", L"Assets/Textures/Stick.png", L"Assets/Textures/NoSpecular.png", -39, 70);
+			sceneAssets[bottle][0] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/Botella.obj", L"Assets/Textures/Botella.png", L"Assets/Textures/NoSpecular.png", 10, 10);
+			sceneAssets[cap][0] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/cap.obj", L"Assets/Textures/cap.png", L"Assets/Textures/NoSpecular.png", -24.0f, -28.0f);
+		}
 		sceneAssets[worm][0] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/wormVehicle.obj", L"Assets/Textures/Hormiguero.png", L"Assets/Textures/NoSpecular.png", 0, 0);
 		sceneAssets[spider][0] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/spider.obj", L"Assets/Textures/AntModel_Rigged_Smooth.png", L"Assets/Textures/NoSpecular.png", 0, 0);
 
@@ -325,10 +328,11 @@ public:
 
 		sceneVehicle[asset][assetModel] = worm;
 		sceneVehicle[position][x] = 0.0f;
-		sceneVehicle[position][y] = 0.0f;
+		sceneVehicle[position][y] = terreno->Superficie(sceneVehicle[position][x], sceneVehicle[position][z]);
+		sceneVehicle[position][z] = 0.0f;
 		sceneVehicle[scale][0] = 5.0f;
 		sceneVehicle[collision][active] = 0.0f;
-		sceneVehicle[collision][radius] = 1.0f;
+		sceneVehicle[collision][radius] = 5.0f;
 
 		vida = new GUI(d3dDevice, d3dContext, 0.1f, 0.2f, L"Assets/GUI/health_full.png");
 		prueba = new Text(d3dDevice, d3dContext, 3.6f, 1.2f, L"Assets/GUI/font.png", XMFLOAT4(0.7f, 0.7f, 0.7f, 0.0f));
@@ -572,23 +576,52 @@ public:
 
 		player->MovePlayer(vel, velDir, arriaba, izqder, sceneModels, totalModels);
 
-		if (player->isJumping && player->GetPosition().y < terreno->Superficie(player->GetPosition().x, player->GetPosition().z)) {
-			player->isJumping = false;
-		}
-
-		if(!player->isJumping)
-			player->SetPosition(2, terreno->Superficie(player->GetPosition().x, player->GetPosition().z));
-
 		Camara* playerCamera = player->GetCamera();
 
 		skydome->Update(playerCamera->vista, playerCamera->proyeccion);
 
-		float camPosXZ[2] = { player->GetPosition().x, player->GetPosition().z };
+		float camPosXZ[2] = { playerCamera->posCam.x, playerCamera->posCam.z };
 
 		TurnOffDepth();
-		skydome->Render(player->GetPosition(), timer);
+		skydome->Render(playerCamera->posCam, timer);
 		TurnOnDepth();	
 		terreno->Draw(playerCamera->vista, playerCamera->proyeccion, (float*)timer);
+
+		player->Draw(timer);
+
+		int a = sceneVehicle[asset][assetModel];
+		int t = sceneVehicle[asset][type];
+		float s = sceneVehicle[scale][0];
+		float* p = sceneVehicle[position];
+
+		if (sceneAssets[a][t]) {
+			if (player->isDriving) {
+				D3DXVECTOR3 playerRef = player->GetFrontReference2D();
+				float rotAngle = playerRef.z > 0 ? atanf(playerRef.x / playerRef.z) - (D3DX_PI / 2) : atanf(playerRef.x / playerRef.z) + (D3DX_PI / 2);
+				sceneVehicle[rotation][y] = rotAngle;
+			}
+			sceneAssets[a][t]->Draw(playerCamera->vista, playerCamera->proyeccion, p, playerCamera->posCam, 1.0f, sceneVehicle[rotation][y], 'Y', s, timer);
+		}
+
+		if (player->isJumping && player->GetPosition().y < terreno->Superficie(player->GetPosition().x, player->GetPosition().z)) {
+			player->isJumping = false;
+		}
+
+		if (!player->isJumping) {
+			if (player->isDriving) {
+				sceneVehicle[position][y] = terreno->Superficie(sceneVehicle[position][x], sceneVehicle[position][z]);
+			}
+			else {
+				player->SetPosition(2, terreno->Superficie(player->GetPosition().x, player->GetPosition().z));
+			}
+		}
+
+		if (!player->isDriving)
+			if (sceneVehicle[position][y] > terreno->Superficie(sceneVehicle[position][x], sceneVehicle[position][z])) {
+				sceneVehicle[position][y]--;
+			}
+			else if (sceneVehicle[position][y] < terreno->Superficie(sceneVehicle[position][x], sceneVehicle[position][z]))
+				sceneVehicle[position][y] = terreno->Superficie(sceneVehicle[position][x], sceneVehicle[position][z]);
 
 		//TurnOnAlphaBlending();
 		//billboard->Draw(playerCamera->vista, playerCamera->proyeccion, player->GetPosition(),-11, -78, 4, 5, uv1, uv2, uv3, uv4, frameBillboard);
@@ -617,16 +650,6 @@ public:
 			}
 		}
 
-		int a = sceneVehicle[asset][assetModel];
-		int t = sceneVehicle[asset][type];
-		float s = sceneVehicle[scale][0];
-		float* p = sceneVehicle[position];
-		
-		if (sceneAssets[a][t])
-			sceneAssets[a][t]->Draw(playerCamera->vista, playerCamera->proyeccion, p, playerCamera->posCam, 1.0f, sceneVehicle[rotation][0], 'A', s, timer);
-
-		player->Draw(timer);
-
 		vida->Draw(-0.8f, 0.8f);
 
 		TurnOnAlphaBlending();
@@ -637,6 +660,8 @@ public:
 			prueba->DrawText(-0.6f, 0.5f, "Accel X:" + to_string(player->getAcceleration()[0]) + "  Accel Y:" + to_string(player->getAcceleration()[1]) + "  Accel Z:" + to_string(player->getAcceleration()[2]), 0.01f);
 			prueba->DrawText(-0.05f, 0.4f, "Camera", 0.01f);
 			prueba->DrawText(-0.4f, 0.3f, "X:" + to_string(playerCamera->posCam.x) + "  Y:" + to_string(playerCamera->posCam.y) + "  Z:" + to_string(playerCamera->posCam.z), 0.01f);
+			if (!player->isDriving && isPointInsideSphere(new float[2] {player->GetPosition().x, player->GetPosition().z}, new float[3] { sceneVehicle[1][0], sceneVehicle[1][2], sceneVehicle[4][1]}))
+				prueba->DrawText(-0.2f, -0.8f, "Press the LMB to mount", 0.01f);
 		TurnOffAlphaBlending();
 
 

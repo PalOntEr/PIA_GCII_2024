@@ -3,6 +3,7 @@
 #define DECELERATION 0.035f
 #define MAXACCELERATION 0.05f
 #define MAXSPEED 1.0f
+#define MAXVEHICLESPEED 5.0f
 #define MAXRUNNINGSPEED 1.5f
 #define MAXRCROUCHINGSPEED 0.5f
 #define MAXFALLACCELERATION 1.0f
@@ -33,7 +34,7 @@ private:
 	Camara** m_Camera;
 	bool m_isOnVehicle;
 	int m_currentCamera;
-	float height[2];
+	float height[3];
 	float m_acceleration[3];
 	float m_speed[3];
 
@@ -67,6 +68,7 @@ public:
 	bool isJumping;
 	bool isRunning;
 	bool isCrouching;
+	bool isDriving;
 
 	Player(D3DXVECTOR3 startPoint, int Ancho, int Alto, ModeloRR** models = NULL, int animations = 1, int frames = 1) {
 
@@ -80,6 +82,7 @@ public:
 		isJumping = false;
 		isRunning = false;
 		isCrouching = false;
+		isDriving = false;
 
 		m_position = m_startPosition = startPoint;
 
@@ -114,7 +117,9 @@ public:
 
 		m_Camera[thirdPerson] = new Camara(D3DXVECTOR3(m_position.x, m_position.y + height[thirdPerson], m_position.z), front, D3DXVECTOR3(0, 1, 0), Ancho, Alto);
 
-		m_currentCamera = firstPerson;
+		m_currentCamera = thirdPerson;
+
+		height[2] = 4.0f;
 
 		m_playerModels = models;
 
@@ -140,7 +145,10 @@ public:
 		D3DXVECTOR4 tempo;
 		D3DXQUATERNION quatern; //quaternion temporal para la camara
 		D3DXMATRIX giraUp, giraRight; //matrices temporales para los giros
-		D3DXVECTOR3 tempPosition = m_position;
+		D3DXVECTOR3 tempPosition;
+		if(!isDriving)
+			tempPosition = m_position;
+		else tempPosition = m_currentVehicle[1];
 		D3DXVECTOR3 tempRefUp = m_refUp;
 		D3DXVECTOR3 tempRefRight = m_refRight;
 		D3DXVECTOR3 tempRefFront = m_refFront;
@@ -203,7 +211,7 @@ public:
 				m_acceleration[2] += sin(radians) * vel * 0.1f;
 		}
 
-		if (!isRunning && !isCrouching) {
+		if (!isDriving && !isRunning && !isCrouching) {
 			if(m_speed[0] + m_acceleration[0] > MAXSPEED)
 				m_speed[0] = MAXSPEED;
 			else if(m_speed[0] + m_acceleration[0] < -MAXSPEED)
@@ -215,6 +223,22 @@ public:
 				m_speed[2] = MAXSPEED;
 			else if(m_speed[2] + m_acceleration[2] < -MAXSPEED)
 				m_speed[2] = -MAXSPEED;
+			else
+				m_speed[2] += m_acceleration[2];
+		}
+		else if (isDriving)
+		{
+			if (m_speed[0] + m_acceleration[0] > MAXVEHICLESPEED)
+				m_speed[0] = MAXVEHICLESPEED;
+			else if (m_speed[0] + m_acceleration[0] < -MAXVEHICLESPEED)
+				m_speed[0] = -MAXVEHICLESPEED;
+			else
+				m_speed[0] += m_acceleration[0];
+
+			if (m_speed[2] + m_acceleration[2] > MAXVEHICLESPEED)
+				m_speed[2] = MAXVEHICLESPEED;
+			else if (m_speed[2] + m_acceleration[2] < -MAXVEHICLESPEED)
+				m_speed[2] = -MAXVEHICLESPEED;
 			else
 				m_speed[2] += m_acceleration[2];
 		}
@@ -318,11 +342,23 @@ public:
 		m_refRight2d = tempRefRight2d;
 		m_refFront2d = tempRefFront2d;
 		m_refRight = tempRefRight;
-		if (!collided) {
-			m_position.x = tempPosition.x;
-			m_position.z = tempPosition.z;
+		if (!isDriving) {
+			if (!collided) {
+				m_position.x = tempPosition.x;
+				m_position.z = tempPosition.z;
+			}
+			m_position.y = tempPosition.y;
 		}
-		m_position.y = tempPosition.y;
+		else {
+			if (!collided) {
+				m_currentVehicle[1][0] = tempPosition.x;
+				m_currentVehicle[1][2] = tempPosition.z;
+			}
+			m_currentVehicle[1][1] = tempPosition.y;
+			m_position = m_currentVehicle[1];
+			m_position += tempRefFront2d * 2.0f;
+			m_position.y += height[2];
+		}
 
 		D3DXVECTOR3 cameraPosition = m_position;
 		cameraPosition.y += height[firstPerson];
@@ -347,6 +383,9 @@ public:
 	}
 
 	D3DXVECTOR3 GetPosition() {
+		if (isDriving) {
+			return m_currentVehicle[1];
+		}
 		return m_position;
 	}
 
@@ -379,6 +418,10 @@ public:
 	}
 	D3DXVECTOR3 GetFrontReference2D() {
 		return m_refFront2d;
+	}
+
+	void SetCurrentVehicle(float** newVehicle) {
+		m_currentVehicle = newVehicle;
 	}
 
 	void SetPosition(D3DXVECTOR3 position) {
@@ -427,9 +470,14 @@ public:
 		}
 	}
 
+	float* getHeights() {
+		return height;
+	}
+
 	float* getSpeed() {
 		return m_speed;
 	}
+
 	float* getAcceleration() {
 		return m_acceleration;
 	}
