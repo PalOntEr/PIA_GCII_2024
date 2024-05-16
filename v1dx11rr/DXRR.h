@@ -527,7 +527,7 @@ public:
 		player->SetPosition(2, terreno->Superficie(player->GetPosition().x, player->GetPosition().z));
 		player->MovePlayer(vel, velDir, arriaba, izqder);
 
-		Camara* playerCamera = player->GetCamera(true);
+		Camara* playerCamera = player->GetCamera();
 
 		skydome->Update(playerCamera->vista, playerCamera->proyeccion);
 
@@ -553,7 +553,7 @@ public:
 
 			if (sceneAssets[a][t]) {
 				if (sceneModels[i][rotation][x] == 0 && sceneModels[i][rotation][y] == 0 && sceneModels[i][rotation][z] == 0)
-					sceneAssets[a][t]->Draw(playerCamera->vista, playerCamera->proyeccion, p, playerCamera->posCam, 1.0f, 0, 'X', s, timer);
+					sceneAssets[a][t]->Draw(playerCamera->vista, playerCamera->proyeccion, p, playerCamera->posCam, 1.0f, 0, 'A', s, timer);
 				else {
 					if (sceneModels[i][rotation][x] != 0)
 						sceneAssets[a][t]->Draw(playerCamera->vista, playerCamera->proyeccion, p, playerCamera->posCam, 1.0f, sceneModels[i][rotation][x], 'X', s, timer);

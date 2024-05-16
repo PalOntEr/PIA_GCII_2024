@@ -25,13 +25,8 @@ private:
 	D3DXVECTOR3 m_refRight2d;
 	D3DXVECTOR3 m_refFront2d;
 	Camara** m_Camera;
-	int currentCamera;
+	int m_currentCamera;
 	float height;
-
-	enum cameras {
-		firstPerson,
-		thirdPerson
-	};
 
 public:
 
@@ -42,6 +37,10 @@ public:
 
 	D3DXVECTOR3 m_startPosition;
 
+	enum cameras {
+		firstPerson,
+		thirdPerson
+	};
 
 	Player(D3DXVECTOR3 startPoint, int Ancho, int Alto, ModeloRR** models = NULL, int animations = 1, int frames = 1) {
 
@@ -69,9 +68,9 @@ public:
 		m_Camera = new Camara*[2];
 
 		m_Camera[firstPerson] = new Camara(D3DXVECTOR3(m_position.x, m_position.y + height, m_position.z), front, D3DXVECTOR3(0, 1, 0), Ancho, Alto);
-		m_Camera[thirdPerson] = NULL;
+		m_Camera[thirdPerson] = new Camara(D3DXVECTOR3(m_position.x, m_position.y + height, m_position.z), front, D3DXVECTOR3(0, 1, 0), Ancho, Alto);
 
-		currentCamera = firstPerson;
+		m_currentCamera = firstPerson;
 
 		m_playerModels = models;
 
@@ -145,8 +144,11 @@ public:
 
 		D3DXVECTOR3 cameraPosition = m_position;
 		cameraPosition.y += height;
-		m_Camera[firstPerson]->posCam = cameraPosition;
+		m_Camera[firstPerson]->posCam = cameraPosition + m_refFront2d;
 		m_Camera[firstPerson]->UpdateCam(m_refFront, m_refRight);
+
+		m_Camera[thirdPerson]->posCam = cameraPosition - m_refFront * 10;
+		m_Camera[thirdPerson]->UpdateCam(m_refFront, m_refRight);
 
 	}
 
@@ -155,11 +157,15 @@ public:
 		D3DXVECTOR3 playerRef = GetFrontReference2D();
 		float rotAngle = playerRef.z > 0 ? atanf(playerRef.x / playerRef.z) : atanf(playerRef.x / playerRef.z) + D3DX_PI;
 
-		m_playerModels[m_currentAnimation][m_currentFrame].Draw(m_Camera[currentCamera]->vista, m_Camera[currentCamera]->proyeccion, m_position, m_Camera[currentCamera]->posCam, 10.0f, rotAngle, 'Y', 1.0f, timer);
+		m_playerModels[m_currentAnimation][m_currentFrame].Draw(m_Camera[m_currentCamera]->vista, m_Camera[m_currentCamera]->proyeccion, m_position, m_Camera[m_currentCamera]->posCam, 10.0f, rotAngle, 'Y', 1.0f, timer);
 	}
 
 	D3DXVECTOR3 GetPosition() {
 		return m_position;
+	}
+
+	Camara* GetCamera() {
+		return m_Camera[m_currentCamera];
 	}
 
 	Camara* GetCamera(bool person) {
@@ -167,6 +173,15 @@ public:
 			return m_Camera[firstPerson];
 		else
 			return  m_Camera[thirdPerson];
+	}
+
+	int GetCameraInt() {
+		return m_currentCamera;
+	}
+
+	void setCamera(int newCamera) {
+		if(newCamera == firstPerson || newCamera == thirdPerson)
+		m_currentCamera = newCamera;
 	}
 
 	D3DXVECTOR3 GetFrontReference() {

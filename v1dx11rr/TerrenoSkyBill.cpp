@@ -27,6 +27,7 @@ LPDIRECTINPUTDEVICE8 m_pKeyboardDevice = NULL;
 LPDIRECTINPUTDEVICE8 m_pMouseDevice = NULL;
 bool windowInit = false;
 bool windowFocused = false;
+bool F5wasPressed = false;
 
 void createMouseDevice(HWND hWnd) {
     m_pDirectInput->CreateDevice(GUID_SysMouse, &m_pMouseDevice, 0);
@@ -257,6 +258,23 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
                 }
 
             }
+
+            if (keyboardData[DIK_F5] & 0x80) {
+                if (!F5wasPressed) {
+                    switch (dxrr->player->GetCameraInt())
+                    {
+                    case Player::firstPerson:
+                        dxrr->player->setCamera(Player::thirdPerson);
+                        break;
+                    case Player::thirdPerson:
+                        dxrr->player->setCamera(Player::firstPerson);
+                        break;
+                    }
+                    F5wasPressed = true;
+                }
+            }
+            else
+                F5wasPressed = false;
 
             if (keyboardData[DIK_B] & 0x80) {
                 dxrr->breakpoint = true;
