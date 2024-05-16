@@ -161,11 +161,13 @@
     <ClInclude Include="Camara.h" />
     <ClInclude Include="DXRR.h" />
     <ClInclude Include="GamePadRR.h" />
+    <ClInclude Include="GUI.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="loadModel.h" />
     <ClInclude Include="ModeloRR.h" />
     <ClInclude Include="SkyDome.h" />
     <ClInclude Include="TerrenoRR.h" />
+    <ClInclude Include="Text.h" />
     <ClInclude Include="XACT3Util.h" />
   </ItemGroup>
   <ItemGroup>
@@ -176,7 +178,9 @@
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Billboard.hlsl" />
+    <FxCompile Include="GUI.fx" />
     <FxCompile Include="Modelo.fx" />
+    <FxCompile Include="Text.fx" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

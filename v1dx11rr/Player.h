@@ -24,9 +24,14 @@ private:
 	D3DXVECTOR3 m_refFront;
 	D3DXVECTOR3 m_refRight2d;
 	D3DXVECTOR3 m_refFront2d;
-	Camara* m_firstPerson;
-	Camara* m_thirdPerson;
+	Camara** m_Camera;
+	int currentCamera;
 	float height;
+
+	enum cameras {
+		firstPerson,
+		thirdPerson
+	};
 
 public:
 
@@ -60,8 +65,13 @@ public:
 		height = 2.5f;
 
 		front.y += height;
-		m_firstPerson = new Camara(D3DXVECTOR3(m_position.x, m_position.y + height, m_position.z), front, D3DXVECTOR3(0, 1, 0), Ancho, Alto);
-		m_thirdPerson = NULL;
+
+		m_Camera = new Camara*[2];
+
+		m_Camera[firstPerson] = new Camara(D3DXVECTOR3(m_position.x, m_position.y + height, m_position.z), front, D3DXVECTOR3(0, 1, 0), Ancho, Alto);
+		m_Camera[thirdPerson] = NULL;
+
+		currentCamera = firstPerson;
 
 		m_playerModels = models;
 
@@ -135,20 +145,28 @@ public:
 
 		D3DXVECTOR3 cameraPosition = m_position;
 		cameraPosition.y += height;
-		m_firstPerson->posCam = cameraPosition;
-		m_firstPerson->UpdateCam(m_refFront, m_refRight);
+		m_Camera[firstPerson]->posCam = cameraPosition;
+		m_Camera[firstPerson]->UpdateCam(m_refFront, m_refRight);
 
+	}
+
+	void Draw(XMFLOAT4* timer) {
+
+		D3DXVECTOR3 playerRef = GetFrontReference2D();
+		float rotAngle = playerRef.z > 0 ? atanf(playerRef.x / playerRef.z) : atanf(playerRef.x / playerRef.z) + D3DX_PI;
+
+		m_playerModels[m_currentAnimation][m_currentFrame].Draw(m_Camera[currentCamera]->vista, m_Camera[currentCamera]->proyeccion, m_position, m_Camera[currentCamera]->posCam, 10.0f, rotAngle, 'Y', 1.0f, timer);
 	}
 
 	D3DXVECTOR3 GetPosition() {
 		return m_position;
 	}
 
-	Camara* GetCamera(bool firstPerson) {
-		if (firstPerson = true)
-			return m_firstPerson;
+	Camara* GetCamera(bool person) {
+		if (person)
+			return m_Camera[firstPerson];
 		else
-			return m_thirdPerson;
+			return  m_Camera[thirdPerson];
 	}
 
 	D3DXVECTOR3 GetFrontReference() {

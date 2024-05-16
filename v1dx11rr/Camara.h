@@ -20,6 +20,8 @@ public:
 	D3DXMATRIX proyeccion;
 	int ancho;
 	int alto;
+	float point[2];
+
 
 	Camara(D3DXVECTOR3 eye, D3DXVECTOR3 target, D3DXVECTOR3 up, float Ancho, float Alto)
 	{
@@ -46,7 +48,10 @@ public:
 
 		D3DXVec3Cross(&refRight, &refFront, &refUp);
 		D3DXVec3Normalize(&refRight, &refRight);
-		
+
+		point[0] = posCam.x;
+		point[1] = posCam.z;
+
 	}
 
 	D3DXMATRIX UpdateCam(D3DXVECTOR3 Front, D3DXVECTOR3 Right)
@@ -59,6 +64,10 @@ public:
 		//ajustamos la matriz de vista con lo obtenido
 		D3DXMatrixLookAtLH(&vista, &posCam, &hdveo, &refUp);
 		D3DXMatrixTranspose( &vista, &vista );
+
+		point[0] = posCam.x;
+		point[1] = posCam.z;
+
 		return vista;
 	}
 	D3DXMATRIX UpdateCam(float vel, float* velDir, float arriaba, float izqder)
@@ -117,10 +126,19 @@ public:
 		//ajustamos la matriz de vista con lo obtenido
 		D3DXMatrixLookAtLH(&vista, &posCam, &hdveo, &refUp);
 		D3DXMatrixTranspose( &vista, &vista );
+
+		point[0] = posCam.x;
+		point[1] = posCam.z;
+
 		return vista;
 	}
 	~Camara()
 	{
 	}
+
+	float* GetPoint() {
+		return point;
+	}
+
 };
 #endif
