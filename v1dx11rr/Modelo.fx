@@ -90,8 +90,16 @@ float4 PS_Main(PS_Input pix) : SV_TARGET
 
 	specular = float4(0.0, 0.0, 0.0, 1.0); //specular color
 	specularMap = specMap.Sample(colorSampler, pix.tex0);
-
-	lightDir = -(float3(0.5f, -1.0f, 0.0f)); // lightDirection
+	    
+    lightDir = float3(0.5f, -1.0f, 0.0f); // lightDirection
+    if (timer.y > 0)
+    {
+        lightDir = float3(timer.x, 1.0f, 0.0f);
+    }
+    else
+    {
+        lightDir = float3(timer.x * -1, 1.0f, 0.0f);
+    }
 
 	lightIntensity = saturate(dot(pix.normal, lightDir));
 
