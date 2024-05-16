@@ -28,6 +28,7 @@ LPDIRECTINPUTDEVICE8 m_pMouseDevice = NULL;
 bool windowInit = false;
 bool windowFocused = false;
 bool F5isPressed = false;
+bool SpaceisPressed = false;
 
 void createMouseDevice(HWND hWnd) {
     m_pDirectInput->CreateDevice(GUID_SysMouse, &m_pMouseDevice, 0);
@@ -233,13 +234,22 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
             char keyboardData[256];
             m_pKeyboardDevice->GetDeviceState(sizeof(keyboardData), (void*)&keyboardData);
 
-            if (keyboardData[DIK_S] & 0x80 || keyboardData[DIK_W] & 0x80 || keyboardData[DIK_A] & 0x80 || keyboardData[DIK_D] & 0x80) {
+            if (keyboardData[DIK_S] & 0x80 || keyboardData[DIK_W] & 0x80 || keyboardData[DIK_A] & 0x80 || keyboardData[DIK_D] & 0x80 || keyboardData[DIK_SPACE] & 0x80) {
 
                 dxrr->vel += 0.5f;
-                if(keyboardData[DIK_LSHIFT])
+                if (keyboardData[DIK_LSHIFT]) {
                     dxrr->vel += 0.5f;
-                if(keyboardData[DIK_LCONTROL])
-                    dxrr->vel -= 0.25f;
+                    dxrr->player->isRunning = true;
+                }
+                else {
+                    dxrr->player->isRunning = false;
+                }
+                if (keyboardData[DIK_LCONTROL]) {
+                    dxrr->player->isCrouching = true;
+                }
+                else {
+                    dxrr->player->isCrouching = false;
+                }
 
                 if (keyboardData[DIK_S] & 0x80) {
                     dxrr->velDir[0] -= 1.0f;
@@ -257,6 +267,15 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
                     dxrr->velDir[2] -= 1.0f;
                 }
 
+                if (keyboardData[DIK_SPACE] & 0x80) {
+                    if (!SpaceisPressed && !dxrr->player->isJumping) {
+                        dxrr->velDir[1] += 0.5f;
+                        dxrr->player->isJumping = true;
+                        SpaceisPressed = true;
+                    }
+                }
+                else
+                    SpaceisPressed = false;
             }
 
             if (keyboardData[DIK_F5] & 0x80) {

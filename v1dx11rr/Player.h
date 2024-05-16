@@ -1,5 +1,12 @@
 #ifndef _player
 #define _player
+#define DECELERATION 0.025f
+#define MAXACCELERATION 0.05f
+#define MAXSPEED 1.0f
+#define MAXRUNNINGSPEED 1.5f
+#define MAXRCROUCHINGSPEED 0.5f
+#define MAXFALLACCELERATION 1.0f
+#define MAXFALLSPEED 1.0f
 
 //Clase camara hecha por Rafael Rosas para los UltraLMADs
 //Videojuegos
@@ -27,6 +34,8 @@ private:
 	bool m_isOnVehicle;
 	int m_currentCamera;
 	float height[2];
+	float m_acceleration[3];
+	float m_speed[3];
 
 	float** m_currentVehicle;
 
@@ -55,7 +64,22 @@ public:
 		thirdPerson
 	};
 
+	bool isJumping;
+	bool isRunning;
+	bool isCrouching;
+
 	Player(D3DXVECTOR3 startPoint, int Ancho, int Alto, ModeloRR** models = NULL, int animations = 1, int frames = 1) {
+
+		m_acceleration[0] = 0.0f;
+		m_acceleration[1] = 0.0f;
+		m_acceleration[2] = 0.0f;
+		m_speed[0] = 0.0f;
+		m_speed[1] = 0.0f;
+		m_speed[2] = 0.0f;
+
+		isJumping = false;
+		isRunning = false;
+		isCrouching = false;
 
 		m_position = m_startPosition = startPoint;
 
@@ -159,18 +183,92 @@ public:
 		D3DXVec3Normalize(&tempRefFront, &tempRefFront);
 
 		//calculamos cuanto nos debemos de mover en cada eje
-		long double frontDistance = 0.0f;
-		long double rightDistance = 0.0f;
 
 		long double radians = atan2f(velDir[2], velDir[0]);	
 
-		if (velDir[0] != 0)
-			frontDistance = cos(radians) * vel;
-		if (velDir[2] != 0)
-			rightDistance = sin(radians) * vel;
+		if (velDir[0] != 0) {
+			if (m_acceleration[0] + cos(radians) * vel * 0.1f > MAXACCELERATION)
+				m_acceleration[0] = MAXACCELERATION;
+			else if (m_acceleration[0] + cos(radians) * vel * 0.1f < -MAXACCELERATION)
+				m_acceleration[0] = -MAXACCELERATION;
+			else
+				m_acceleration[0] += cos(radians) * vel * 0.1f;
+		}
+		if (velDir[2] != 0) {
+			if (m_acceleration[2] + sin(radians) * vel * 0.1f > MAXACCELERATION)
+				m_acceleration[2] = MAXACCELERATION;
+			else if (m_acceleration[2] + sin(radians) * vel * 0.1f < -MAXACCELERATION)
+				m_acceleration[2] = -MAXACCELERATION;
+			else
+				m_acceleration[2] += sin(radians) * vel * 0.1f;
+		}
 
-		tempPosition += tempRefFront2d * frontDistance;
-		tempPosition += tempRefRight2d * rightDistance;
+		if (!isRunning && !isCrouching) {
+			if(m_speed[0] + m_acceleration[0] > MAXSPEED)
+				m_speed[0] = MAXSPEED;
+			else if(m_speed[0] + m_acceleration[0] < -MAXSPEED)
+				m_speed[0] = -MAXSPEED;
+			else
+				m_speed[0] += m_acceleration[0];
+
+			if(m_speed[2] + m_acceleration[2] > MAXSPEED)
+				m_speed[2] = MAXSPEED;
+			else if(m_speed[2] + m_acceleration[2] < -MAXSPEED)
+				m_speed[2] = -MAXSPEED;
+			else
+				m_speed[2] += m_acceleration[2];
+		}
+		else if (isRunning){
+			if (m_speed[0] + m_acceleration[0] > MAXRUNNINGSPEED)
+				m_speed[0] = MAXRUNNINGSPEED;
+			else if (m_speed[0] + m_acceleration[0] < -MAXRUNNINGSPEED)
+				m_speed[0] = -MAXRUNNINGSPEED;
+			else
+				m_speed[0] += m_acceleration[0];
+
+			if (m_speed[2] + m_acceleration[2] > MAXRUNNINGSPEED)
+				m_speed[2] = MAXRUNNINGSPEED;
+			else if (m_speed[2] + m_acceleration[2] < -MAXRUNNINGSPEED)
+				m_speed[2] = -MAXRUNNINGSPEED;
+			else
+				m_speed[2] += m_acceleration[2];
+		}
+		else if (isCrouching)
+		{
+			if (m_speed[0] + m_acceleration[0] > MAXRCROUCHINGSPEED)
+				m_speed[0] = MAXRCROUCHINGSPEED;
+			else if (m_speed[0] + m_acceleration[0] < -MAXRCROUCHINGSPEED)
+				m_speed[0] = -MAXRCROUCHINGSPEED;
+			else
+				m_speed[0] += m_acceleration[0];
+
+			if (m_speed[2] + m_acceleration[2] > MAXRCROUCHINGSPEED)
+				m_speed[2] = MAXRCROUCHINGSPEED;
+			else if (m_speed[2] + m_acceleration[2] < -MAXRCROUCHINGSPEED)
+				m_speed[2] = -MAXRCROUCHINGSPEED;
+			else
+				m_speed[2] += m_acceleration[2];
+		}
+
+		tempPosition += tempRefFront2d * m_speed[0];
+		tempPosition += tempRefRight2d * m_speed[2];
+
+		if (m_speed[0] > 0)
+			m_speed[0] - DECELERATION >= 0 ? m_speed[0] -= DECELERATION : m_speed[0] = 0;
+		if (m_speed[0] < 0)
+			m_speed[0] + DECELERATION <= 0 ? m_speed[0] += DECELERATION : m_speed[0] = 0;
+		if (m_speed[2] > 0)
+			m_speed[2] - DECELERATION >= 0 ? m_speed[2] -= DECELERATION : m_speed[2] = 0;
+		if (m_speed[2] < 0)
+			m_speed[2] + DECELERATION <= 0 ? m_speed[2] += DECELERATION : m_speed[2] = 0;
+		if (m_acceleration[0] > 0)
+			m_acceleration[0] - DECELERATION >= 0 ? m_acceleration[0] -= DECELERATION : m_acceleration[0] = 0;
+		if (m_acceleration[0] < 0)
+			m_acceleration[0] + DECELERATION <= 0 ? m_acceleration[0] += DECELERATION : m_acceleration[0] = 0;
+		if (m_acceleration[2] > 0)
+			m_acceleration[2] - DECELERATION >= 0 ? m_acceleration[2] -= DECELERATION : m_acceleration[2] = 0;
+		if (m_acceleration[2] < 0)
+			m_acceleration[2] + DECELERATION <= 0 ? m_acceleration[2] += DECELERATION : m_acceleration[2] = 0;
 
 		if (sceneModels) {
 			for (int i = 1; i < numModels; i++) {
@@ -182,9 +280,32 @@ public:
 			}
 		}
 
-		D3DXVECTOR3 cameraPosition = tempPosition;
-		cameraPosition.y += height[thirdPerson];
-		if (!(cameraPosition.y - tempRefFront.y * 10.0f < tempPosition.y + 1.0f) && !(cameraPosition.y - tempRefFront.y * 10.0f > tempPosition.y + 10.0f)) {
+		if (velDir[1] != 0) {
+			if (m_acceleration[1] + velDir[1] > MAXFALLACCELERATION)
+				m_acceleration[1] = MAXFALLACCELERATION;
+			else if (m_acceleration[0] + velDir[1] < -MAXFALLACCELERATION)
+				m_acceleration[1] = -MAXFALLACCELERATION;
+			else
+				m_acceleration[1] += velDir[1];
+		}
+
+		if (isJumping) {
+			if (m_speed[1] + m_acceleration[1] + velDir[1] > MAXFALLSPEED)
+				m_speed[1] = MAXFALLSPEED;
+			else if (m_speed[1] + m_acceleration[1] + velDir[1] < -MAXFALLSPEED)
+				m_speed[1] = -MAXFALLSPEED;
+			else
+				m_speed[1] += m_acceleration[1] + velDir[1];
+			tempPosition.y += m_speed[1];
+		}
+		else {
+			m_speed[1] = 0;
+			m_acceleration[1] = 0;
+		}
+
+		D3DXVECTOR3 tempCameraPosition = tempPosition;
+		tempCameraPosition.y += height[thirdPerson];
+		if (!(tempCameraPosition.y - tempRefFront.y * 10.0f < tempPosition.y + 1.0f) && !(tempCameraPosition.y - tempRefFront.y * 10.0f > tempPosition.y + 10.0f)) {
 			m_refFront = tempRefFront;
 		}
 		else {
@@ -198,7 +319,7 @@ public:
 		if(!collided)
 			m_position = tempPosition;
 
-		cameraPosition = m_position;
+		D3DXVECTOR3 cameraPosition = m_position;
 		cameraPosition.y += height[firstPerson];
 		m_Camera[firstPerson]->posCam = cameraPosition + m_refFront2d * 1.4f;
 		m_Camera[firstPerson]->UpdateCam(m_refFront, m_refRight);
@@ -239,6 +360,10 @@ public:
 		return m_currentCamera;
 	}
 
+	void moveInYAxis() {
+		m_position.y -= m_acceleration[1];
+	}
+
 	void setCamera(int newCamera) {
 		if(newCamera == firstPerson || newCamera == thirdPerson)
 		m_currentCamera = newCamera;
@@ -267,6 +392,41 @@ public:
 			m_position.z = position;
 			break;
 		}
+	}
+	//Set specific speed value 1:X 2:Y 3:Z
+	void SetSpeed(int option, float speed) {
+		switch (option){
+		case 1:
+			m_speed[0] = speed;
+			break;
+		case 2:
+			m_speed[1] = speed;
+			break;
+		case 3:
+			m_speed[2] = speed;
+			break;
+		}
+	}
+	//Set specific acceleration value 1:X 2:Y 3:Z
+	void SetAcceleration(int option, float acceleration) {
+		switch (option){
+		case 1:
+			m_acceleration[0] = acceleration;
+			break;
+		case 2:
+			m_acceleration[1] = acceleration;
+			break;
+		case 3:
+			m_acceleration[2] = acceleration;
+			break;
+		}
+	}
+
+	float* getSpeed() {
+		return m_speed;
+	}
+	float* getAcceleration() {
+		return m_acceleration;
 	}
 
 	void Release() {
