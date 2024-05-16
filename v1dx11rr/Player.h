@@ -28,6 +28,8 @@ private:
 	int m_currentCamera;
 	float height[2];
 
+	float** m_currentVehicle;
+
 	bool isPointInsideSphere(float* point, float* sphere) {
 		bool collition = false;
 
@@ -137,6 +139,7 @@ public:
 		tempRefFrontPreRight = tempRefFront;
 		//normalizamos para no acumular error
 		D3DXVec3Normalize(&tempRefFront, &tempRefFront);
+		D3DXVec3Normalize(&tempRefFrontPreRight, &tempRefFrontPreRight);
 		//Con el vector de referencia y el nuevo front calculamos right de nuevo
 		D3DXVec3Cross(&tempRefRight, &tempRefFront, &tempRefUp);
 		tempRefRight2d = tempRefRight;
@@ -164,7 +167,7 @@ public:
 		if (velDir[0] != 0)
 			frontDistance = cos(radians) * vel;
 		if (velDir[2] != 0)
-			rightDistance = sin(radians) * vel;			
+			rightDistance = sin(radians) * vel;
 
 		tempPosition += tempRefFront2d * frontDistance;
 		tempPosition += tempRefRight2d * rightDistance;
@@ -181,7 +184,7 @@ public:
 
 		D3DXVECTOR3 cameraPosition = tempPosition;
 		cameraPosition.y += height[thirdPerson];
-		if (!(cameraPosition.y - tempRefFront.y * 10.0f < tempPosition.y + 1.0f) && !(cameraPosition.y - tempRefFront.y * 10.0f > 10.0f)) {
+		if (!(cameraPosition.y - tempRefFront.y * 10.0f < tempPosition.y + 1.0f) && !(cameraPosition.y - tempRefFront.y * 10.0f > tempPosition.y + 10.0f)) {
 			m_refFront = tempRefFront;
 		}
 		else {

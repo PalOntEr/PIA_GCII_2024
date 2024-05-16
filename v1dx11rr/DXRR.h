@@ -69,6 +69,7 @@ public:
 
 	float*** sceneModels;
 	int totalModels;
+	float** sceneVehicle;
 
 	XMFLOAT4* timer;
 	GUI* vida;
@@ -180,11 +181,11 @@ public:
 		
 		player = new Player(D3DXVECTOR3(0, 80, 0), Ancho, Alto, sceneAssets[ant]);
 		
-		totalModels = 19;
+		totalModels = 17;
 
 		sceneModels = new float** [totalModels];
 		for (int i = 0; i < totalModels; i++) {
-			sceneModels[i] = new float* [3];
+			sceneModels[i] = new float* [5];
 			for (int j = 0; j < 5; j++) {
 				sceneModels[i][j] = new float[3] {0.0f};
 			}
@@ -202,6 +203,7 @@ public:
 
 		sceneModels[1][asset][assetModel] = anthole;
 		sceneModels[1][position][x] = 0;
+		sceneModels[1][position][y] -= 1.0f;
 		sceneModels[1][position][z] = 0;
 		sceneModels[1][scale][0] = 4.0f;
 		sceneModels[1][collision][active] = 0.0f;
@@ -313,17 +315,18 @@ public:
 		sceneModels[16][collision][active] = 1.0f;
 		sceneModels[16][collision][radius] = 1.0f;
 
-		sceneModels[17][asset][assetModel] = worm;
-		sceneModels[17][position][x] = -24.0f;
-		sceneModels[17][position][z] = -28.0f;
-		sceneModels[17][scale][0] = 5.0f;
-		sceneModels[17][collision][active] = 0.0f;
+		//scale 5
+		sceneVehicle = new float* [5];
+		for (int i = 0; i < 5; i++) {
+			sceneVehicle[i] = new float[3] {0.0f};
+		}
 
-		sceneModels[18][asset][assetModel] = spider;
-		sceneModels[18][position][x] = -24.0f;
-		sceneModels[18][position][z] = -28.0f;
-		sceneModels[18][scale][0] = 5.0f;
-		sceneModels[18][collision][active] = 0.0f;
+		sceneVehicle[asset][assetModel] = worm;
+		sceneVehicle[position][x] = 0.0f;
+		sceneVehicle[position][y] = 0.0f;
+		sceneVehicle[scale][0] = 5.0f;
+		sceneVehicle[collision][active] = 0.0f;
+		sceneVehicle[collision][radius] = 1.0f;
 
 		vida = new GUI(d3dDevice, d3dContext, 0.1f, 0.2f, L"Assets/GUI/health_full.png");
 		prueba = new Text(d3dDevice, d3dContext, 3.6f, 1.2f, L"Assets/GUI/font.png", XMFLOAT4(0.7f, 0.7f, 0.7f, 0.0f));
@@ -530,6 +533,10 @@ public:
 		}
 		delete[] sceneModels;
 
+		for (int i = 0; i < totalAssets; i++) {
+			delete[] sceneAssets[i];
+		}
+		delete[] sceneAssets;
 	}
 	
 	void Render(void)
@@ -586,7 +593,7 @@ public:
 
 			if (sceneAssets[a][t]) {
 				if (sceneModels[i][rotation][x] == 0 && sceneModels[i][rotation][y] == 0 && sceneModels[i][rotation][z] == 0)
-					sceneAssets[a][t]->Draw(playerCamera->vista, playerCamera->proyeccion, p, playerCamera->posCam, 1.0f, 0, 'A', s, timer);
+					sceneAssets[a][t]->Draw(playerCamera->vista, playerCamera->proyeccion, p, playerCamera->posCam, 1.0f, 0, 'N', s, timer);
 				else {
 					if (sceneModels[i][rotation][x] != 0)
 						sceneAssets[a][t]->Draw(playerCamera->vista, playerCamera->proyeccion, p, playerCamera->posCam, 1.0f, sceneModels[i][rotation][x], 'X', s, timer);
@@ -598,10 +605,13 @@ public:
 			}
 		}
 
-		player->Draw(timer);
+		int a = sceneVehicle[asset][assetModel];
+		int t = sceneVehicle[asset][type];
+		float s = sceneVehicle[scale][0];
+		float* p = sceneVehicle[position];
+		sceneAssets[a][t]->Draw(playerCamera->vista, playerCamera->proyeccion, p, playerCamera->posCam, 1.0f, sceneVehicle[rotation][0], 'A', s, timer);
 
-		//if (isPointInsideSphere(new float[2]{ player->GetPosition().x, player->GetPosition().z}, Cap->GetSphere(1)))
-		//	MessageBox(hWnd, L"You have collided with the Cap", L"COLLIDED", MB_OK);
+		player->Draw(timer);
 
 		vida->Draw(-0.8f, 0.8f);
 
