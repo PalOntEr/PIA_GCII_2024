@@ -14,7 +14,7 @@
 #include "XACT3Util.h"
 #include "GUI.h"
 #include "Text.h"
-#define DAYCYCLESPEED 0.0f/*0.0001f*/
+#define DAYCYCLESPEED 0.0001f/*0.0001f*/
 #define GRAVITYFORCE -0.03f
 #define QUICKLOAD false
 
@@ -27,6 +27,9 @@ class DXRR{
 private:
 	int ancho;
 	int alto;
+	bool vehicleMoved;
+	float* prevPos;
+
 public:	
 	HINSTANCE hInstance;
 	HWND hWnd;
@@ -48,10 +51,13 @@ public:
 	ID3D11BlendState *alphaBlendState, *commonBlendState;
 
 	int frameBillboard;
+	int frameSmoke;
+	int globalTimer;
 
 	TerrenoRR *terreno;
 	SkyDome *skydome;
 	BillboardRR *billboard;
+	BillboardRR *smoke;
 	Player *player;
 	ModeloRR* AntModel_Rigged_Smooth = NULL;
 	ModeloRR* Anthole = NULL;
@@ -82,10 +88,10 @@ public:
 	float vel;
 	float* velDir;
 	bool breakpoint;
-	vector2 uv1[32];
-	vector2 uv2[32];
-	vector2 uv3[32];
-	vector2 uv4[32];
+	vector2 uv1[34];
+	vector2 uv2[34];
+	vector2 uv3[34];
+	vector2 uv4[34];
 
 	XACTINDEX cueIndex;
 	CXACT3Util m_XACT3;
@@ -148,6 +154,8 @@ public:
 		timer->z = 0.0f;
 		timer->w = 0.0f;
 
+		globalTimer = 0;
+
 		totalAssets = 13;
 
 		sceneAssets = new ModeloRR** [totalAssets];
@@ -181,6 +189,9 @@ public:
 		sceneAssets[spider][0] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/spider.obj", L"Assets/Textures/AntModel_Rigged_Smooth.png", L"Assets/Textures/NoSpecular.png", 0, 0);
 
 		//billboard = new BillboardRR(L"Assets/Billboards/fuego-anim.png",L"Assets/Billboards/fuego-anim-normal.png", d3dDevice, d3dContext, 5);
+		frameSmoke = 15;
+		smoke = new BillboardRR(L"Assets/Billboards/smoke-anim.png",L"Assets/Billboards/smoke-anim-normal.png", d3dDevice, d3dContext, 5);
+		billCargaHumo();
 		//model = new ModeloRR(d3dDevice, d3dContext, "Assets/Cofre/Cofre.obj", L"Assets/Cofre/Cofre-color.png", L"Assets/Cofre/Cofre-spec.png", 0, 0);
 		
 		player = new Player(D3DXVECTOR3(0, 80, 0), Ancho, Alto, sceneAssets[ant], 1, 1);
@@ -546,6 +557,7 @@ public:
 	
 	void Render(void)
 	{
+		globalTimer++;
 
 		if (timer->y == 0.0f)
 			timer->x += DAYCYCLESPEED;
@@ -558,7 +570,7 @@ public:
 			timer->y = 0.0f;
 
 		float sphere[3] = { 0,0,0 };
-		float prevPos[3] = { player->GetPosition().x, player->GetPosition().z, player->GetPosition().z };
+		float prevPos[3] = { player->GetPosition().x, player->GetPosition().y, player->GetPosition().z };
 		static float angle = 0.0f;
 		angle += 0.005;
 		if (angle >= 360) angle = 0.0f;
@@ -616,13 +628,29 @@ public:
 			}
 		}
 
-		if (!player->isDriving)
+		if (!player->isDriving) {
 			if (sceneVehicle[position][y] > terreno->Superficie(sceneVehicle[position][x], sceneVehicle[position][z])) {
 				sceneVehicle[position][y]--;
 			}
 			else if (sceneVehicle[position][y] < terreno->Superficie(sceneVehicle[position][x], sceneVehicle[position][z]))
 				sceneVehicle[position][y] = terreno->Superficie(sceneVehicle[position][x], sceneVehicle[position][z]);
-
+		}
+		else {
+			if(globalTimer % 2 == 0)
+				frameSmoke < 33 ? frameSmoke++ : frameSmoke = 15;
+			if (!player->isJumping && prevPos[0] != player->GetPosition().x && prevPos[2] != player->GetPosition().z) {
+				TurnOnAlphaBlending();
+				if (player->getSpeed()[0] > 0) {
+					smoke->Draw(playerCamera->vista, playerCamera->proyeccion, playerCamera->posCam + (player->GetRightReference2D() * -30.0f), sceneVehicle[position][x] + (player->GetFrontReference2D().x * -2.0f) + (player->GetRightReference2D().x * 1.3f), sceneVehicle[position][z] + (player->GetFrontReference2D().z * -2.0f) + (player->GetRightReference2D().z * 1.3f), terreno->Superficie(sceneVehicle[position][x], sceneVehicle[position][z]), 2, uv1, uv2, uv3, uv4, frameSmoke);
+					smoke->DrawHFlipped(playerCamera->vista, playerCamera->proyeccion, playerCamera->posCam + (player->GetRightReference2D() * 30.0f), sceneVehicle[position][x] + (player->GetFrontReference2D().x * -2.0f) + (player->GetRightReference2D().x * -1.3f), sceneVehicle[position][z] + (player->GetFrontReference2D().z * -2.0f) + (player->GetRightReference2D().z * -1.3f), terreno->Superficie(sceneVehicle[position][x], sceneVehicle[position][z]), 2, uv1, uv2, uv3, uv4, frameSmoke);
+				}
+				else {
+					smoke->Draw(playerCamera->vista, playerCamera->proyeccion, playerCamera->posCam + (player->GetRightReference2D() * 30.0f), sceneVehicle[position][x] + (player->GetRightReference2D().x * 1.3f), sceneVehicle[position][z]+ (player->GetRightReference2D().z * 1.3f), terreno->Superficie(sceneVehicle[position][x], sceneVehicle[position][z]), 2, uv1, uv2, uv3, uv4, frameSmoke);
+					smoke->DrawHFlipped(playerCamera->vista, playerCamera->proyeccion, playerCamera->posCam + (player->GetRightReference2D() * -30.0f), sceneVehicle[position][x] + (player->GetRightReference2D().x * -1.3f), sceneVehicle[position][z]+ (player->GetRightReference2D().z * -1.3f), terreno->Superficie(sceneVehicle[position][x], sceneVehicle[position][z]), 2, uv1, uv2, uv3, uv4, frameSmoke);
+				}
+				TurnOffAlphaBlending();
+			}
+		}
 		//TurnOnAlphaBlending();
 		//billboard->Draw(playerCamera->vista, playerCamera->proyeccion, player->GetPosition(),-11, -78, 4, 5, uv1, uv2, uv3, uv4, frameBillboard);
 		//TurnOffAlphaBlending();
@@ -781,6 +809,80 @@ public:
 		d3dDevice->CreateDepthStencilState(&descDDSD, &depthStencilDisabledState);
 		d3dContext->OMSetDepthStencilState(depthStencilDisabledState, 1);
 	}
+
+	void billCargaHumo()
+	{
+		uv1[0].u = .125;
+		uv2[0].u = .125;
+		uv3[0].u = 0;
+		uv4[0].u = 0;
+
+		uv1[0].v = .20;
+		uv2[0].v = 0;
+		uv3[0].v = 0;
+		uv4[0].v = .20;
+
+
+		for (int j = 0; j < 8; j++) {
+			uv1[j].u = uv1[0].u + (j * .125);
+			uv2[j].u = uv2[0].u + (j * .125);
+			uv3[j].u = uv3[0].u + (j * .125);
+			uv4[j].u = uv4[0].u + (j * .125);
+
+			uv1[j].v = .20;
+			uv2[j].v = 0;
+			uv3[j].v = 0;
+			uv4[j].v = .20;
+		}
+		for (int j = 0; j < 8; j++) {
+			uv1[j + 8].u = uv1[0].u + (j * .125);
+			uv2[j + 8].u = uv2[0].u + (j * .125);
+			uv3[j + 8].u = uv3[0].u + (j * .125);
+			uv4[j + 8].u = uv4[0].u + (j * .125);
+
+			uv1[j + 8].v = .4;
+			uv2[j + 8].v = .2;
+			uv3[j + 8].v = .2;
+			uv4[j + 8].v = .4;
+		}
+
+		for (int j = 0; j < 8; j++) {
+			uv1[j + 16].u = uv1[0].u + (j * .125);
+			uv2[j + 16].u = uv2[0].u + (j * .125);
+			uv3[j + 16].u = uv3[0].u + (j * .125);
+			uv4[j + 16].u = uv4[0].u + (j * .125);
+
+			uv1[j + 16].v = .6;
+			uv2[j + 16].v = .4;
+			uv3[j + 16].v = .4;
+			uv4[j + 16].v = .6;
+		}
+
+		for (int j = 0; j < 8; j++) {
+			uv1[j + 24].u = uv1[0].u + (j * .125);
+			uv2[j + 24].u = uv2[0].u + (j * .125);
+			uv3[j + 24].u = uv3[0].u + (j * .125);
+			uv4[j + 24].u = uv4[0].u + (j * .125);
+
+			uv1[j + 24].v = .8;
+			uv2[j + 24].v = .6;
+			uv3[j + 24].v = .6;
+			uv4[j + 24].v = .8;
+		}
+
+		for (int j = 0; j < 2; j++) {
+			uv1[j + 32].u = uv1[0].u + (j * .125);
+			uv2[j + 32].u = uv2[0].u + (j * .125);
+			uv3[j + 32].u = uv3[0].u + (j * .125);
+			uv4[j + 32].u = uv4[0].u + (j * .125);
+
+			uv1[j + 32].v = 1;
+			uv2[j + 32].v = .8;
+			uv3[j + 32].v = .8;
+			uv4[j + 32].v = 1;
+		}
+	}
+	
 
 	void billCargaFuego()
 	{

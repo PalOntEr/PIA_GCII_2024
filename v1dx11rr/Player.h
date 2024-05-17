@@ -367,7 +367,7 @@ public:
 
 		cameraPosition = m_position;
 		cameraPosition.y += height[thirdPerson];
-		m_Camera[thirdPerson]->posCam = cameraPosition - m_refFront * 10.0f;
+		m_Camera[thirdPerson]->posCam = cameraPosition - m_refFront * 20.0f;
 		m_Camera[thirdPerson]->UpdateCam(m_refFront, m_refRight);
 
 		return;
@@ -418,6 +418,13 @@ public:
 	}
 	D3DXVECTOR3 GetFrontReference2D() {
 		return m_refFront2d;
+	}
+
+	D3DXVECTOR3 GetRightReference() {
+		return m_refRight;
+	}
+	D3DXVECTOR3 GetRightReference2D() {
+		return m_refRight2d;
 	}
 
 	void SetCurrentVehicle(float** newVehicle) {
