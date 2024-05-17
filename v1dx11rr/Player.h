@@ -8,6 +8,9 @@
 #define MAXRCROUCHINGSPEED 0.5f
 #define MAXFALLACCELERATION 1.0f
 #define MAXFALLSPEED 1.0f
+#define RADIUS 10.0f
+#define INITIALHEALTH 100.0f
+#define DAMAGE 10.0f
 
 //Clase camara hecha por Rafael Rosas para los UltraLMADs
 //Videojuegos
@@ -37,6 +40,8 @@ private:
 	float height[3];
 	float m_acceleration[3];
 	float m_speed[3];
+
+	float health;
 
 	float** m_currentVehicle;
 
@@ -71,6 +76,8 @@ public:
 	bool isDriving;
 
 	Player(D3DXVECTOR3 startPoint, int Ancho, int Alto, ModeloRR** models = NULL, int animations = 1, int frames = 1) {
+
+		health = INITIALHEALTH;
 
 		m_acceleration[0] = 0.0f;
 		m_acceleration[1] = 0.0f;
@@ -487,6 +494,14 @@ public:
 
 	float* getAcceleration() {
 		return m_acceleration;
+	}
+
+	float getRadius() {
+		return RADIUS;
+	}
+
+	float* getHealth() {
+		return &health;
 	}
 
 	void Release() {

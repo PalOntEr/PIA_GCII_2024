@@ -14,6 +14,7 @@
 #include "XACT3Util.h"
 #include "GUI.h"
 #include "Text.h"
+#include "Enemy.h"
 #define DAYCYCLESPEED 0.0001f/*0.0001f*/
 #define GRAVITYFORCE -0.03f
 #define QUICKLOAD false
@@ -54,11 +55,12 @@ public:
 	int frameSmoke;
 	int globalTimer;
 
-	TerrenoRR *terreno;
-	SkyDome *skydome;
-	BillboardRR *billboard;
-	BillboardRR *smoke;
-	Player *player;
+	TerrenoRR* terreno;
+	SkyDome* skydome;
+	BillboardRR* billboard;
+	BillboardRR* smoke;
+	Player* player;
+	Enemy** spiderEnemies;
 	ModeloRR* AntModel_Rigged_Smooth = NULL;
 	ModeloRR* Anthole = NULL;
 	ModeloRR* House = NULL;
@@ -78,6 +80,8 @@ public:
 	float*** sceneModels;
 	int totalModels;
 	float** sceneVehicle;
+
+	int totalEnemies;
 
 	XMFLOAT4* timer;
 	GUI* vida;
@@ -196,6 +200,14 @@ public:
 		
 		player = new Player(D3DXVECTOR3(0, 80, 0), Ancho, Alto, sceneAssets[ant], 1, 1);
 		player->SetPosition(2, terreno->Superficie(player->GetPosition().x, player->GetPosition().z));
+
+		totalEnemies = 10;
+
+		spiderEnemies = new Enemy*[totalEnemies];
+		for (int i = 0; i < totalEnemies; i++) {
+			spiderEnemies[i] = new Enemy(player, D3DXVECTOR3(rand() % 200, 80, rand() % 200), sceneAssets[spider], 1, 1);
+			spiderEnemies[i]->SetPosition(2, terreno->Superficie(spiderEnemies[i]->GetPosition().x, spiderEnemies[i]->GetPosition().z));
+		}
 		
 		totalModels = 17;
 
@@ -600,6 +612,11 @@ public:
 		terreno->Draw(playerCamera->vista, playerCamera->proyeccion, (float*)timer);
 
 		player->Draw(timer);
+		for (int i = 0; i < totalEnemies; i++) {
+			spiderEnemies[i]->Draw(playerCamera->vista, playerCamera->proyeccion, playerCamera->posCam, 1.0f, 5.0f, timer);
+			spiderEnemies[i]->SetPosition(2, terreno->Superficie(spiderEnemies[i]->GetPosition().x, spiderEnemies[i]->GetPosition().z));
+			spiderEnemies[i]->MoveEnemy(0.3f);
+		}
 
 		int a = sceneVehicle[asset][assetModel];
 		int t = sceneVehicle[asset][type];
@@ -651,6 +668,7 @@ public:
 				TurnOffAlphaBlending();
 			}
 		}
+
 		//TurnOnAlphaBlending();
 		//billboard->Draw(playerCamera->vista, playerCamera->proyeccion, player->GetPosition(),-11, -78, 4, 5, uv1, uv2, uv3, uv4, frameBillboard);
 		//TurnOffAlphaBlending();
@@ -682,15 +700,19 @@ public:
 
 		TurnOnAlphaBlending();
 			prueba->DrawText(-0.1f, -0.9f, "Bruh como que todo se entrega la primera semana", 0.01f);
-			prueba->DrawText(-0.4f, 0.8f, "X:" + to_string(player->GetPosition().x) + "  Y:" + to_string(player->GetPosition().y) + "  Z:" + to_string(player->GetPosition().z), 0.01f);
+			/*prueba->DrawText(-0.4f, 0.8f, "X:" + to_string(player->GetPosition().x) + "  Y:" + to_string(player->GetPosition().y) + "  Z:" + to_string(player->GetPosition().z), 0.01f);
 			prueba->DrawText(-0.6f, 0.7f, "Speed X:" + to_string(player->getSpeed()[0]) + "  Speed Y:" + to_string(player->getSpeed()[1]) + "  Speed Z:" + to_string(player->getSpeed()[2]), 0.01f);
 			prueba->DrawText(-0.1f, 0.6f, "isJumping: " + player->isJumping, 0.01f);
 			prueba->DrawText(-0.6f, 0.5f, "Accel X:" + to_string(player->getAcceleration()[0]) + "  Accel Y:" + to_string(player->getAcceleration()[1]) + "  Accel Z:" + to_string(player->getAcceleration()[2]), 0.01f);
 			prueba->DrawText(-0.05f, 0.4f, "Camera", 0.01f);
-			prueba->DrawText(-0.4f, 0.3f, "X:" + to_string(playerCamera->posCam.x) + "  Y:" + to_string(playerCamera->posCam.y) + "  Z:" + to_string(playerCamera->posCam.z), 0.01f);
+			prueba->DrawText(-0.4f, 0.3f, "X:" + to_string(playerCamera->posCam.x) + "  Y:" + to_string(playerCamera->posCam.y) + "  Z:" + to_string(playerCamera->posCam.z), 0.01f);*/
+			prueba->DrawText(-0.4f, 0.8f, "HEALTH: " + to_string(*player->getHealth()), 0.01f);
 			if (!player->isDriving && isPointInsideSphere(new float[2] {player->GetPosition().x, player->GetPosition().z}, new float[3] { sceneVehicle[1][0], sceneVehicle[1][2], sceneVehicle[4][1]}))
 				prueba->DrawText(-0.2f, -0.8f, "Press the LMB to mount", 0.01f);
-		TurnOffAlphaBlending();
+			for (int i = 0; i < totalEnemies; i++) {				
+				prueba->DrawText(-0.8f, 0.7f - (i * 0.1f), "ENEMY " + to_string(i) + ": " + to_string(*spiderEnemies[i]->getHealth()), 0.01f);
+			}
+			TurnOffAlphaBlending();
 
 
 		swapChain->Present( 1, 0 );
@@ -883,7 +905,6 @@ public:
 		}
 	}
 	
-
 	void billCargaFuego()
 	{
 		uv1[0].u = .125;
@@ -943,6 +964,18 @@ public:
 			uv3[j + 24].v = .75;
 			uv4[j + 24].v = 1;
 		}
+	}
+
+	void DamageEnemies(Enemy** Enemies) {
+
+		for (int i = 0; i < totalEnemies; i++) {
+			if (Enemies[i]->isEnemyAlive() && isPointInsideSphere(new float[2] { player->GetPosition().x, player->GetPosition().z}, new float[3] { Enemies[i]->GetPosition().x, Enemies[i]->GetPosition().z, Enemies[i]->getRadius()})) {
+				*Enemies[i]->getHealth() -= DAMAGE;
+				if (*Enemies[i]->getHealth() <= 0)
+					Enemies[i]->killEnemy();
+			}
+		}
+
 	}
 
 };

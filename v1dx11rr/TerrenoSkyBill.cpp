@@ -30,6 +30,7 @@ bool windowFocused = false;
 bool F5isPressed = false;
 bool SpaceisPressed = false;
 bool LMBisPressed = false;
+bool RMBisPressed = false;
 
 void createMouseDevice(HWND hWnd) {
     m_pDirectInput->CreateDevice(GUID_SysMouse, &m_pMouseDevice, 0);
@@ -314,6 +315,15 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
             }
             else
                 LMBisPressed = false;
+
+            if (mouseData.rgbButtons[1] & 0x80) {
+                if (!RMBisPressed)
+                    dxrr->DamageEnemies(dxrr->spiderEnemies);
+                RMBisPressed = true;
+                //MessageBox(hWnd, L"Right MB pressed", L"INFO", MB_OK | MB_ICONINFORMATION);
+            }
+            else
+                RMBisPressed = false;
 
             if (keyboardData[DIK_F5] & 0x80 || mouseData.rgbButtons[3] & 0x80) {
                 if (!F5isPressed) {
