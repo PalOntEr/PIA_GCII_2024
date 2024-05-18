@@ -17,7 +17,7 @@
 #include "Enemy.h"
 #define DAYCYCLESPEED 0.0001f/*0.0001f*/
 #define GRAVITYFORCE -0.03f
-#define QUICKLOAD true
+#define QUICKLOAD false
 
 //MAX ANDRES ZERTUCHE PEREZ #2003051
 //MATEO ZAMORA GRAJEDA #2001215
@@ -82,6 +82,9 @@ public:
 	float*** sceneTargets;
 	int totalTargets;
 	float** sceneVehicle;
+	float** sceneAnthole;
+	float** sceneWalls;
+	int totalWalls;
 
 	int totalEnemies;
 
@@ -101,7 +104,7 @@ public:
 
 	XACTINDEX cueIndex;
 	CXACT3Util m_XACT3;
-	
+
 	enum assetArray {
 		asset,
 		assetModel = 0,
@@ -111,13 +114,16 @@ public:
 		radius = 1,
 		scale,
 		rotation,
-		collision
+		collision,
+		health
 	};
 
 	enum Positions {
 		x,
 		y,
-		z
+		z,
+		width,
+		height
 	};
 
 	enum Models {
@@ -180,8 +186,8 @@ public:
 		skydome = new SkyDome(32, 32, 100.0f, &d3dDevice, &d3dContext, L"Assets/Skydomes/clear.jpg", L"Assets/Skydomes/night.png");
 		
 		sceneAssets[ant][0] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/AntModel_Rigged_Smooth.obj", L"Assets/Textures/AntModel_Rigged_Smooth.png", L"Assets/Textures/NoSpecular.png", 0, 0);
+		sceneAssets[anthole][0] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/Hormiguero.obj", L"Assets/Textures/Hormiguero.png", L"Assets/Textures/NoSpecular.png", 0, 0);
 		if (!QUICKLOAD) {
-			sceneAssets[anthole][0] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/Hormiguero.obj", L"Assets/Textures/Hormiguero.png", L"Assets/Textures/NoSpecular.png", 0, 0);
 			sceneAssets[house][0] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/Old_stone_house.obj", L"Assets/Textures/Old_stone_house_BaseColor.png", L"Assets/Textures/NoSpecular.png", 20, 0);
 			sceneAssets[rockPillar][0] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/pilarRoca1.obj", L"Assets/Textures/pilarRoca1_Color.png", L"Assets/Textures/NoSpecular.png", 65, 6);
 			sceneAssets[rock][0] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/ballRock.obj", L"Assets/Textures/ballRock.png", L"Assets/Textures/NoSpecular.png", 5, -5);
@@ -215,7 +221,7 @@ public:
 		spiderEnemies = new Enemy*[totalEnemies];
 		sceneTargets[0] = player->getPlayerInfo();
 		for (int i = 0; i < totalEnemies; i++) {
-			spiderEnemies[i] = new Enemy(D3DXVECTOR3(rand() % 200, 80, rand() % 200), sceneTargets, totalTargets, sceneAssets[spider], 1, 1);
+			spiderEnemies[i] = new Enemy(D3DXVECTOR3(rand() % 200, 80, rand() % 200), sceneTargets, totalTargets, &m_XACT3, sceneAssets[spider], 1, 1);
 			spiderEnemies[i]->SetPosition(2, terreno->Superficie(spiderEnemies[i]->GetPosition().x, spiderEnemies[i]->GetPosition().z));
 		}
 		
@@ -227,10 +233,6 @@ public:
 			for (int j = 0; j < 5; j++) {
 				sceneModels[i][j] = new float[3] {0.0f};
 			}
-		}
-
-		for (int i = 1; i < totalModels; i++) {
-			sceneModels[i][position][y] = terreno->Superficie(sceneModels[i][position][x], sceneModels[i][position][z]);
 		}
 
 		sceneModels[0][asset][assetModel] = ant;
@@ -353,6 +355,10 @@ public:
 		sceneModels[16][collision][active] = 1.0f;
 		sceneModels[16][collision][radius] = 1.0f;
 
+		for (int i = 1; i < totalModels; i++) {
+			sceneModels[i][position][y] = terreno->Superficie(sceneModels[i][position][x], sceneModels[i][position][z]);
+		}
+
 		//scale 5
 		sceneVehicle = new float* [5];
 		for (int i = 0; i < 5; i++) {
@@ -367,7 +373,78 @@ public:
 		sceneVehicle[collision][active] = 0.0f;
 		sceneVehicle[collision][radius] = 5.0f;
 
-		vida = new GUI(d3dDevice, d3dContext, 0.1f, 0.2f, L"Assets/GUI/health_full.png");
+		sceneAnthole = new float* [6];
+		for (int i = 0; i < 6; i++) {
+			sceneAnthole[i] = new float[3] {0.0f};
+		}
+		
+		sceneAnthole[asset][assetModel] = anthole;
+		sceneAnthole[position][x] = 0;
+		sceneAnthole[position][y] -= 1.0f;
+		sceneAnthole[position][z] = 0;
+		sceneAnthole[scale][0] = 4.0f;
+		sceneAnthole[collision][active] = 0.0f;
+		sceneAnthole[collision][radius] = 10.0f;
+		sceneAnthole[health][0] = 100.0f;
+
+		totalWalls = 10;
+		sceneWalls = new float* [totalWalls];
+		for (int i = 0; i < totalWalls; i++) {
+			sceneWalls[i] = new float[5] {0.0f};
+		}
+
+		sceneWalls[0][x] = 2.0f;
+		sceneWalls[0][y] = 17.0f;
+		sceneWalls[0][width] = 15.0f;
+		sceneWalls[0][height] = 1.0f;
+
+		sceneWalls[1][x] = 17.0f;
+		sceneWalls[1][y] = -17.0f;
+		sceneWalls[1][width] = 1.0f;
+		sceneWalls[1][height] = 34.0f;
+
+		sceneWalls[2][x] = -17.0f;
+		sceneWalls[2][y] = -17.0f;
+		sceneWalls[2][width] = 34.0f;
+		sceneWalls[2][height] = 1.0f;
+
+		sceneWalls[3][x] = -17.0f;
+		sceneWalls[3][y] = 17.0f;
+		sceneWalls[3][width] = 15.0f;
+		sceneWalls[3][height] = 1.0f;
+
+		sceneWalls[4][x] = -17.0f;
+		sceneWalls[4][y] = -17.0f;
+		sceneWalls[4][width] = 1.0f;
+		sceneWalls[4][height] = 34.0f;
+
+		sceneWalls[5][x] = 2.0f;
+		sceneWalls[5][y] = 30.0f;
+		sceneWalls[5][width] = 28.0f;
+		sceneWalls[5][height] = 1.0f;
+
+		sceneWalls[6][x] = 30.0f;
+		sceneWalls[6][y] = -30.0f;
+		sceneWalls[6][width] = 1.0f;
+		sceneWalls[6][height] = 57.0f;
+
+		sceneWalls[7][x] = -30.0f;
+		sceneWalls[7][y] = -30.0f;
+		sceneWalls[7][width] = 57.0f;
+		sceneWalls[7][height] = 1.0f;
+
+		sceneWalls[8][x] = -30.0f;
+		sceneWalls[8][y] = 30.0f;
+		sceneWalls[8][width] = 28.0f;
+		sceneWalls[8][height] = 1.0f;
+
+		sceneWalls[9][x] = -30.0f;
+		sceneWalls[9][y] = -30.0f;
+		sceneWalls[9][width] = 1.0f;
+		sceneWalls[9][height] = 57.0f;
+
+
+		vida = new GUI(d3dDevice, d3dContext, 0.3f, 0.3f, L"Assets/GUI/ant_health.png");
 		prueba = new Text(d3dDevice, d3dContext, 3.6f, 1.2f, L"Assets/GUI/font.png", XMFLOAT4(0.7f, 0.7f, 0.7f, 0.0f));
 
 	}
@@ -577,6 +654,11 @@ public:
 		delete[] sceneAssets;
 
 		delete[] sceneTargets;
+		delete[] sceneAnthole;
+		for (int i = 0; i < totalWalls; i++) {
+			delete[] sceneWalls[i];
+		}
+		delete[] sceneWalls;
 
 	}
 	
@@ -611,7 +693,7 @@ public:
 			player->SetAcceleration(2, GRAVITYFORCE);
 		}
 
-		player->MovePlayer(vel, velDir, arriaba, izqder, sceneModels, totalModels);
+		player->MovePlayer(vel, velDir, arriaba, izqder, sceneModels, totalModels, sceneWalls, totalWalls);
 
 		Camara* playerCamera = player->GetCamera();
 
@@ -686,8 +768,6 @@ public:
 		//billboard->Draw(playerCamera->vista, playerCamera->proyeccion, player->GetPosition(),-11, -78, 4, 5, uv1, uv2, uv3, uv4, frameBillboard);
 		//TurnOffAlphaBlending();
 
-		float newPosition[3] = { 0.0f };
-
 		for (int i = 1; i < totalModels; i++) {
 
 			int a = sceneModels[i][asset][assetModel];
@@ -709,12 +789,42 @@ public:
 			}
 		}
 
-		vida->Draw(-0.8f, 0.8f);
+		/*int a2 = sceneModels[16][asset][assetModel];
+		float* p2 = sceneModels[16][position];
+		float s2 = sceneModels[16][scale][0];
+		p2[x] = 28.0f;
+		p2[z] = 28.0f;
+		sceneModels[16][position][y] = terreno->Superficie(sceneModels[16][position][x], sceneModels[16][position][z]);
+		sceneAssets[a2][0]->Draw(playerCamera->vista, playerCamera->proyeccion, p2, playerCamera->posCam, 1.0f, 0, 'N', s2, timer);
+		p2[x] = 28.0f;
+		p2[z] = -28.0f;
+		sceneModels[16][position][y] = terreno->Superficie(sceneModels[16][position][x], sceneModels[16][position][z]);
+		sceneAssets[a2][0]->Draw(playerCamera->vista, playerCamera->proyeccion, p2, playerCamera->posCam, 1.0f, 0, 'N', s2, timer);
+		p2[x] = -28.0f;
+		p2[z] = -28.0f;
+		sceneModels[16][position][y] = terreno->Superficie(sceneModels[16][position][x], sceneModels[16][position][z]);
+		sceneAssets[a2][0]->Draw(playerCamera->vista, playerCamera->proyeccion, p2, playerCamera->posCam, 1.0f, 0, 'N', s2, timer);
+		p2[x] = -28.0f;
+		p2[z] = 28.0f;
+		sceneModels[16][position][y] = terreno->Superficie(sceneModels[16][position][x], sceneModels[16][position][z]);
+		sceneAssets[a2][0]->Draw(playerCamera->vista, playerCamera->proyeccion, p2, playerCamera->posCam, 1.0f, 0, 'N', s2, timer);
+		p2[x] = -3.0f;
+		p2[z] = 28.0f;
+		sceneModels[16][position][y] = terreno->Superficie(sceneModels[16][position][x], sceneModels[16][position][z]);
+		sceneAssets[a2][0]->Draw(playerCamera->vista, playerCamera->proyeccion, p2, playerCamera->posCam, 1.0f, 0, 'N', s2, timer);
+		p2[x] = 3.0f;
+		p2[z] = 28.0f;
+		sceneModels[16][position][y] = terreno->Superficie(sceneModels[16][position][x], sceneModels[16][position][z]);
+		sceneAssets[a2][0]->Draw(playerCamera->vista, playerCamera->proyeccion, p2, playerCamera->posCam, 1.0f, 0, 'N', s2, timer);*/
+
+		for (int i = 0; i < *player->getHealth() / 35.0f; i++) {
+			vida->Draw(-0.8f, 0.8f - (i * 0.03f));
+		}
 
 		TurnOnAlphaBlending();
 			prueba->DrawText(-0.1f, -0.9f, "Bruh como que todo se entrega la primera semana", 0.01f);
-			/*prueba->DrawText(-0.4f, 0.8f, "X:" + to_string(player->GetPosition().x) + "  Y:" + to_string(player->GetPosition().y) + "  Z:" + to_string(player->GetPosition().z), 0.01f);
-			prueba->DrawText(-0.6f, 0.7f, "Speed X:" + to_string(player->getSpeed()[0]) + "  Speed Y:" + to_string(player->getSpeed()[1]) + "  Speed Z:" + to_string(player->getSpeed()[2]), 0.01f);
+			prueba->DrawText(-0.4f, 0.8f, "X:" + to_string(player->GetPosition().x) + "  Y:" + to_string(player->GetPosition().y) + "  Z:" + to_string(player->GetPosition().z), 0.01f);
+			/*prueba->DrawText(-0.6f, 0.7f, "Speed X:" + to_string(player->getSpeed()[0]) + "  Speed Y:" + to_string(player->getSpeed()[1]) + "  Speed Z:" + to_string(player->getSpeed()[2]), 0.01f);
 			prueba->DrawText(-0.1f, 0.6f, "isJumping: " + player->isJumping, 0.01f);
 			prueba->DrawText(-0.6f, 0.5f, "Accel X:" + to_string(player->getAcceleration()[0]) + "  Accel Y:" + to_string(player->getAcceleration()[1]) + "  Accel Z:" + to_string(player->getAcceleration()[2]), 0.01f);
 			prueba->DrawText(-0.05f, 0.4f, "Camera", 0.01f);

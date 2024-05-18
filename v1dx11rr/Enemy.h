@@ -14,6 +14,7 @@
 
 #include "Camara.h"
 #include "ModeloRR.h"
+#include "XACT3Util.h"
 
 
 class Enemy {
@@ -25,6 +26,9 @@ private:
 	D3DXVECTOR3 m_refUp;
 	D3DXVECTOR3 m_refRight2d;
 	D3DXVECTOR3 m_refFront2d;
+
+	XACTINDEX cueIndex[4];
+	CXACT3Util* m_XACT3;
 
 	float** currentTarget;
 	float health;
@@ -60,7 +64,7 @@ public:
 
 	D3DXVECTOR3 m_startPosition;
 
-	Enemy(D3DXVECTOR3 startPoint, float*** posibleTargets, int numberOfTargets, ModeloRR** models = NULL, int animations = 1, int frames = 1) {
+	Enemy(D3DXVECTOR3 startPoint, float*** posibleTargets, int numberOfTargets, CXACT3Util* audioManager, ModeloRR** models = NULL, int animations = 1, int frames = 1) {
 
 		isAlive = true;
 
@@ -95,6 +99,14 @@ public:
 
 		this->posibleTargets = posibleTargets;
 		this->numberOfTargets = numberOfTargets;
+		
+		m_XACT3 = audioManager;
+
+		// Cargar los indeces de los Cues
+		cueIndex[0] = m_XACT3->m_pSoundBank->GetCueIndex("spider_attack_1");
+		cueIndex[1] = m_XACT3->m_pSoundBank->GetCueIndex("spider_attack_2");
+		cueIndex[2] = m_XACT3->m_pSoundBank->GetCueIndex("spider_attack_3");
+		cueIndex[3] = m_XACT3->m_pSoundBank->GetCueIndex("spider_attack_4");
 
 		selectNewTarget();
 
@@ -239,6 +251,7 @@ public:
 
 	void Attack() {
 		currentTarget[targetHealth][0] -= ENEMYDAMAGE;
+		m_XACT3->m_pSoundBank->Play(cueIndex[rand() % 4], 0, 0, 0);
 	}
 
 	void killEnemy() {

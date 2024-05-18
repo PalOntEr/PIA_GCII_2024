@@ -64,6 +64,18 @@ private:
 		return collition;
 	}
 
+	bool isPointInsideRect(float* point, float* wall) {
+
+		if (point[0] >= wall[0] &&         // right of the left edge AND
+			point[0] <= wall[0] + wall[3] &&    // left of the right edge AND
+			point[1] >= wall[1] &&         // below the top AND
+			point[1] <= wall[1] + wall[4]) {    // above the bottom
+			return true;
+		}
+
+		return false;
+	}
+
 public:
 
 	ModeloRR** m_playerModels;
@@ -158,7 +170,7 @@ public:
 		Release();
 	}
 
-	void MovePlayer(float vel, float* velDir, float arriaba, float izqder, float*** sceneModels = NULL, int numModels = 0) {
+	void MovePlayer(float vel, float* velDir, float arriaba, float izqder, float*** sceneModels = NULL, int numModels = 0, float ** sceneWalls = NULL, int numWalls = 0) {
 		
 		D3DXVECTOR4 tempo;
 		D3DXQUATERNION quatern; //quaternion temporal para la camara
@@ -324,6 +336,17 @@ public:
 			}
 		}
 
+		if (sceneWalls) {
+			for (int i = 0; i < numWalls; i++) {
+				if (isPointInsideRect(new float[2] { tempPosition.x, tempPosition.z}, sceneWalls[i])) {
+					collided = true;
+					m_speed[0] = 0;
+					m_speed[2] = 0;
+					break;
+				}
+			}
+		}
+
 		if (velDir[1] != 0) {
 			if (m_acceleration[1] + velDir[1] > MAXFALLACCELERATION)
 				m_acceleration[1] = MAXFALLACCELERATION;
@@ -349,7 +372,7 @@ public:
 
 		D3DXVECTOR3 tempCameraPosition = tempPosition;
 		tempCameraPosition.y += height[thirdPerson];
-		if (!(tempCameraPosition.y - tempRefFront.y * 10.0f < tempPosition.y + 1.0f) && !(tempCameraPosition.y - tempRefFront.y * 10.0f > tempPosition.y + 10.0f)) {
+		if (!(tempCameraPosition.y - tempRefFront.y * 10.0f < tempPosition.y + 2.0f) && !(tempCameraPosition.y - tempRefFront.y * 10.0f > tempPosition.y + 10.0f)) {
 			m_refFront = tempRefFront;
 		}
 		else {
