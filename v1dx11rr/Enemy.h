@@ -3,6 +3,7 @@
 #define ENEMYDAMAGE 0.1f
 #define ENEMYRADIUS 10.0f
 #define INITIALENEMYHEALTH 100.0f
+#define ENEMYLOOKRADIUS 200.0f
 
 //Clase camara hecha por Rafael Rosas para los UltraLMADs
 //Videojuegos
@@ -12,7 +13,6 @@
 #include <D3DX10math.h>
 
 #include "Camara.h"
-#include "Player.h"
 #include "ModeloRR.h"
 
 
@@ -26,7 +26,7 @@ private:
 	D3DXVECTOR3 m_refRight2d;
 	D3DXVECTOR3 m_refFront2d;
 
-	Player* player;
+	float** currentTarget;
 	float health;
 
 	bool isAlive;
@@ -42,6 +42,12 @@ private:
 		return collition;
 	}
 
+	enum targetInfo {
+		targetHealth,
+		targetPosition,
+		targetRadius
+	};
+
 public:
 
 	ModeloRR** m_enemyModels;
@@ -49,9 +55,12 @@ public:
 	int m_animations;
 	int m_frames;
 
+	float*** posibleTargets;
+	int numberOfTargets;
+
 	D3DXVECTOR3 m_startPosition;
 
-	Enemy(Player* targetPlayer, D3DXVECTOR3 startPoint, ModeloRR** models = NULL, int animations = 1, int frames = 1) {
+	Enemy(D3DXVECTOR3 startPoint, float*** posibleTargets, int numberOfTargets, ModeloRR** models = NULL, int animations = 1, int frames = 1) {
 
 		isAlive = true;
 
@@ -84,7 +93,10 @@ public:
 		m_currentAnimation = 0;
 		m_currentFrame = 0;
 
-		player = targetPlayer;
+		this->posibleTargets = posibleTargets;
+		this->numberOfTargets = numberOfTargets;
+
+		selectNewTarget();
 
 	}
 
@@ -106,7 +118,10 @@ public:
 		D3DXVECTOR3 tempRefFront2d = m_refFront2d;
 		bool collided = false;
 
-		D3DXVECTOR3 lookAt = { player->GetPosition().x - m_position[0],  0.0f, player->GetPosition().z - m_position[2] };
+		if (isPointInsideSphere(new float[2] { tempPosition.x, tempPosition.z}, new float[3] { currentTarget[targetPosition][0], currentTarget[targetPosition][2], ENEMYLOOKRADIUS}))
+			selectNewTarget();
+
+		D3DXVECTOR3 lookAt = { currentTarget[targetPosition][0] - m_position[0],  0.0f, currentTarget[targetPosition][2] - m_position[2]};
 
 		D3DXVec3Normalize(&lookAt, &lookAt);
 
@@ -133,9 +148,9 @@ public:
 
 		//calculamos cuanto nos debemos de mover en cada eje
 
-		if (isPointInsideSphere(new float[2] { tempPosition.x, tempPosition.z}, new float[3] { player->GetPosition().x, player->GetPosition().z, player->getRadius()})) {
+		if (isPointInsideSphere(new float[2] { tempPosition.x, tempPosition.z}, new float[3] { currentTarget[targetPosition][0], currentTarget[targetPosition][2], currentTarget[targetRadius][0]})) {
 			collided = true;
-			*player->getHealth() -= ENEMYDAMAGE;
+			Attack();
 		}
 
 		float frontDistance = 0.0f;
@@ -179,8 +194,7 @@ public:
 
 		if (!isAlive)
 			return;
-
-		float rotAngle = atan2f(player->GetPosition().x - m_position.x, player->GetPosition().z - m_position.z) + D3DX_PI;
+		float rotAngle = atan2f(currentTarget[targetPosition][0] - m_position.x, currentTarget[targetPosition][2] - m_position.z) + D3DX_PI;
 
 		m_enemyModels[m_currentAnimation][m_currentFrame].Draw(vista, proyeccion, m_position, posCam, specForce, rotAngle, 'Y', scale, timer);
 	}
@@ -223,6 +237,10 @@ public:
 		return &health;
 	}
 
+	void Attack() {
+		currentTarget[targetHealth][0] -= ENEMYDAMAGE;
+	}
+
 	void killEnemy() {
 		health = 0.0f;
 		isAlive = false;
@@ -230,6 +248,20 @@ public:
 
 	bool isEnemyAlive() {
 		return isAlive;
+	}
+
+	void selectNewTarget() {
+		float closestDistance = D3D11_FLOAT32_MAX;
+		float currentDistance = 0.0f;
+		int newTarget = 0;
+
+		for (int i = 0; i < numberOfTargets; i++) {
+			currentDistance = sqrt((m_position.x - posibleTargets[i][targetPosition][0]) * (m_position.x - posibleTargets[i][targetPosition][0]) +
+				(m_position.z - posibleTargets[i][targetPosition][2]) * (m_position.z - posibleTargets[i][targetPosition][2]));
+
+			if (currentDistance < closestDistance)
+				currentTarget = posibleTargets[i];
+		}
 	}
 
 	void Release() {

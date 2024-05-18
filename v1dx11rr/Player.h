@@ -45,6 +45,14 @@ private:
 
 	float** m_currentVehicle;
 
+	float** playerInfo;
+
+	enum targetInfo {
+		targetHealth,
+		targetPosition,
+		targetRadius
+	};
+
 	bool isPointInsideSphere(float* point, float* sphere) {
 		bool collition = false;
 
@@ -78,6 +86,9 @@ public:
 	Player(D3DXVECTOR3 startPoint, int Ancho, int Alto, ModeloRR** models = NULL, int animations = 1, int frames = 1) {
 
 		health = INITIALHEALTH;
+
+		playerInfo = new float*[3];
+		playerInfo[targetRadius] = new float;
 
 		m_acceleration[0] = 0.0f;
 		m_acceleration[1] = 0.0f;
@@ -504,7 +515,15 @@ public:
 		return &health;
 	}
 
+	float** getPlayerInfo() {
+		playerInfo[targetHealth] = &health;
+		playerInfo[targetPosition] = (float*)m_position;
+		playerInfo[targetRadius][0] = RADIUS;
+		return playerInfo;
+	}
+
 	void Release() {
+		delete[] playerInfo;
 	}
 
 

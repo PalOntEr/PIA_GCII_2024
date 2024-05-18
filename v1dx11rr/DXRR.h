@@ -17,7 +17,7 @@
 #include "Enemy.h"
 #define DAYCYCLESPEED 0.0001f/*0.0001f*/
 #define GRAVITYFORCE -0.03f
-#define QUICKLOAD false
+#define QUICKLOAD true
 
 //MAX ANDRES ZERTUCHE PEREZ #2003051
 //MATEO ZAMORA GRAJEDA #2001215
@@ -79,6 +79,8 @@ public:
 
 	float*** sceneModels;
 	int totalModels;
+	float*** sceneTargets;
+	int totalTargets;
 	float** sceneVehicle;
 
 	int totalEnemies;
@@ -167,6 +169,13 @@ public:
 			sceneAssets[i] = new ModeloRR * [3] { NULL };
 		}
 
+		totalTargets = 1;
+
+		sceneTargets = new float** [totalTargets];
+		//for (int i = 0; i < totalTargets; i++) {
+		//	sceneTargets[i] = new float * [3] { NULL };
+		//}
+
 		terreno = new TerrenoRR(2000, 2000, d3dDevice, d3dContext);
 		skydome = new SkyDome(32, 32, 100.0f, &d3dDevice, &d3dContext, L"Assets/Skydomes/clear.jpg", L"Assets/Skydomes/night.png");
 		
@@ -204,8 +213,9 @@ public:
 		totalEnemies = 10;
 
 		spiderEnemies = new Enemy*[totalEnemies];
+		sceneTargets[0] = player->getPlayerInfo();
 		for (int i = 0; i < totalEnemies; i++) {
-			spiderEnemies[i] = new Enemy(player, D3DXVECTOR3(rand() % 200, 80, rand() % 200), sceneAssets[spider], 1, 1);
+			spiderEnemies[i] = new Enemy(D3DXVECTOR3(rand() % 200, 80, rand() % 200), sceneTargets, totalTargets, sceneAssets[spider], 1, 1);
 			spiderEnemies[i]->SetPosition(2, terreno->Superficie(spiderEnemies[i]->GetPosition().x, spiderEnemies[i]->GetPosition().z));
 		}
 		
@@ -565,6 +575,9 @@ public:
 			delete[] sceneAssets[i];
 		}
 		delete[] sceneAssets;
+
+		delete[] sceneTargets;
+
 	}
 	
 	void Render(void)
