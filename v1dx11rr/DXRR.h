@@ -54,11 +54,13 @@ public:
 	int frameBillboard;
 	int frameSmoke;
 	int globalTimer;
+	int realTime;
 
 	TerrenoRR* terreno;
 	SkyDome* skydome;
 	BillboardRR* billboard;
 	BillboardRR* smoke;
+	BillboardRR* antSalesman;
 	Player* player;
 	Enemy** spiderEnemies;
 	ModeloRR* AntModel_Rigged_Smooth = NULL;
@@ -85,11 +87,15 @@ public:
 	float** sceneAnthole;
 	float** sceneWalls;
 	int totalWalls;
+	int totalLeaves;
+	float*** sceneLeaves;
 
 	int totalEnemies;
 
 	XMFLOAT4* timer;
 	GUI* vida;
+	GUI* antholeHealth[2];
+	GUI* leafCurrency;
 	Text* prueba;
 
 	float izqder;
@@ -115,7 +121,8 @@ public:
 		scale,
 		rotation,
 		collision,
-		health
+		health,
+		picked = 5
 	};
 
 	enum Positions {
@@ -124,6 +131,11 @@ public:
 		z,
 		width,
 		height
+	};
+
+	enum Collectibles {
+		notPicked,
+		pickedUp
 	};
 
 	enum Models {
@@ -174,10 +186,6 @@ public:
 		for (int i = 0; i < totalAssets; i++) {
 			sceneAssets[i] = new ModeloRR * [3] { NULL };
 		}
-
-		totalTargets = 1;
-
-		sceneTargets = new float** [totalTargets];
 		//for (int i = 0; i < totalTargets; i++) {
 		//	sceneTargets[i] = new float * [3] { NULL };
 		//}
@@ -211,21 +219,64 @@ public:
 		frameSmoke = 15;
 		smoke = new BillboardRR(L"Assets/Billboards/smoke-anim.png",L"Assets/Billboards/smoke-anim-normal.png", d3dDevice, d3dContext, 5);
 		billCargaHumo();
+		antSalesman = new BillboardRR(L"Assets/Billboards/antSalesman.png",L"Assets/Billboards/antSalesman-normal.png", d3dDevice, d3dContext, 5);
 		//model = new ModeloRR(d3dDevice, d3dContext, "Assets/Cofre/Cofre.obj", L"Assets/Cofre/Cofre-color.png", L"Assets/Cofre/Cofre-spec.png", 0, 0);
 		
 		player = new Player(D3DXVECTOR3(0, 80, 0), Ancho, Alto, sceneAssets[ant], 1, 1);
 		player->SetPosition(2, terreno->Superficie(player->GetPosition().x, player->GetPosition().z));
 
+		sceneAnthole = new float* [6];
+		for (int i = 0; i < 6; i++) {
+			sceneAnthole[i] = new float[3] {0.0f};
+		}
+
+		sceneAnthole[asset][assetModel] = anthole;
+		sceneAnthole[position][x] = 0;
+		sceneAnthole[position][y] -= 1.0f;
+		sceneAnthole[position][z] = 0;
+		sceneAnthole[scale][0] = 4.0f;
+		sceneAnthole[collision][active] = 0.0f;
+		sceneAnthole[collision][radius] = 40.0f;
+		sceneAnthole[health][0] = 100.0f;
+
 		totalEnemies = 10;
 
 		spiderEnemies = new Enemy*[totalEnemies];
+		totalTargets = 2;
+		sceneTargets = new float** [totalTargets];
 		sceneTargets[0] = player->getPlayerInfo();
+		sceneTargets[1] = getAntholeInfo();
+
 		for (int i = 0; i < totalEnemies; i++) {
-			spiderEnemies[i] = new Enemy(D3DXVECTOR3(rand() % 200, 80, rand() % 200), sceneTargets, totalTargets, &m_XACT3, sceneAssets[spider], 1, 1);
+			spiderEnemies[i] = new Enemy(D3DXVECTOR3(rand() % 2 == 0 ? rand() % 701 - 800 : rand() % 701 + 100, 80, rand() % 2 == 0 ? rand() % 701 - 800 : rand() % 701 + 100), sceneTargets, totalTargets, &m_XACT3, sceneAssets[spider], 1, 1);
 			spiderEnemies[i]->SetPosition(2, terreno->Superficie(spiderEnemies[i]->GetPosition().x, spiderEnemies[i]->GetPosition().z));
 		}
+
+		totalLeaves = 3000;
+		sceneLeaves = new float** [totalLeaves];
+		for (int i = 0; i < totalLeaves; i++) {
+			sceneLeaves[i] = new float* [6];
+			for (int j = 0; j < 6; j++) {
+				sceneLeaves[i][j] = new float[3] {0.0f};
+			}
+			sceneLeaves[i][asset][assetModel] = leaf;
+			sceneLeaves[i][asset][type] = rand() % 3;
+			sceneLeaves[i][position][x] = generateRandom();
+			sceneLeaves[i][position][z] = generateRandom();
+			if (sceneLeaves[i][position][x] > -60 && sceneLeaves[i][position][x] < 60)
+			{
+				while (sceneLeaves[i][position][z] > -60 && sceneLeaves[i][position][z] < 60)
+					sceneLeaves[i][position][z] = generateRandom();
+			}
+			sceneLeaves[i][position][y] = terreno->Superficie(sceneLeaves[i][position][x], sceneLeaves[i][position][z]);
+			sceneLeaves[i][scale][0] = 1.0f;
+			sceneLeaves[i][rotation][y] = rand() % 361;
+			sceneLeaves[i][collision][active] = 0.0f;
+			sceneLeaves[i][collision][radius] = 8.0f;
+			sceneLeaves[i][picked][0] = pickedUp;
+		}
 		
-		totalModels = 17;
+		totalModels = 14;
 
 		sceneModels = new float** [totalModels];
 		for (int i = 0; i < totalModels; i++) {
@@ -249,9 +300,9 @@ public:
 		sceneModels[1][collision][active] = 0.0f;
 
 		sceneModels[2][asset][assetModel] = house;
-		sceneModels[2][position][x] = 20;
-		sceneModels[2][position][z] = 0;
-		sceneModels[2][scale][0] = 1.0f;
+		sceneModels[2][position][x] = 800;
+		sceneModels[2][position][z] = -500;
+		sceneModels[2][scale][0] = 1.5f;
 		sceneModels[2][collision][active] = 1.0f;
 		sceneModels[2][collision][radius] = 1.0f;
 
@@ -297,63 +348,42 @@ public:
 		sceneModels[8][collision][active] = 1.0f;
 		sceneModels[8][collision][radius] = 1.0f;
 
-		sceneModels[9][asset][assetModel] = leaf;
-		sceneModels[9][position][x] = -8;
-		sceneModels[9][position][z] = 73;
+		sceneModels[9][asset][assetModel] = sticks;
+		sceneModels[9][position][x] = -14;
+		sceneModels[9][position][z] = 62;
 		sceneModels[9][scale][0] = 1.0f;
 		sceneModels[9][collision][active] = 1.0f;
 		sceneModels[9][collision][radius] = 1.0f;
-		sceneModels[10][asset][assetModel] = leaf;
+		sceneModels[10][asset][assetModel] = sticks;
 		sceneModels[10][asset][type] = 1;
-		sceneModels[10][position][x] = -29;
-		sceneModels[10][position][z] = 54;
+		sceneModels[10][position][x] = -18;
+		sceneModels[10][position][z] = 88;
 		sceneModels[10][scale][0] = 1.0f;
 		sceneModels[10][collision][active] = 1.0f;
 		sceneModels[10][collision][radius] = 1.0f;
-		sceneModels[11][asset][assetModel] = leaf;
+		sceneModels[11][asset][assetModel] = sticks;
 		sceneModels[11][asset][type] = 2;
-		sceneModels[11][position][x] = -36;
-		sceneModels[11][position][z] = 74;
+		sceneModels[11][position][x] = -39;
+		sceneModels[11][position][z] = 70;
 		sceneModels[11][scale][0] = 1.0f;
 		sceneModels[11][collision][active] = 1.0f;
 		sceneModels[11][collision][radius] = 1.0f;
 
-		sceneModels[12][asset][assetModel] = sticks;
-		sceneModels[12][position][x] = -14;
-		sceneModels[12][position][z] = 62;
-		sceneModels[12][scale][0] = 1.0f;
+		sceneModels[12][asset][assetModel] = bottle;
+		sceneModels[12][position][x] = 10.0f;
+		sceneModels[12][position][y] -= 5.0f;
+		sceneModels[12][position][z] = -60.0f;
+		sceneModels[12][rotation][x] = 45.0f;
+		sceneModels[12][scale][0] = 4.0f;
 		sceneModels[12][collision][active] = 1.0f;
 		sceneModels[12][collision][radius] = 1.0f;
-		sceneModels[13][asset][assetModel] = sticks;
-		sceneModels[13][asset][type] = 1;
-		sceneModels[13][position][x] = -18;
-		sceneModels[13][position][z] = 88;
-		sceneModels[13][scale][0] = 1.0f;
+
+		sceneModels[13][asset][assetModel] = cap;
+		sceneModels[13][position][x] = -24.0f;
+		sceneModels[13][position][z] = -28.0f;
+		sceneModels[13][scale][0] = 0.1f;
 		sceneModels[13][collision][active] = 1.0f;
 		sceneModels[13][collision][radius] = 1.0f;
-		sceneModels[14][asset][assetModel] = sticks;
-		sceneModels[14][asset][type] = 2;
-		sceneModels[14][position][x] = -39;
-		sceneModels[14][position][z] = 70;
-		sceneModels[14][scale][0] = 1.0f;
-		sceneModels[14][collision][active] = 1.0f;
-		sceneModels[14][collision][radius] = 1.0f;
-
-		sceneModels[15][asset][assetModel] = bottle;
-		sceneModels[15][position][x] = 10.0f;
-		sceneModels[15][position][y] -= 5.0f;
-		sceneModels[15][position][z] = -60.0f;
-		sceneModels[15][rotation][x] = 45.0f;
-		sceneModels[15][scale][0] = 4.0f;
-		sceneModels[15][collision][active] = 1.0f;
-		sceneModels[15][collision][radius] = 1.0f;
-
-		sceneModels[16][asset][assetModel] = cap;
-		sceneModels[16][position][x] = -24.0f;
-		sceneModels[16][position][z] = -28.0f;
-		sceneModels[16][scale][0] = 0.1f;
-		sceneModels[16][collision][active] = 1.0f;
-		sceneModels[16][collision][radius] = 1.0f;
 
 		for (int i = 1; i < totalModels; i++) {
 			sceneModels[i][position][y] = terreno->Superficie(sceneModels[i][position][x], sceneModels[i][position][z]);
@@ -372,20 +402,6 @@ public:
 		sceneVehicle[scale][0] = 5.0f;
 		sceneVehicle[collision][active] = 0.0f;
 		sceneVehicle[collision][radius] = 5.0f;
-
-		sceneAnthole = new float* [6];
-		for (int i = 0; i < 6; i++) {
-			sceneAnthole[i] = new float[3] {0.0f};
-		}
-		
-		sceneAnthole[asset][assetModel] = anthole;
-		sceneAnthole[position][x] = 0;
-		sceneAnthole[position][y] -= 1.0f;
-		sceneAnthole[position][z] = 0;
-		sceneAnthole[scale][0] = 4.0f;
-		sceneAnthole[collision][active] = 0.0f;
-		sceneAnthole[collision][radius] = 10.0f;
-		sceneAnthole[health][0] = 100.0f;
 
 		totalWalls = 10;
 		sceneWalls = new float* [totalWalls];
@@ -445,6 +461,9 @@ public:
 
 
 		vida = new GUI(d3dDevice, d3dContext, 0.3f, 0.3f, L"Assets/GUI/ant_health.png");
+		leafCurrency = new GUI(d3dDevice, d3dContext, 0.3f, 0.3f, L"Assets/GUI/leaf.png");
+		antholeHealth[0] = new GUI(d3dDevice, d3dContext, 0.1f, 0.05f, L"Assets/GUI/anthole_health.png");
+		antholeHealth[1] = new GUI(d3dDevice, d3dContext, 0.1f, 0.05f, L"Assets/GUI/anthole_missingHealth.png");
 		prueba = new Text(d3dDevice, d3dContext, 3.6f, 1.2f, L"Assets/GUI/font.png", XMFLOAT4(0.7f, 0.7f, 0.7f, 0.0f));
 
 	}
@@ -653,6 +672,11 @@ public:
 		}
 		delete[] sceneAssets;
 
+		for (int i = 0; i < totalLeaves; i++) {
+			delete[] sceneLeaves[i];
+		}
+		delete[] sceneLeaves;
+
 		delete[] sceneTargets;
 		delete[] sceneAnthole;
 		for (int i = 0; i < totalWalls; i++) {
@@ -660,11 +684,17 @@ public:
 		}
 		delete[] sceneWalls;
 
+		for (int i = 0; i < 2; i++) {
+			delete antholeHealth[i];
+		}
+		delete[] antholeHealth;
 	}
 	
 	void Render(void)
 	{
 		globalTimer++;
+		if (globalTimer % 60 == 0)
+			realTime++;
 
 		if (timer->y == 0.0f)
 			timer->x += DAYCYCLESPEED;
@@ -727,6 +757,18 @@ public:
 			sceneAssets[a][t]->Draw(playerCamera->vista, playerCamera->proyeccion, p, playerCamera->posCam, 1.0f, sceneVehicle[rotation][y], 'Y', s, timer);
 		}
 
+		if (realTime % 2 == 0) {
+			respawnLeaves(5);
+		}
+		for (int i = 0; i < totalLeaves; i++) {
+			if (sceneLeaves[i][picked][0] == notPicked) {
+				t = sceneLeaves[i][asset][type];
+				s = sceneLeaves[i][scale][0];
+				p = sceneLeaves[i][position];
+				sceneAssets[leaf][t]->Draw(playerCamera->vista, playerCamera->proyeccion, p, playerCamera->posCam, 1.0f, sceneLeaves[i][rotation][y], 'Y', s, timer);
+			}
+		}
+
 		if (player->isJumping && player->GetPosition().y < terreno->Superficie(player->GetPosition().x, player->GetPosition().z)) {
 			player->isJumping = false;
 		}
@@ -764,18 +806,21 @@ public:
 			}
 		}
 
+		antSalesman->Draw(playerCamera->vista, playerCamera->proyeccion, playerCamera->posCam, 0.0f, -7.0f, terreno->Superficie(0.0f, -7.0f) -1.0f, 2, new vector2 {0.0f, 1.0f}, new vector2{ 0.0f, 0.0f }, new vector2{ 1.0f, 0.0f }, new vector2{ 1.0f, 1.0f }, 0);
+
 		//TurnOnAlphaBlending();
 		//billboard->Draw(playerCamera->vista, playerCamera->proyeccion, player->GetPosition(),-11, -78, 4, 5, uv1, uv2, uv3, uv4, frameBillboard);
 		//TurnOffAlphaBlending();
 
 		for (int i = 1; i < totalModels; i++) {
 
-			int a = sceneModels[i][asset][assetModel];
-			int t = sceneModels[i][asset][type];
-			float s = sceneModels[i][scale][0];
-			float* p = sceneModels[i][position];
+			a = sceneModels[i][asset][assetModel];
+			t = sceneModels[i][asset][type];
 
 			if (sceneAssets[a][t]) {
+				s = sceneModels[i][scale][0];
+				p = sceneModels[i][position];
+
 				if (sceneModels[i][rotation][x] == 0 && sceneModels[i][rotation][y] == 0 && sceneModels[i][rotation][z] == 0)
 					sceneAssets[a][t]->Draw(playerCamera->vista, playerCamera->proyeccion, p, playerCamera->posCam, 1.0f, 0, 'N', s, timer);
 				else {
@@ -786,6 +831,10 @@ public:
 					else if (sceneModels[i][rotation][z] != 0)
 						sceneAssets[a][t]->Draw(playerCamera->vista, playerCamera->proyeccion, p, playerCamera->posCam, 1.0f, sceneModels[i][rotation][z], 'Z', s, timer);
 				}
+			}
+			else
+			{
+				sceneModels[i][collision][active] = 0.0f;
 			}
 		}
 
@@ -818,23 +867,35 @@ public:
 		sceneAssets[a2][0]->Draw(playerCamera->vista, playerCamera->proyeccion, p2, playerCamera->posCam, 1.0f, 0, 'N', s2, timer);*/
 
 		for (int i = 0; i < *player->getHealth() / 35.0f; i++) {
-			vida->Draw(-0.8f, 0.8f - (i * 0.03f));
+			vida->Draw(0.8f, 0.8f - (i * 0.03f));
+		}
+		leafCurrency->Draw(-0.8f, 0.8f);
+		
+		for (int i = 0; i < getAntholeInfo()[0][0]; i++) {
+			antholeHealth[0]->Draw(-0.5f + (i * 0.01f), 0.8f);
+		}
+		for (int i = 0; i < 100; i++) {
+			antholeHealth[1]->Draw(-0.5f + (i * 0.01f), 0.8f);
 		}
 
 		TurnOnAlphaBlending();
 			prueba->DrawText(-0.1f, -0.9f, "Bruh como que todo se entrega la primera semana", 0.01f);
-			prueba->DrawText(-0.4f, 0.8f, "X:" + to_string(player->GetPosition().x) + "  Y:" + to_string(player->GetPosition().y) + "  Z:" + to_string(player->GetPosition().z), 0.01f);
+			prueba->DrawText(-0.15f, 0.9f, "ANTHOLE HEALTH", 0.01f);
+			prueba->DrawText(-0.4f, 0.8f, "HEALTH: " + to_string(*player->getHealth()), 0.01f);
+			if (!player->isDriving && isPointInsideSphere(new float[2] {player->GetPosition().x, player->GetPosition().z}, new float[3] { sceneVehicle[1][0], sceneVehicle[1][2], sceneVehicle[4][1]}))
+				prueba->DrawText(-0.2f, -0.8f, "Press the LMB to mount", 0.01f);
 			/*prueba->DrawText(-0.6f, 0.7f, "Speed X:" + to_string(player->getSpeed()[0]) + "  Speed Y:" + to_string(player->getSpeed()[1]) + "  Speed Z:" + to_string(player->getSpeed()[2]), 0.01f);
 			prueba->DrawText(-0.1f, 0.6f, "isJumping: " + player->isJumping, 0.01f);
 			prueba->DrawText(-0.6f, 0.5f, "Accel X:" + to_string(player->getAcceleration()[0]) + "  Accel Y:" + to_string(player->getAcceleration()[1]) + "  Accel Z:" + to_string(player->getAcceleration()[2]), 0.01f);
 			prueba->DrawText(-0.05f, 0.4f, "Camera", 0.01f);
 			prueba->DrawText(-0.4f, 0.3f, "X:" + to_string(playerCamera->posCam.x) + "  Y:" + to_string(playerCamera->posCam.y) + "  Z:" + to_string(playerCamera->posCam.z), 0.01f);*/
-			prueba->DrawText(-0.4f, 0.8f, "HEALTH: " + to_string(*player->getHealth()), 0.01f);
-			if (!player->isDriving && isPointInsideSphere(new float[2] {player->GetPosition().x, player->GetPosition().z}, new float[3] { sceneVehicle[1][0], sceneVehicle[1][2], sceneVehicle[4][1]}))
-				prueba->DrawText(-0.2f, -0.8f, "Press the LMB to mount", 0.01f);
-			for (int i = 0; i < totalEnemies; i++) {				
-				prueba->DrawText(-0.8f, 0.7f - (i * 0.1f), "ENEMY " + to_string(i) + ": " + to_string(*spiderEnemies[i]->getHealth()), 0.01f);
-			}
+			//prueba->DrawText(-0.4f, 0.8f, "X:" + to_string(player->GetPosition().x) + "  Y:" + to_string(player->GetPosition().y) + "  Z:" + to_string(player->GetPosition().z), 0.01f);
+			//for (int i = 0; i < totalEnemies; i++) {				
+			//	prueba->DrawText(-0.8f, 0.7f - (i * 0.1f), "ENEMY " + to_string(i) + ": " + to_string(*spiderEnemies[i]->getHealth()), 0.01f);
+			//	prueba->DrawText(-0.8f, 0.6f - (i * 0.1f), "ENEMY " + to_string(i) + " TARGET X: " + to_string(spiderEnemies[i]->getTarget()[1][0]), 0.01f);
+			//	prueba->DrawText(-0.8f, 0.5f - (i * 0.1f), "ENEMY " + to_string(i) + " TARGET Z: " + to_string(spiderEnemies[i]->getTarget()[1][2]), 0.01f);
+			//}
+			prueba->DrawText(-0.75f, 0.8f, to_string(player->cantLeaves), 0.01f);
 			TurnOffAlphaBlending();
 
 
@@ -1028,6 +1089,16 @@ public:
 		}
 	}
 	
+	float** getAntholeInfo()
+	{
+		float** antholeInfo = new float* [3];
+		antholeInfo[0] = &sceneAnthole[health][0];
+		antholeInfo[1] = sceneAnthole[position];
+		antholeInfo[2] = &sceneAnthole[collision][radius];
+		
+		return antholeInfo;
+	}
+
 	void billCargaFuego()
 	{
 		uv1[0].u = .125;
@@ -1099,6 +1170,65 @@ public:
 			}
 		}
 
+	}
+
+	void respawnLeaves() {
+
+		for (int i = 0; i < totalLeaves; i++) {
+			if (sceneLeaves[i][picked][0] == pickedUp) {
+				sceneLeaves[i][picked][0] = notPicked;
+				sceneLeaves[i][position][x] = generateRandom();
+				sceneLeaves[i][position][z] = generateRandom();
+				if (sceneLeaves[i][position][x] > -60 && sceneLeaves[i][position][x] < 60)
+				{
+					while (sceneLeaves[i][position][z] > -60 && sceneLeaves[i][position][z] < 60)
+						sceneLeaves[i][position][z] = generateRandom();
+				}
+				sceneLeaves[i][position][y] = terreno->Superficie(sceneLeaves[i][position][x], sceneLeaves[i][position][z]);
+			}
+		}
+
+	}
+	
+	void respawnLeaves(int cant) {
+
+		int numberSpawned = 0;
+		int tries = 0;
+
+		for (int i = 0; i < totalLeaves; i++) {
+			if (sceneLeaves[i][picked][0] == pickedUp) {
+				sceneLeaves[i][picked][0] = notPicked;
+				sceneLeaves[i][position][x] = generateRandom();
+				sceneLeaves[i][position][z] = generateRandom();
+				if (sceneLeaves[i][position][x] > -60 && sceneLeaves[i][position][x] < 60)
+				{
+					while (sceneLeaves[i][position][z] > -60 && sceneLeaves[i][position][z] < 60)
+						sceneLeaves[i][position][z] = generateRandom();
+				}
+				sceneLeaves[i][position][y] = terreno->Superficie(sceneLeaves[i][position][x], sceneLeaves[i][position][z]);
+				numberSpawned++;
+				if (numberSpawned >= cant)
+					break;
+			}
+		}
+	}
+
+	void pickUpLeaves() {
+
+		for (int i = 0; i < totalLeaves; i++) {
+			if (sceneLeaves[i][picked][0] == notPicked && isPointInsideSphere(new float[2] { player->GetPosition().x, player->GetPosition().z}, new float[3] { sceneLeaves[i][position][x], sceneLeaves[i][position][z], sceneLeaves[i][collision][radius]})) {
+				sceneLeaves[i][picked][0] = pickedUp;
+				player->cantLeaves++;
+			}
+		}
+
+	}
+
+	int generateRandom()
+	{
+		int value;
+		value = rand() % 1601 - 800;
+		return value;
 	}
 
 };

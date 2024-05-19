@@ -95,9 +95,13 @@ public:
 	bool isCrouching;
 	bool isDriving;
 
+	int cantLeaves;
+
 	Player(D3DXVECTOR3 startPoint, int Ancho, int Alto, ModeloRR** models = NULL, int animations = 1, int frames = 1) {
 
 		health = INITIALHEALTH;
+
+		cantLeaves = 0;
 
 		playerInfo = new float*[3];
 		playerInfo[targetRadius] = new float;

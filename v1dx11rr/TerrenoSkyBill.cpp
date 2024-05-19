@@ -317,8 +317,10 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
                 LMBisPressed = false;
 
             if (mouseData.rgbButtons[1] & 0x80) {
-                if (!RMBisPressed)
+                if (!RMBisPressed) {
                     dxrr->DamageEnemies(dxrr->spiderEnemies);
+                    dxrr->pickUpLeaves();
+                }
                 RMBisPressed = true;
                 //MessageBox(hWnd, L"Right MB pressed", L"INFO", MB_OK | MB_ICONINFORMATION);
             }

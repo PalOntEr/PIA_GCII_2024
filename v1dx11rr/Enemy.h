@@ -1,9 +1,9 @@
 #ifndef _enemy
 #define _enemy
-#define ENEMYDAMAGE 0.1f
+#define ENEMYDAMAGE 0.01f
 #define ENEMYRADIUS 10.0f
 #define INITIALENEMYHEALTH 100.0f
-#define ENEMYLOOKRADIUS 200.0f
+#define ENEMYLOOKRADIUS 400.0f
 
 //Clase camara hecha por Rafael Rosas para los UltraLMADs
 //Videojuegos
@@ -49,7 +49,7 @@ private:
 	enum targetInfo {
 		targetHealth,
 		targetPosition,
-		targetRadius
+		targetRadius,
 	};
 
 public:
@@ -59,12 +59,12 @@ public:
 	int m_animations;
 	int m_frames;
 
-	float*** posibleTargets;
+	float*** possibleTargets;
 	int numberOfTargets;
 
 	D3DXVECTOR3 m_startPosition;
 
-	Enemy(D3DXVECTOR3 startPoint, float*** posibleTargets, int numberOfTargets, CXACT3Util* audioManager, ModeloRR** models = NULL, int animations = 1, int frames = 1) {
+	Enemy(D3DXVECTOR3 startPoint, float*** possibleTargets, int numberOfTargets, CXACT3Util* audioManager, ModeloRR** models = NULL, int animations = 1, int frames = 1) {
 
 		isAlive = true;
 
@@ -97,7 +97,7 @@ public:
 		m_currentAnimation = 0;
 		m_currentFrame = 0;
 
-		this->posibleTargets = posibleTargets;
+		this->possibleTargets = possibleTargets;
 		this->numberOfTargets = numberOfTargets;
 		
 		m_XACT3 = audioManager;
@@ -160,9 +160,16 @@ public:
 
 		//calculamos cuanto nos debemos de mover en cada eje
 
+		if (isPointInsideSphere(new float[2] { tempPosition.x, tempPosition.z}, new float[3] { possibleTargets[1][targetPosition][0], possibleTargets[1][targetPosition][2], possibleTargets[1][targetRadius][0]})) {
+			collided = true;
+			currentTarget = possibleTargets[1];
+		}
 		if (isPointInsideSphere(new float[2] { tempPosition.x, tempPosition.z}, new float[3] { currentTarget[targetPosition][0], currentTarget[targetPosition][2], currentTarget[targetRadius][0]})) {
 			collided = true;
 			Attack();
+		}
+		else if (isPointInsideSphere(new float[2] { tempPosition.x, tempPosition.z}, new float[3] { possibleTargets[1][targetPosition][0], possibleTargets[1][targetPosition][2], possibleTargets[1][targetRadius][0] + 0.5f})) {
+			collided = false;
 		}
 
 		float frontDistance = 0.0f;
@@ -178,7 +185,7 @@ public:
 		tempPosition.x += frontDistance;
 		tempPosition.z += rightDistance;
 
-		if (sceneModels) {
+		if (sceneModels && !collided) {
 			for (int i = 1; i < numModels; i++) {
 				if (sceneModels[i][4][0] == 1.0f)
 					if (isPointInsideSphere(new float[2] { tempPosition.x, tempPosition.z}, new float[3] { sceneModels[i][1][0], sceneModels[i][1][2], sceneModels[i][4][1]})) {
@@ -251,7 +258,8 @@ public:
 
 	void Attack() {
 		currentTarget[targetHealth][0] -= ENEMYDAMAGE;
-		m_XACT3->m_pSoundBank->Play(cueIndex[rand() % 4], 0, 0, 0);
+		if(isPointInsideSphere(new float[2] { m_position.x, m_position.z}, new float[3] { possibleTargets[0][targetPosition][0], possibleTargets[0][targetPosition][2], 50.0f})){}
+			//m_XACT3->m_pSoundBank->Play(cueIndex[rand() % 4], 0, 0, 0);
 	}
 
 	void killEnemy() {
@@ -269,12 +277,18 @@ public:
 		int newTarget = 0;
 
 		for (int i = 0; i < numberOfTargets; i++) {
-			currentDistance = sqrt((m_position.x - posibleTargets[i][targetPosition][0]) * (m_position.x - posibleTargets[i][targetPosition][0]) +
-				(m_position.z - posibleTargets[i][targetPosition][2]) * (m_position.z - posibleTargets[i][targetPosition][2]));
+			currentDistance = sqrt((m_position.x - possibleTargets[i][targetPosition][0]) * (m_position.x - possibleTargets[i][targetPosition][0]) +
+				(m_position.z - possibleTargets[i][targetPosition][2]) * (m_position.z - possibleTargets[i][targetPosition][2]));
 
-			if (currentDistance < closestDistance)
-				currentTarget = posibleTargets[i];
+			if (currentDistance < closestDistance) {
+				closestDistance = currentDistance;
+				currentTarget = possibleTargets[i];
+			}
 		}
+	}
+
+	float** getTarget() {
+		return currentTarget;
 	}
 
 	void Release() {
