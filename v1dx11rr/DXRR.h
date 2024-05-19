@@ -151,7 +151,8 @@ public:
 		bottle,
 		cap,
 		worm,
-		spider
+		spider,
+		mantis
 	};
 
     DXRR(HWND hWnd, int Ancho, int Alto)
@@ -180,7 +181,7 @@ public:
 
 		globalTimer = 0;
 
-		totalAssets = 13;
+		totalAssets = 14;
 
 		sceneAssets = new ModeloRR** [totalAssets];
 		for (int i = 0; i < totalAssets; i++) {
@@ -197,7 +198,7 @@ public:
 		sceneAssets[anthole][0] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/Hormiguero.obj", L"Assets/Textures/Hormiguero.png", L"Assets/Textures/NoSpecular.png", 0, 0);
 		if (!QUICKLOAD) {
 			sceneAssets[house][0] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/Old_stone_house.obj", L"Assets/Textures/Old_stone_house_BaseColor.png", L"Assets/Textures/NoSpecular.png", 20, 0);
-			sceneAssets[rockPillar][0] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/pilarRoca1.obj", L"Assets/Textures/pilarRoca1_Color.png", L"Assets/Textures/NoSpecular.png", 65, 6);
+			//sceneAssets[rockPillar][0] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/pilarRoca1.obj", L"Assets/Textures/pilarRoca1_Color.png", L"Assets/Textures/NoSpecular.png", 65, 6);
 			sceneAssets[rock][0] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/ballRock.obj", L"Assets/Textures/ballRock.png", L"Assets/Textures/NoSpecular.png", 5, -5);
 			sceneAssets[crystal][0] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/Cristal1.obj", L"Assets/Textures/Cristal.png", L"Assets/Textures/NoSpecular.png", -14, -7);
 			sceneAssets[crystal][1] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/Cristal2.obj", L"Assets/Textures/Cristal.png", L"Assets/Textures/NoSpecular.png", 4, -17);
@@ -210,10 +211,11 @@ public:
 			sceneAssets[sticks][1] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/Stick2.obj", L"Assets/Textures/Stick.png", L"Assets/Textures/NoSpecular.png", -18, 88);
 			sceneAssets[sticks][2] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/Stick3.obj", L"Assets/Textures/Stick.png", L"Assets/Textures/NoSpecular.png", -39, 70);
 			sceneAssets[bottle][0] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/Botella.obj", L"Assets/Textures/Botella.png", L"Assets/Textures/NoSpecular.png", 10, 10);
-			sceneAssets[cap][0] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/cap.obj", L"Assets/Textures/cap.png", L"Assets/Textures/NoSpecular.png", -24.0f, -28.0f);
+			//sceneAssets[cap][0] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/cap.obj", L"Assets/Textures/cap.png", L"Assets/Textures/NoSpecular.png", -24.0f, -28.0f);
 		}
 		sceneAssets[worm][0] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/wormVehicle.obj", L"Assets/Textures/Hormiguero.png", L"Assets/Textures/NoSpecular.png", 0, 0);
 		sceneAssets[spider][0] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/spider.obj", L"Assets/Textures/AntModel_Rigged_Smooth.png", L"Assets/Textures/NoSpecular.png", 0, 0);
+		sceneAssets[mantis][0] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/mantis.obj", L"Assets/Textures/AntModel_Rigged_Smooth.png", L"Assets/Textures/NoSpecular.png", 0, 0);
 
 		//billboard = new BillboardRR(L"Assets/Billboards/fuego-anim.png",L"Assets/Billboards/fuego-anim-normal.png", d3dDevice, d3dContext, 5);
 		frameSmoke = 15;
@@ -403,7 +405,7 @@ public:
 		sceneVehicle[collision][active] = 0.0f;
 		sceneVehicle[collision][radius] = 5.0f;
 
-		totalWalls = 10;
+		totalWalls = 5;
 		sceneWalls = new float* [totalWalls];
 		for (int i = 0; i < totalWalls; i++) {
 			sceneWalls[i] = new float[5] {0.0f};
@@ -411,57 +413,57 @@ public:
 
 		sceneWalls[0][x] = 2.0f;
 		sceneWalls[0][y] = 17.0f;
-		sceneWalls[0][width] = 15.0f;
-		sceneWalls[0][height] = 1.0f;
+		sceneWalls[0][width] = 28.0f;
+		sceneWalls[0][height] = 13.0f;
 
 		sceneWalls[1][x] = 17.0f;
-		sceneWalls[1][y] = -17.0f;
-		sceneWalls[1][width] = 1.0f;
-		sceneWalls[1][height] = 34.0f;
+		sceneWalls[1][y] = -30.0f;
+		sceneWalls[1][width] = 13.0f;
+		sceneWalls[1][height] = 57.0f;
 
-		sceneWalls[2][x] = -17.0f;
-		sceneWalls[2][y] = -17.0f;
-		sceneWalls[2][width] = 34.0f;
-		sceneWalls[2][height] = 1.0f;
+		sceneWalls[2][x] = -30.0f;
+		sceneWalls[2][y] = -30.0f;
+		sceneWalls[2][width] = 57.0f;
+		sceneWalls[2][height] = 13.0f;
 
-		sceneWalls[3][x] = -17.0f;
+		sceneWalls[3][x] = -30.0f;
 		sceneWalls[3][y] = 17.0f;
-		sceneWalls[3][width] = 15.0f;
-		sceneWalls[3][height] = 1.0f;
+		sceneWalls[3][width] = 28.0f;
+		sceneWalls[3][height] = 13.0f;
 
-		sceneWalls[4][x] = -17.0f;
-		sceneWalls[4][y] = -17.0f;
-		sceneWalls[4][width] = 1.0f;
-		sceneWalls[4][height] = 34.0f;
+		sceneWalls[4][x] = -30.0f;
+		sceneWalls[4][y] = -30.0f;
+		sceneWalls[4][width] = 13.0f;
+		sceneWalls[4][height] = 57.0f;
 
-		sceneWalls[5][x] = 2.0f;
-		sceneWalls[5][y] = 30.0f;
-		sceneWalls[5][width] = 28.0f;
-		sceneWalls[5][height] = 1.0f;
+		//sceneWalls[5][x] = 2.0f;
+		//sceneWalls[5][y] = 30.0f;
+		//sceneWalls[5][width] = 28.0f;
+		//sceneWalls[5][height] = 1.0f;
 
-		sceneWalls[6][x] = 30.0f;
-		sceneWalls[6][y] = -30.0f;
-		sceneWalls[6][width] = 1.0f;
-		sceneWalls[6][height] = 57.0f;
+		//sceneWalls[6][x] = 30.0f;
+		//sceneWalls[6][y] = -30.0f;
+		//sceneWalls[6][width] = 1.0f;
+		//sceneWalls[6][height] = 57.0f;
 
-		sceneWalls[7][x] = -30.0f;
-		sceneWalls[7][y] = -30.0f;
-		sceneWalls[7][width] = 57.0f;
-		sceneWalls[7][height] = 1.0f;
+		//sceneWalls[7][x] = -30.0f;
+		//sceneWalls[7][y] = -30.0f;
+		//sceneWalls[7][width] = 57.0f;
+		//sceneWalls[7][height] = 1.0f;
 
-		sceneWalls[8][x] = -30.0f;
-		sceneWalls[8][y] = 30.0f;
-		sceneWalls[8][width] = 28.0f;
-		sceneWalls[8][height] = 1.0f;
+		//sceneWalls[8][x] = -30.0f;
+		//sceneWalls[8][y] = 30.0f;
+		//sceneWalls[8][width] = 28.0f;
+		//sceneWalls[8][height] = 1.0f;
 
-		sceneWalls[9][x] = -30.0f;
-		sceneWalls[9][y] = -30.0f;
-		sceneWalls[9][width] = 1.0f;
-		sceneWalls[9][height] = 57.0f;
+		//sceneWalls[9][x] = -30.0f;
+		//sceneWalls[9][y] = -30.0f;
+		//sceneWalls[9][width] = 1.0f;
+		//sceneWalls[9][height] = 57.0f;
 
 
 		vida = new GUI(d3dDevice, d3dContext, 0.3f, 0.3f, L"Assets/GUI/ant_health.png");
-		leafCurrency = new GUI(d3dDevice, d3dContext, 0.3f, 0.3f, L"Assets/GUI/leaf.png");
+		leafCurrency = new GUI(d3dDevice, d3dContext, 0.3f, 0.25f, L"Assets/GUI/leaf.png");
 		antholeHealth[0] = new GUI(d3dDevice, d3dContext, 0.1f, 0.05f, L"Assets/GUI/anthole_health.png");
 		antholeHealth[1] = new GUI(d3dDevice, d3dContext, 0.1f, 0.05f, L"Assets/GUI/anthole_missingHealth.png");
 		prueba = new Text(d3dDevice, d3dContext, 3.6f, 1.2f, L"Assets/GUI/font.png", XMFLOAT4(0.7f, 0.7f, 0.7f, 0.0f));
@@ -869,7 +871,6 @@ public:
 		for (int i = 0; i < *player->getHealth() / 35.0f; i++) {
 			vida->Draw(0.8f, 0.8f - (i * 0.03f));
 		}
-		leafCurrency->Draw(-0.8f, 0.8f);
 		
 		for (int i = 0; i < getAntholeInfo()[0][0]; i++) {
 			antholeHealth[0]->Draw(-0.5f + (i * 0.01f), 0.8f);
@@ -895,8 +896,9 @@ public:
 			//	prueba->DrawText(-0.8f, 0.6f - (i * 0.1f), "ENEMY " + to_string(i) + " TARGET X: " + to_string(spiderEnemies[i]->getTarget()[1][0]), 0.01f);
 			//	prueba->DrawText(-0.8f, 0.5f - (i * 0.1f), "ENEMY " + to_string(i) + " TARGET Z: " + to_string(spiderEnemies[i]->getTarget()[1][2]), 0.01f);
 			//}
-			prueba->DrawText(-0.75f, 0.8f, to_string(player->cantLeaves), 0.01f);
-			TurnOffAlphaBlending();
+			prueba->DrawText(-0.75f, 0.7f, to_string(player->cantLeaves), 0.01f);
+		TurnOffAlphaBlending();
+		leafCurrency->Draw(-0.8f, 0.8f);
 
 
 		swapChain->Present( 1, 0 );

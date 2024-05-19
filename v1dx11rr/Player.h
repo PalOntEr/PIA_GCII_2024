@@ -11,6 +11,7 @@
 #define RADIUS 10.0f
 #define INITIALHEALTH 100.0f
 #define DAMAGE 10.0f
+#define COLLIDING_CAMERA_STOPS_MOVEMENT false
 
 //Clase camara hecha por Rafael Rosas para los UltraLMADs
 //Videojuegos
@@ -187,9 +188,18 @@ public:
 		D3DXVECTOR3 tempRefRight = m_refRight;
 		D3DXVECTOR3 tempRefFront = m_refFront;
 		D3DXVECTOR3 tempRefFrontPreRight;
+		D3DXVECTOR3 tempRefOnlyFront = m_refFront;
 		D3DXVECTOR3 tempRefRight2d = m_refRight2d;
 		D3DXVECTOR3 tempRefFront2d = m_refFront2d;
 		bool collided = false;
+		
+		D3DXQuaternionRotationAxis(&quatern, &tempRefRight, arriaba);
+		D3DXQuaternionNormalize(&quatern, &quatern);
+		D3DXMatrixRotationQuaternion(&giraRight, &quatern);
+
+		D3DXVec3Transform(&tempo, &tempRefOnlyFront, &giraRight);
+		tempRefOnlyFront = (D3DXVECTOR3)tempo;
+		D3DXVec3Normalize(&tempRefOnlyFront, &tempRefOnlyFront);
 
 		//creamos al quaternion segun el vector up
 		D3DXQuaternionRotationAxis(&quatern, &tempRefUp, izqder);
@@ -208,7 +218,6 @@ public:
 		D3DXVec3Normalize(&tempRefFrontPreRight, &tempRefFrontPreRight);
 		//Con el vector de referencia y el nuevo front calculamos right de nuevo
 		D3DXVec3Cross(&tempRefRight, &tempRefFront, &tempRefUp);
-		tempRefRight2d = tempRefRight;
 
 		D3DXVec3Transform(&tempo, &tempRefFront2d, &giraUp);
 		tempRefFront2d = (D3DXVECTOR3)tempo;
@@ -223,6 +232,8 @@ public:
 		D3DXVec3Transform(&tempo, &tempRefFront, &giraRight);
 		tempRefFront = (D3DXVECTOR3)tempo;
 		D3DXVec3Normalize(&tempRefFront, &tempRefFront);
+
+
 
 		//calculamos cuanto nos debemos de mover en cada eje
 
@@ -375,18 +386,42 @@ public:
 		}
 
 		D3DXVECTOR3 tempCameraPosition = tempPosition;
-		tempCameraPosition.y += height[thirdPerson];
-		if (!(tempCameraPosition.y - tempRefFront.y * 10.0f < tempPosition.y + 2.0f) && !(tempCameraPosition.y - tempRefFront.y * 10.0f > tempPosition.y + 10.0f)) {
+		tempCameraPosition -= tempRefFront * 20.0f;
+		bool cameraCollidedH = false;
+		bool cameraCollidedV = false;
+		if(m_currentCamera == thirdPerson)
+			if (sceneWalls) {
+				for (int i = 0; i < numWalls; i++) {
+					if (isPointInsideRect(new float[2] { tempCameraPosition.x, tempCameraPosition.z}, sceneWalls[i])) {
+						cameraCollidedH = true;
+						if(COLLIDING_CAMERA_STOPS_MOVEMENT)
+							collided = true;
+						break;
+					}
+				}
+			}
+
+		if ((tempCameraPosition.y < tempPosition.y - 1.0f) || (tempCameraPosition.y > tempPosition.y + 10.0f))
+			cameraCollidedV = true;
+
+		if (!cameraCollidedH && !cameraCollidedV) {
 			m_refFront = tempRefFront;
+			m_refFront2d = tempRefFront2d;
 		}
-		else {
+		else if (cameraCollidedV && !cameraCollidedH) {
 			m_refFront = tempRefFrontPreRight;
+			m_refFront2d = tempRefFront2d;
+		}
+		else if (!cameraCollidedV && cameraCollidedH) {
+			m_refFront = tempRefOnlyFront;
 		}
 
-		m_refUp = tempRefUp;
+		tempRefRight2d = tempRefRight;
 		m_refRight2d = tempRefRight2d;
-		m_refFront2d = tempRefFront2d;
 		m_refRight = tempRefRight;
+
+		m_refUp = tempRefUp;
+
 		if (!isDriving) {
 			if (!collided) {
 				m_position.x = tempPosition.x;
