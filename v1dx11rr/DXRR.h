@@ -6,6 +6,7 @@
 #include <d3dx10math.h>
 #include <cmath>
 #include "TerrenoRR.h"
+#include "Water.h"
 #include "Camara.h"
 #include "Player.h"
 #include "SkyDome.h"
@@ -57,6 +58,7 @@ public:
 	int realTime;
 
 	TerrenoRR* terreno;
+	Water* water;
 	SkyDome* skydome;
 	BillboardRR* billboard;
 	BillboardRR* smoke;
@@ -180,6 +182,7 @@ public:
 		timer->w = 0.0f;
 
 		globalTimer = 0;
+		realTime = 0;
 
 		totalAssets = 14;
 
@@ -192,6 +195,7 @@ public:
 		//}
 
 		terreno = new TerrenoRR(2000, 2000, d3dDevice, d3dContext);
+		water = new Water(830, 830, d3dDevice, d3dContext);
 		skydome = new SkyDome(32, 32, 100.0f, &d3dDevice, &d3dContext, L"Assets/Skydomes/clear.jpg", L"Assets/Skydomes/night.png");
 		
 		sceneAssets[ant][0] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/AntModel_Rigged_Smooth.obj", L"Assets/Textures/AntModel_Rigged_Smooth.png", L"Assets/Textures/NoSpecular.png", 0, 0);
@@ -794,7 +798,7 @@ public:
 		else {
 			if(globalTimer % 2 == 0)
 				frameSmoke < 33 ? frameSmoke++ : frameSmoke = 15;
-			if (!player->isJumping && prevPos[0] != player->GetPosition().x && prevPos[2] != player->GetPosition().z) {
+			if (!player->isJumping && (prevPos[0] != player->GetPosition().x || prevPos[2] != player->GetPosition().z)) {
 				TurnOnAlphaBlending();
 				if (player->getSpeed()[0] > 0) {
 					smoke->Draw(playerCamera->vista, playerCamera->proyeccion, playerCamera->posCam + (player->GetRightReference2D() * -30.0f), sceneVehicle[position][x] + (player->GetFrontReference2D().x * -2.0f) + (player->GetRightReference2D().x * 1.3f), sceneVehicle[position][z] + (player->GetFrontReference2D().z * -2.0f) + (player->GetRightReference2D().z * 1.3f), terreno->Superficie(sceneVehicle[position][x], sceneVehicle[position][z]), 2, uv1, uv2, uv3, uv4, frameSmoke);
@@ -839,6 +843,10 @@ public:
 				sceneModels[i][collision][active] = 0.0f;
 			}
 		}
+
+		TurnOnAlphaBlending();
+		water->Draw(playerCamera->vista, playerCamera->proyeccion, (float*)timer, new float[4] {(float)globalTimer, 0.0f, 0.0f, 0.0f});
+		TurnOffAlphaBlending();
 
 		/*int a2 = sceneModels[16][asset][assetModel];
 		float* p2 = sceneModels[16][position];
@@ -899,7 +907,6 @@ public:
 			prueba->DrawText(-0.75f, 0.7f, to_string(player->cantLeaves), 0.01f);
 		TurnOffAlphaBlending();
 		leafCurrency->Draw(-0.8f, 0.8f);
-
 
 		swapChain->Present( 1, 0 );
 	}

@@ -339,7 +339,16 @@ public:
 		if (m_acceleration[2] < 0)
 			m_acceleration[2] + DECELERATION <= 0 ? m_acceleration[2] += DECELERATION : m_acceleration[2] = 0;
 
-		if (sceneModels) {
+		if (tempPosition.x > 900 || tempPosition.x < -900) {
+			tempPosition.x > 900 ? tempPosition.x = 900 : tempPosition.x = -900;
+			m_acceleration[0] = 0;
+		}
+		if (tempPosition.z > 900 || tempPosition.z < -900) {
+			tempPosition.z > 900 ? tempPosition.z = 900 : tempPosition.z = -900;
+			m_acceleration[2] = 0;
+		}
+
+		if (!collided && sceneModels) {
 			for (int i = 1; i < numModels; i++) {
 				if (sceneModels[i][4][0] == 1.0f)
 					if (isPointInsideSphere(new float[2] { tempPosition.x, tempPosition.z}, new float[3] { sceneModels[i][1][0], sceneModels[i][1][2], sceneModels[i][4][1]})) {
@@ -389,7 +398,12 @@ public:
 		tempCameraPosition -= tempRefFront * 20.0f;
 		bool cameraCollidedH = false;
 		bool cameraCollidedV = false;
-		if(m_currentCamera == thirdPerson)
+		if (m_currentCamera == thirdPerson) {
+			if (tempCameraPosition.x > 900 || tempCameraPosition.x < -900)
+				cameraCollidedH = true;
+			if (tempCameraPosition.z > 900 || tempCameraPosition.z < -900)
+				cameraCollidedH = true;
+
 			if (sceneWalls) {
 				for (int i = 0; i < numWalls; i++) {
 					if (isPointInsideRect(new float[2] { tempCameraPosition.x, tempCameraPosition.z}, sceneWalls[i])) {
@@ -400,6 +414,7 @@ public:
 					}
 				}
 			}
+		}
 
 		if ((tempCameraPosition.y < tempPosition.y - 1.0f) || (tempCameraPosition.y > tempPosition.y + 10.0f))
 			cameraCollidedV = true;

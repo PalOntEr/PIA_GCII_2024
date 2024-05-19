@@ -1,5 +1,5 @@
-#ifndef _terreno
-#define _terreno
+#ifndef _water
+#define _water
 
 //#define _XM_NO_INTRINSICS_
 
@@ -9,7 +9,7 @@
 #include <D3Dcompiler.h>
 #include <d3dx10math.h>
 
-class TerrenoRR{
+class Water{
 private:
 	struct VertexComponent
 	{
@@ -34,19 +34,18 @@ private:
 	ID3D11Buffer* indexBuffer;
 
 	ID3D11ShaderResourceView* colorMap;
-	ID3D11ShaderResourceView* colorMap2;
-	ID3D11ShaderResourceView* blendMap;
 	ID3D11SamplerState* colorMapSampler;
 
 	ID3D11Buffer* viewCB;
 	ID3D11Buffer* projCB;
 	ID3D11Buffer* worldCB;
 	ID3D11Buffer* timerBufferCB;
+	ID3D11Buffer* waveTimerBufferCB;
 	D3DXMATRIX viewMatrix;
 	D3DXMATRIX projMatrix;
 
 	int ancho, alto;
-	int anchoTexTerr, altoTexTerr;
+	int anchoTexWater, altoTexWater;
 	float anchof, altof;
 	float deltax, deltay;
 
@@ -59,7 +58,7 @@ private:
 	ID3D11DeviceContext* d3dContext;
 
 public:
-	TerrenoRR(int ancho, int alto, ID3D11Device* D3DDevice, ID3D11DeviceContext* D3DContext)
+	Water(int ancho, int alto, ID3D11Device* D3DDevice, ID3D11DeviceContext* D3DContext)
 	{
 		//copiamos el device y el device context a la clase terreno
 		d3dContext = D3DContext;
@@ -68,12 +67,12 @@ public:
 		this->ancho = ancho;
 		this->alto = alto;
 		//aqui cargamos las texturas de alturas y el cesped
-		CargaParametros(L"tierraBuena.jpg", L"heightMapReynosaWaterBlurBordered.png ", 100.0f); 
+		CargaParametros(L"Water.png", 25.0f); 
 
 	}
 
 
-	~TerrenoRR()
+	~Water()
 	{
 		//libera recursos
 		delete vertcol;
@@ -106,18 +105,18 @@ public:
 		return true;
 	}
 
-	bool CargaParametros(WCHAR* diffuseTex, WCHAR* heightTex, float tile)
+	bool CargaParametros(WCHAR* diffuseTex, float tile)
 	{
 		HRESULT d3dResult;
 		//carga el mapa de alturas
-		LoadHeightData(heightTex);
+		LoadHeightData();
 
 		ID3DBlob* vsBuffer = 0;
 
 		//cargamos el shaders de vertices que esta contenido en el Shader.fx, note
 		//que VS_Main es el nombre del vertex shader en el shader, vsBuffer contendra
 		//al puntero del mismo
-		bool compileResult = CompileD3DShader( L"Shader.fx", "VS_Main", "vs_4_0", &vsBuffer );
+		bool compileResult = CompileD3DShader( L"Water.fx", "VS_Main", "vs_4_0", &vsBuffer );
 		//en caso de no poder cargarse ahi muere la cosa
 		if( compileResult == false )
 		{
@@ -164,7 +163,7 @@ public:
 		ID3DBlob* psBuffer = 0;
 		// de los vertices pasamos al pixel shader, note que el nombre del shader es el mismo
 		//ahora buscamos al pixel shader llamado PS_Main
-		compileResult = CompileD3DShader( L"Shader.fx", "PS_Main", "ps_4_0", &psBuffer );
+		compileResult = CompileD3DShader( L"Water.fx", "PS_Main", "ps_4_0", &psBuffer );
 
 		if( compileResult == false )
 		{
@@ -182,33 +181,33 @@ public:
 		}
 
 		//lo de siempre, para centrarlo 
-		anchof = (float)(ancho / 2.0f);
-		altof = (float)(alto / 2.0f);
+		anchof = 1285;
+		altof = - 170;
 		//el tile o mosaiqueo
-		float du = tile / (float)(anchoTexTerr);
-		float dv = tile / (float)(altoTexTerr);
+		float du = tile / (float)(anchoTexWater);
+		float dv = tile / (float)(altoTexWater);
 		//el tile del blend de las texturas
-		float blend_du = 1 / (float)(anchoTexTerr);
-		float blend_dv = 1 / (float)(altoTexTerr);
+		float blend_du = 1 / (float)(anchoTexWater);
+		float blend_dv = 1 / (float)(altoTexWater);
 		//cantidad de vertices
-		int cuenta = anchoTexTerr * altoTexTerr;
+		int cuenta = anchoTexWater * altoTexWater;
 
 		vertices = new VertexComponent[cuenta];
 		vertcol = new VertexCollide[cuenta];
 
 		// Se obtiene el espaciado entre cada vertice
-		deltay = (float)alto / (float)altoTexTerr;
-		deltax = (float)ancho / (float)anchoTexTerr;
+		deltay = (float)alto / (float)altoTexWater;
+		deltax = (float)ancho / (float)anchoTexWater;
 
-		for(int x = 0; x < altoTexTerr; x++)
+		for(int x = 0; x < altoTexWater; x++)
 		 {
-			 for (int y = 0; y < anchoTexTerr; y++)
+			 for (int y = 0; y < anchoTexWater; y++)
 			 {
-				 int indiceArreglo = x * anchoTexTerr + y;
+				 int indiceArreglo = x * anchoTexWater + y;
 
 				 // Se calculan los vertices 'x' y 'z'. 'Y' se saca del mapa de normales
 				 vertcol[indiceArreglo].pos.x = vertices[indiceArreglo].pos.x = deltax * y - anchof;
-				 vertcol[indiceArreglo].pos.y = vertices[indiceArreglo].pos.y = alturaData[x][y]/9.0;
+				 vertcol[indiceArreglo].pos.y = vertices[indiceArreglo].pos.y = alturaData[x][y];
 				 vertcol[indiceArreglo].pos.z = vertices[indiceArreglo].pos.z = deltay * x - altof;
 				 vertices[indiceArreglo].UV.x = y * du;
 				 vertices[indiceArreglo].UV.y = x * dv;
@@ -249,16 +248,11 @@ public:
 		estableceIndices();
 		//crea los accesos de las texturas para los shaders 
 		d3dResult = D3DX11CreateShaderResourceViewFromFile( d3dDevice, diffuseTex, 0, 0, &colorMap, 0 );
-		d3dResult = D3DX11CreateShaderResourceViewFromFile( d3dDevice, L"cespedGood.jpg", 0, 0, &colorMap2, 0 );
-		d3dResult = D3DX11CreateShaderResourceViewFromFile( d3dDevice, L"heightMapReynosaBlur.png", 0, 0, &blendMap, 0 );
-
-
 
 		if( FAILED( d3dResult ) )
 		{
 			return false;
 		}
-
 
 		//aqui creamos el sampler
 		D3D11_SAMPLER_DESC colorMapDesc;
@@ -314,6 +308,14 @@ public:
 		{
 			return false;
 		}
+		
+
+		d3dResult = d3dDevice->CreateBuffer(&constDesc, 0, &waveTimerBufferCB);
+
+		if (FAILED(d3dResult))
+		{
+			return false;
+		}
 
 		//posicion de la camara
 		D3DXVECTOR3 eye = D3DXVECTOR3(0.0f, 100.0f, 200.0f);
@@ -358,7 +360,7 @@ public:
 			heightMap->Release();
 		if(alturaData)
 		{
-			for( int i = 0 ; i < altoTexTerr ; i++ )
+			for( int i = 0 ; i < altoTexWater ; i++ )
 			{
 				delete alturaData[i];
 			}
@@ -407,8 +409,6 @@ public:
 		d3dContext->PSSetShader( solidColorPS, 0, 0 );
 		//pasa lo sbuffers al shader
 		d3dContext->PSSetShaderResources( 0, 1, &colorMap );
-		d3dContext->PSSetShaderResources( 1, 1, &colorMap2 );
-		d3dContext->PSSetShaderResources( 2, 1, &blendMap );
 		d3dContext->PSSetSamplers( 0, 1, &colorMapSampler );
 
 		//mueve la camara
@@ -431,13 +431,13 @@ public:
 		d3dContext->VSSetConstantBuffers( 1, 1, &viewCB );
 		d3dContext->VSSetConstantBuffers( 2, 1, &projCB );
 		//cantidad de trabajos
-		int cuenta = (anchoTexTerr - 1) * (altoTexTerr - 1) * 6;
+		int cuenta = (anchoTexWater - 1) * (altoTexWater - 1) * 6;
 		d3dContext->DrawIndexed( cuenta, 0, 0 );
 
 		
 	}
 
-	void Draw(D3DXMATRIX vista, D3DXMATRIX proyeccion, float* timer)
+	void Draw(D3DXMATRIX vista, D3DXMATRIX proyeccion, float* timer, float* waveTimer)
 	{
 		static float rotation = 0.0f;
 		rotation += 0.01;		
@@ -461,8 +461,6 @@ public:
 		d3dContext->PSSetShader( solidColorPS, 0, 0 );
 		//pasa lo sbuffers al shader
 		d3dContext->PSSetShaderResources( 0, 1, &colorMap );
-		d3dContext->PSSetShaderResources( 1, 1, &colorMap2 );
-		d3dContext->PSSetShaderResources( 2, 1, &blendMap );
 		d3dContext->PSSetSamplers( 0, 1, &colorMapSampler );
 
 		//mueve la camara
@@ -480,16 +478,18 @@ public:
 		d3dContext->UpdateSubresource( worldCB, 0, 0, &worldMat, 0, 0 );
 		d3dContext->UpdateSubresource( viewCB, 0, 0, &vista, 0, 0 );
 		d3dContext->UpdateSubresource( projCB, 0, 0, &proyeccion, 0, 0 );
+		d3dContext->UpdateSubresource( timerBufferCB, 0, 0, timer, sizeof(float[4]), 0 );
+		d3dContext->UpdateSubresource( waveTimerBufferCB, 0, 0, waveTimer, sizeof(float[4]), 0 );
 		//le pasa al shader los buffers
 		d3dContext->VSSetConstantBuffers( 0, 1, &worldCB );
 		d3dContext->VSSetConstantBuffers( 1, 1, &viewCB );
 		d3dContext->VSSetConstantBuffers( 2, 1, &projCB );
+		d3dContext->VSSetConstantBuffers( 3, 1, &waveTimerBufferCB);
 
-		d3dContext->UpdateSubresource(timerBufferCB, 0, 0, timer, sizeof(float[4]), 0);
-		d3dContext->PSSetConstantBuffers(3, 1, &timerBufferCB);
+		d3dContext->PSSetConstantBuffers( 3, 1, &timerBufferCB);
 
 		//cantidad de trabajos
-		int cuenta = (anchoTexTerr - 1) * (altoTexTerr - 1) * 6;
+		int cuenta = (anchoTexWater - 1) * (altoTexWater - 1) * 6;
 		d3dContext->DrawIndexed( cuenta, 0, 0 );
 
 		
@@ -499,73 +499,45 @@ private:
 	////////////////////////////////////////////////////////////////////////////////////
 	// carga el mapa de alturas para generar los relieves y depresiones en el terreno //
 	////////////////////////////////////////////////////////////////////////////////////
-	void LoadHeightData(WCHAR* heightTex)
-	{
-		HRESULT resultado;
-
-		//estructura de un aimagen o textura
-		D3DX11_IMAGE_INFO texInfo;
-		//leemos la info de la textura del mapa de alturas
-		resultado = D3DX11GetImageInfoFromFile(heightTex, NULL, &texInfo, NULL);
-		//leemos los detalles de la textura para acceder a sus caracteristicas
-		D3DX11_IMAGE_LOAD_INFO texDesc;
-		ZeroMemory(&texDesc, sizeof(texDesc));
-		texDesc.CpuAccessFlags = D3D11_CPU_ACCESS_READ;
-		texDesc.Usage = D3D11_USAGE_STAGING;
-		texDesc.pSrcInfo = &texInfo;
-		texDesc.Height = texInfo.Height;
-		texDesc.Width = texInfo.Width;
-		texDesc.Depth = texInfo.Depth;
-		texDesc.Format = texInfo.Format;
-		texDesc.Filter = D3DX11_FILTER_LINEAR;
-		texDesc.MipLevels = texInfo.MipLevels;
+	void LoadHeightData(){
 
 		//obtenemos la cantidad de pìxeles en ancho y profundidad
-		anchoTexTerr = (int)texInfo.Width;
-		altoTexTerr = (int)texInfo.Height;
+		anchoTexWater = this->ancho;
+		altoTexWater = this->alto;
 		//generamos el espacio para contener los pixeles de altura
 		//como un arreglo de punteros de tipo byte
-		alturaData = new BYTE*[altoTexTerr];
+		alturaData = new BYTE*[altoTexWater];
 
 		//generamos el espacio en cada puntero de cada fila de bytes
-		for( int i = 0 ; i < anchoTexTerr ; i++ )
-			alturaData[i] = new BYTE[anchoTexTerr];
-		//del archivo de la textura genera el banco de acceso a los datos del  pixel
-		resultado = D3DX11CreateTextureFromFile(d3dDevice, heightTex, &texDesc, NULL, &heightMap, NULL);
+		for( int i = 0 ; i < anchoTexWater ; i++ )
+			alturaData[i] = new BYTE[anchoTexWater];
 
-		D3D11_MAPPED_SUBRESOURCE subResrc;
-		//permite acceso a los datos de las texturas sin permitir que el GPU lo interrumpa
-		resultado = d3dContext->Map(heightMap, 0, D3D11_MAP_READ, NULL, &subResrc);
-		BYTE *pixel = reinterpret_cast<BYTE*>(subResrc.pData);
-		//cargamos el dato del mapa de altura considerando un solo canal
-		for(UINT x = 0; x < altoTexTerr; x++)
+		for(UINT x = 0; x < altoTexWater; x++)
 		{
-			for(UINT y=0; y<anchoTexTerr; y++)
+			for(UINT y = 0; y < anchoTexWater; y++)
 			{
-				BYTE pPixel = pixel[(x * anchoTexTerr + y)*4];
-				alturaData[x][y] = pPixel;
+				alturaData[x][y] = 5;
 			}
 		}
 		//regresa acceso al GPU
-		d3dContext->Unmap(heightMap, 0);
 
 	}
 
 	void estableceIndices()
 	{
 		HRESULT d3dResult;
-		int cuenta = (anchoTexTerr - 1) * (altoTexTerr - 1) * 6;
+		int cuenta = (anchoTexWater - 1) * (altoTexWater - 1) * 6;
 		indices = new UINT[cuenta];
 
 		 int counter = 0;
-		 for(int y = 0; y < altoTexTerr-1; y++)
+		 for(int y = 0; y < altoTexWater-1; y++)
 		 {
-			 for(int x=0; x < anchoTexTerr-1; x++)
+			 for(int x=0; x < anchoTexWater-1; x++)
 			 {
-				 int lowerLeft = y * anchoTexTerr + x;
-				 int lowerRight = y * anchoTexTerr + (x + 1);
-				 int topLeft = (y + 1) * anchoTexTerr + x;
-				 int topRight = (y + 1) * anchoTexTerr + (x + 1);
+				 int lowerLeft = y * anchoTexWater + x;
+				 int lowerRight = y * anchoTexWater + (x + 1);
+				 int topLeft = (y + 1) * anchoTexWater + x;
+				 int topRight = (y + 1) * anchoTexWater + (x + 1);
 
 				 indices[counter++] = lowerLeft;
 				 indices[counter++] = topLeft;
@@ -599,14 +571,14 @@ private:
 
 	void generaNormales(VertexComponent* vertices)
 	{
-		for(int i=0; i<altoTexTerr-1;i++)
+		for(int i=0; i<altoTexWater-1;i++)
 		{
-			for(int j=0;j<anchoTexTerr-1;j++)
+			for(int j=0;j<anchoTexWater-1;j++)
 			{
-				int bottomleft = i * anchoTexTerr + j;
-				int topright = (i + 1) * anchoTexTerr + (j + 1);
-				int topleft = (i + 1) * anchoTexTerr + j;
-				int bottomright = i * anchoTexTerr + (j + 1);
+				int bottomleft = i * anchoTexWater + j;
+				int topright = (i + 1) * anchoTexWater + (j + 1);
+				int topleft = (i + 1) * anchoTexWater + j;
+				int bottomright = i * anchoTexWater + (j + 1);
 
 				// Se obtiene la normal del primer triangulo
 				D3DXVECTOR3 v1 = vertices[topleft].pos - vertices[bottomleft].pos;
@@ -653,7 +625,7 @@ private:
 			}
 		}
 
-		for(int i=0; i < anchoTexTerr * altoTexTerr; i++)
+		for(int i=0; i < anchoTexWater * altoTexWater; i++)
 		{
 			D3DXVECTOR3 normal = vertices[i].normal;
 			D3DXVec3Normalize(&normal, &normal);
@@ -664,7 +636,7 @@ private:
 			vertices[i].tangente = tangent;
 		}
 
-		for (int i = 0; i < anchoTexTerr * altoTexTerr; i++)
+		for (int i = 0; i < anchoTexWater * altoTexWater; i++)
 		{
 			D3DXVECTOR3 binorm;
 			D3DXVec3Cross(&binorm, &vertices[i].tangente, &vertices[i].normal);
@@ -696,16 +668,16 @@ public:
 
 		if (fx >= fz)
 		{		
-			D3DXPlaneFromPoints(&plano, &vertcol[indiceix + indiceiz * anchoTexTerr].pos,
-				&vertcol[indiceix + 1 + indiceiz * anchoTexTerr].pos,
-				&vertcol[indiceix + 1 + (indiceiz + 1)* anchoTexTerr].pos);
+			D3DXPlaneFromPoints(&plano, &vertcol[indiceix + indiceiz * anchoTexWater].pos,
+				&vertcol[indiceix + 1 + indiceiz * anchoTexWater].pos,
+				&vertcol[indiceix + 1 + (indiceiz + 1)* anchoTexWater].pos);
 			D3DXPlaneIntersectLine(&colision, &plano, &p1, &p2);
 		}
 		else
 		{
-			D3DXPlaneFromPoints(&plano, &vertcol[indiceix + indiceiz * anchoTexTerr].pos,
-				&vertcol[indiceix + 1 + (indiceiz + 1) * anchoTexTerr].pos,
-				&vertcol[indiceix + (indiceiz + 1)* anchoTexTerr].pos);
+			D3DXPlaneFromPoints(&plano, &vertcol[indiceix + indiceiz * anchoTexWater].pos,
+				&vertcol[indiceix + 1 + (indiceiz + 1) * anchoTexWater].pos,
+				&vertcol[indiceix + (indiceiz + 1)* anchoTexWater].pos);
 			D3DXPlaneIntersectLine(&colision, &plano, &p1, &p2);
 		}
 

@@ -169,6 +169,7 @@
     <ClInclude Include="SkyDome.h" />
     <ClInclude Include="TerrenoRR.h" />
     <ClInclude Include="Text.h" />
+    <ClInclude Include="Water.h" />
     <ClInclude Include="XACT3Util.h" />
   </ItemGroup>
   <ItemGroup>
@@ -182,6 +183,10 @@
     <FxCompile Include="GUI.fx" />
     <FxCompile Include="Modelo.fx" />
     <FxCompile Include="Text.fx" />
+    <None Include="Water.fx">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Effect</ShaderType>
+      <FileType>Document</FileType>
+    </None>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
