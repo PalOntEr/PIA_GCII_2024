@@ -169,6 +169,7 @@
     <ClInclude Include="SkyDome.h" />
     <ClInclude Include="TerrenoRR.h" />
     <ClInclude Include="Text.h" />
+    <ClInclude Include="Turret.h" />
     <ClInclude Include="Water.h" />
     <ClInclude Include="XACT3Util.h" />
   </ItemGroup>

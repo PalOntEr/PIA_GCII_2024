@@ -39,12 +39,22 @@ struct PS_Input
 	float3 binorm : NORMAL2;
 };
 
+float getWaveValue(float x)
+{
+    return exp(0.1f * sin(x + timer.x / 20.0f) + 0.05f * sin(2.0f * x + timer.x / 10.0f) + 0.025f * sin(4.0f * x + timer.x / 30.0f) * 0.25f) + 0.05f * -sin(2.0f * x + timer.x / 10.0f);
+}
+
 PS_Input VS_Main(VS_Input vertex)
 {
 	PS_Input vsOut = (PS_Input)0;
 	
-    vertex.pos.y += exp(0.1f * sin(vertex.pos.x + timer.x / 20.0f) + 0.05f * sin(2.0f * vertex.pos.x + timer.x / 10.0f) + 0.025f * sin(4.0f * vertex.pos.x + timer.x / 30.0f) * 0.25f);
-    vertex.pos.y += exp(0.1f * sin(vertex.pos.z + timer.x / 20.0f) + 0.05f * sin(2.0f * vertex.pos.z + timer.x / 10.0f) + 0.025f * sin(4.0f * vertex.pos.z + timer.x / 30.0f) * 0.25f);
+    vertex.pos.y += exp(0.1f * sin(vertex.pos.x + timer.x / 20.0f)
+						+ 0.05f * sin(2.0f * vertex.pos.x + timer.x / 10.0f)
+						+ 0.025f * sin(4.0f * vertex.pos.x + timer.x / 30.0f));
+	
+    vertex.pos.y += exp(0.1f * sin(vertex.pos.z + timer.x / 20.0f)
+						+ 0.05f * sin(2.0f * vertex.pos.z + timer.x / 10.0f)
+						+ 0.04f * -sin(3.0f * vertex.pos.z + timer.x / 30.0f));
 	
 	vsOut.pos = mul(vertex.pos, worldMatrix);
 	vsOut.pos = mul(vsOut.pos, viewMatrix);

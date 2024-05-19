@@ -83,6 +83,7 @@ public:
 
 	float*** sceneModels;
 	int totalModels;
+	int totalTrees;
 	float*** sceneTargets;
 	int totalTargets;
 	float** sceneVehicle;
@@ -97,7 +98,7 @@ public:
 	XMFLOAT4* timer;
 	GUI* vida;
 	GUI* antholeHealth[2];
-	GUI* leafCurrency;
+	GUI* leafCurrency[2];
 	Text* prueba;
 
 	float izqder;
@@ -157,6 +158,16 @@ public:
 		mantis
 	};
 
+	struct ShopItem {
+		string name = "";
+		GUI* icon = NULL;
+		int price = 0;
+		int model = 0;
+	};
+
+	ShopItem* shopList;
+	int totalItemsInShop;
+
     DXRR(HWND hWnd, int Ancho, int Alto)
 	{
 		breakpoint = false;
@@ -190,9 +201,6 @@ public:
 		for (int i = 0; i < totalAssets; i++) {
 			sceneAssets[i] = new ModeloRR * [3] { NULL };
 		}
-		//for (int i = 0; i < totalTargets; i++) {
-		//	sceneTargets[i] = new float * [3] { NULL };
-		//}
 
 		terreno = new TerrenoRR(2000, 2000, d3dDevice, d3dContext);
 		water = new Water(830, 830, d3dDevice, d3dContext);
@@ -219,7 +227,7 @@ public:
 		}
 		sceneAssets[worm][0] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/wormVehicle.obj", L"Assets/Textures/Hormiguero.png", L"Assets/Textures/NoSpecular.png", 0, 0);
 		sceneAssets[spider][0] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/spider.obj", L"Assets/Textures/AntModel_Rigged_Smooth.png", L"Assets/Textures/NoSpecular.png", 0, 0);
-		sceneAssets[mantis][0] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/mantis.obj", L"Assets/Textures/AntModel_Rigged_Smooth.png", L"Assets/Textures/NoSpecular.png", 0, 0);
+		sceneAssets[mantis][0] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/mantis.obj", L"Assets/Textures/Hoja.png", L"Assets/Textures/NoSpecular.png", 0, 0);
 
 		//billboard = new BillboardRR(L"Assets/Billboards/fuego-anim.png",L"Assets/Billboards/fuego-anim-normal.png", d3dDevice, d3dContext, 5);
 		frameSmoke = 15;
@@ -282,7 +290,9 @@ public:
 			sceneLeaves[i][picked][0] = pickedUp;
 		}
 		
-		totalModels = 14;
+		totalTrees = 30;
+
+		totalModels = 13 + totalTrees;
 
 		sceneModels = new float** [totalModels];
 		for (int i = 0; i < totalModels; i++) {
@@ -347,49 +357,52 @@ public:
 		sceneModels[7][collision][active] = 1.0f;
 		sceneModels[7][collision][radius] = 1.0f;
 
-		sceneModels[8][asset][assetModel] = tree;
-		sceneModels[8][position][x] = -24.0f;
-		sceneModels[8][position][z] = 60.0f;
+		sceneModels[8][asset][assetModel] = sticks;
+		sceneModels[8][position][x] = -14;
+		sceneModels[8][position][z] = 62;
 		sceneModels[8][scale][0] = 1.0f;
 		sceneModels[8][collision][active] = 1.0f;
 		sceneModels[8][collision][radius] = 1.0f;
-
 		sceneModels[9][asset][assetModel] = sticks;
-		sceneModels[9][position][x] = -14;
-		sceneModels[9][position][z] = 62;
+		sceneModels[9][asset][type] = 1;
+		sceneModels[9][position][x] = -18;
+		sceneModels[9][position][z] = 88;
 		sceneModels[9][scale][0] = 1.0f;
 		sceneModels[9][collision][active] = 1.0f;
 		sceneModels[9][collision][radius] = 1.0f;
 		sceneModels[10][asset][assetModel] = sticks;
-		sceneModels[10][asset][type] = 1;
-		sceneModels[10][position][x] = -18;
-		sceneModels[10][position][z] = 88;
+		sceneModels[10][asset][type] = 2;
+		sceneModels[10][position][x] = -39;
+		sceneModels[10][position][z] = 70;
 		sceneModels[10][scale][0] = 1.0f;
 		sceneModels[10][collision][active] = 1.0f;
 		sceneModels[10][collision][radius] = 1.0f;
-		sceneModels[11][asset][assetModel] = sticks;
-		sceneModels[11][asset][type] = 2;
-		sceneModels[11][position][x] = -39;
-		sceneModels[11][position][z] = 70;
-		sceneModels[11][scale][0] = 1.0f;
+
+		sceneModels[11][asset][assetModel] = bottle;
+		sceneModels[11][position][x] = 10.0f;
+		sceneModels[11][position][y] -= 5.0f;
+		sceneModels[11][position][z] = -60.0f;
+		sceneModels[11][rotation][x] = 45.0f;
+		sceneModels[11][scale][0] = 4.0f;
 		sceneModels[11][collision][active] = 1.0f;
 		sceneModels[11][collision][radius] = 1.0f;
 
-		sceneModels[12][asset][assetModel] = bottle;
-		sceneModels[12][position][x] = 10.0f;
-		sceneModels[12][position][y] -= 5.0f;
-		sceneModels[12][position][z] = -60.0f;
-		sceneModels[12][rotation][x] = 45.0f;
-		sceneModels[12][scale][0] = 4.0f;
+		sceneModels[12][asset][assetModel] = cap;
+		sceneModels[12][position][x] = -24.0f;
+		sceneModels[12][position][z] = -28.0f;
+		sceneModels[12][scale][0] = 0.1f;
 		sceneModels[12][collision][active] = 1.0f;
 		sceneModels[12][collision][radius] = 1.0f;
 
-		sceneModels[13][asset][assetModel] = cap;
-		sceneModels[13][position][x] = -24.0f;
-		sceneModels[13][position][z] = -28.0f;
-		sceneModels[13][scale][0] = 0.1f;
-		sceneModels[13][collision][active] = 1.0f;
-		sceneModels[13][collision][radius] = 1.0f;
+		for (int i = 12; i < totalTrees + 12; i++) {
+			sceneModels[i][asset][assetModel] = tree;
+			sceneModels[i][position][x] = generateRandom();
+			sceneModels[i][position][z] = generateRandom();
+			sceneModels[i][scale][0] = (rand() % 3) + 1;
+			sceneModels[i][collision][active] = 1.0f;
+			sceneModels[i][collision][radius] = sceneModels[i][scale][0] * 10.0f;
+			sceneModels[i][rotation][y] = rand() % 361;
+		}
 
 		for (int i = 1; i < totalModels; i++) {
 			sceneModels[i][position][y] = terreno->Superficie(sceneModels[i][position][x], sceneModels[i][position][z]);
@@ -465,12 +478,20 @@ public:
 		//sceneWalls[9][width] = 1.0f;
 		//sceneWalls[9][height] = 57.0f;
 
-
 		vida = new GUI(d3dDevice, d3dContext, 0.3f, 0.3f, L"Assets/GUI/ant_health.png");
-		leafCurrency = new GUI(d3dDevice, d3dContext, 0.3f, 0.25f, L"Assets/GUI/leaf.png");
+		leafCurrency[0] = new GUI(d3dDevice, d3dContext, 0.3f, 0.25f, L"Assets/GUI/leaf.png");
+		leafCurrency[1] = new GUI(d3dDevice, d3dContext, 0.15f, 0.175f, L"Assets/GUI/leaf.png");
 		antholeHealth[0] = new GUI(d3dDevice, d3dContext, 0.1f, 0.05f, L"Assets/GUI/anthole_health.png");
 		antholeHealth[1] = new GUI(d3dDevice, d3dContext, 0.1f, 0.05f, L"Assets/GUI/anthole_missingHealth.png");
 		prueba = new Text(d3dDevice, d3dContext, 3.6f, 1.2f, L"Assets/GUI/font.png", XMFLOAT4(0.7f, 0.7f, 0.7f, 0.0f));
+
+		totalItemsInShop = 1;
+		shopList = new ShopItem[totalItemsInShop];
+
+		shopList[0].name = "Mantis";
+		shopList[0].model = mantis;
+		shopList[0].price = 1;
+		shopList[0].icon = new GUI(d3dDevice, d3dContext, 0.2f, 0.2f, L"Assets/GUI/mantis.png");;
 
 	}
 
@@ -694,6 +715,13 @@ public:
 			delete antholeHealth[i];
 		}
 		delete[] antholeHealth;
+
+		for (int i = 0; i < 2; i++) {
+			delete leafCurrency[i];
+		}
+		delete[] leafCurrency;
+
+		delete[] shopList;
 	}
 	
 	void Render(void)
@@ -763,7 +791,7 @@ public:
 			sceneAssets[a][t]->Draw(playerCamera->vista, playerCamera->proyeccion, p, playerCamera->posCam, 1.0f, sceneVehicle[rotation][y], 'Y', s, timer);
 		}
 
-		if (realTime % 2 == 0) {
+		if (realTime % 20 == 0) {
 			respawnLeaves(5);
 		}
 		for (int i = 0; i < totalLeaves; i++) {
@@ -812,8 +840,6 @@ public:
 			}
 		}
 
-		antSalesman->Draw(playerCamera->vista, playerCamera->proyeccion, playerCamera->posCam, 0.0f, -7.0f, terreno->Superficie(0.0f, -7.0f) -1.0f, 2, new vector2 {0.0f, 1.0f}, new vector2{ 0.0f, 0.0f }, new vector2{ 1.0f, 0.0f }, new vector2{ 1.0f, 1.0f }, 0);
-
 		//TurnOnAlphaBlending();
 		//billboard->Draw(playerCamera->vista, playerCamera->proyeccion, player->GetPosition(),-11, -78, 4, 5, uv1, uv2, uv3, uv4, frameBillboard);
 		//TurnOffAlphaBlending();
@@ -841,6 +867,19 @@ public:
 			else
 			{
 				sceneModels[i][collision][active] = 0.0f;
+			}
+		}
+
+		if (player->isPlacing[player->activePlacing] == 1) {
+			if (sceneAssets[player->isPlacing[player->placingModel]][0]) {
+				D3DXVECTOR3 playerRef = player->GetFrontReference2D();
+				float rotAngle = playerRef.z > 0 ? atanf(playerRef.x / playerRef.z): atanf(playerRef.x / playerRef.z) - D3DX_PI;
+				s = 1.0f;
+				p = player->GetPosition();
+				p[x] += player->GetFrontReference2D().x * 10.0f;
+				p[z] += player->GetFrontReference2D().z * 10.0f;
+				p[y] = terreno->Superficie(p[x], p[z]);
+				sceneAssets[player->isPlacing[player->placingModel]][0]->Draw(playerCamera->vista, playerCamera->proyeccion, p, playerCamera->posCam, 1.0f, rotAngle, 'Y', s, timer);
 			}
 		}
 
@@ -881,18 +920,48 @@ public:
 		}
 		
 		for (int i = 0; i < getAntholeInfo()[0][0]; i++) {
-			antholeHealth[0]->Draw(-0.5f + (i * 0.01f), 0.8f);
+			antholeHealth[0]->Draw(-0.5f + (i * 0.01f), 0.7f);
 		}
 		for (int i = 0; i < 100; i++) {
-			antholeHealth[1]->Draw(-0.5f + (i * 0.01f), 0.8f);
+			antholeHealth[1]->Draw(-0.5f + (i * 0.01f), 0.7f);
 		}
+
 
 		TurnOnAlphaBlending();
 			prueba->DrawText(-0.1f, -0.9f, "Bruh como que todo se entrega la primera semana", 0.01f);
-			prueba->DrawText(-0.15f, 0.9f, "ANTHOLE HEALTH", 0.01f);
-			prueba->DrawText(-0.4f, 0.8f, "HEALTH: " + to_string(*player->getHealth()), 0.01f);
+
+			prueba->DrawText(-0.025f, 0.9f, prueba->Time(realTime), 0.01f);
+			prueba->DrawText(-0.15f, 0.8f, "ANTHOLE HEALTH", 0.01f);
+			prueba->DrawText(-0.4f, 0.6f, "HEALTH: " + to_string(*player->getHealth()), 0.01f);
+
 			if (!player->isDriving && isPointInsideSphere(new float[2] {player->GetPosition().x, player->GetPosition().z}, new float[3] { sceneVehicle[1][0], sceneVehicle[1][2], sceneVehicle[4][1]}))
 				prueba->DrawText(-0.2f, -0.8f, "Press the LMB to mount", 0.01f);
+
+			if (isPointInsideSphere(new float[2] {player->GetPosition().x, player->GetPosition().z}, new float[3] { 0.0f, -7.0f, 10.0f})) {
+				antSalesman->Draw(playerCamera->vista, playerCamera->proyeccion, playerCamera->posCam, 0.0f, -7.0f, terreno->Superficie(0.0f, -7.0f) - 1.0f, 2, new vector2{ 0.0f, 1.0f }, new vector2{ 0.0f, 0.0f }, new vector2{ 1.0f, 0.0f }, new vector2{ 1.0f, 1.0f }, 0);
+				for (int i = 0; i < totalItemsInShop; i++) {
+					leafCurrency[1]->Draw(-0.5f, 0.5f + (i * 0.1f));
+					prueba->DrawText(-0.8f, 0.5f + (i * 0.1f), "Item ID: " + to_string(i) + "        " + to_string(shopList[i].price), 0.01f);
+					shopList[i].icon->Draw(-0.9f, 0.5f + (i * 0.1f));
+					//prueba->DrawText(-0.8f, 0.4f + (i * 0.1f), "Item " + to_string(i) + " price: " + shopList[i].name, 0.01f);
+				}
+			}
+			else {
+				antSalesman->Draw(playerCamera->vista, playerCamera->proyeccion, new float[3]{ 0.0f, 0.0f, 0.0f }, 0.0f, -7.0f, terreno->Superficie(0.0f, -7.0f) - 1.0f, 2, new vector2{0.0f, 1.0f}, new vector2{0.0f, 0.0f}, new vector2{1.0f, 0.0f}, new vector2{1.0f, 1.0f}, 0);
+			}
+
+			int* itemCount = new int[totalItemsInShop] { 0 };
+			for (int i = 0; i < player->totalSlotsInInventory; i++) {
+				if(player->inventorySlots[i].isOccupied)
+					itemCount[player->inventorySlots[i].item.shopId]++;
+			}
+			for (int i = 0; i < totalItemsInShop; i++) {
+				prueba->DrawText(-0.8f, -0.8f, to_string(itemCount[i]), 0.01f);
+				shopList[i].icon->Draw(-0.9f, -0.8f);
+			}
+
+			delete[] itemCount;
+
 			/*prueba->DrawText(-0.6f, 0.7f, "Speed X:" + to_string(player->getSpeed()[0]) + "  Speed Y:" + to_string(player->getSpeed()[1]) + "  Speed Z:" + to_string(player->getSpeed()[2]), 0.01f);
 			prueba->DrawText(-0.1f, 0.6f, "isJumping: " + player->isJumping, 0.01f);
 			prueba->DrawText(-0.6f, 0.5f, "Accel X:" + to_string(player->getAcceleration()[0]) + "  Accel Y:" + to_string(player->getAcceleration()[1]) + "  Accel Z:" + to_string(player->getAcceleration()[2]), 0.01f);
@@ -906,7 +975,8 @@ public:
 			//}
 			prueba->DrawText(-0.75f, 0.7f, to_string(player->cantLeaves), 0.01f);
 		TurnOffAlphaBlending();
-		leafCurrency->Draw(-0.8f, 0.8f);
+
+		leafCurrency[0]->Draw(-0.8f, 0.8f);
 
 		swapChain->Present( 1, 0 );
 	}

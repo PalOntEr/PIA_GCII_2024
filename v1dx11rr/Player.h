@@ -77,6 +77,17 @@ private:
 		return false;
 	}
 
+	struct inventoryItem {
+		string name = "";
+		int model = 0;
+		int shopId = 0;
+	};
+
+	struct inventorySlot {
+		inventoryItem item;
+		bool isOccupied = false;
+	};
+
 public:
 
 	ModeloRR** m_playerModels;
@@ -91,18 +102,31 @@ public:
 		thirdPerson
 	};
 
+	enum placing {
+		activePlacing,
+		placingModel,
+	};
+
 	bool isJumping;
 	bool isRunning;
 	bool isCrouching;
 	bool isDriving;
+	int* isPlacing;
 
 	int cantLeaves;
+
+	int totalSlotsInInventory;
+
+	inventorySlot* inventorySlots;
 
 	Player(D3DXVECTOR3 startPoint, int Ancho, int Alto, ModeloRR** models = NULL, int animations = 1, int frames = 1) {
 
 		health = INITIALHEALTH;
 
 		cantLeaves = 0;
+
+		totalSlotsInInventory = 5;
+		inventorySlots = new inventorySlot[totalSlotsInInventory];
 
 		playerInfo = new float*[3];
 		playerInfo[targetRadius] = new float;
@@ -118,6 +142,7 @@ public:
 		isRunning = false;
 		isCrouching = false;
 		isDriving = false;
+		isPlacing = new int[2] { 0 };
 
 		m_position = m_startPosition = startPoint;
 
@@ -343,8 +368,8 @@ public:
 			tempPosition.x > 900 ? tempPosition.x = 900 : tempPosition.x = -900;
 			m_acceleration[0] = 0;
 		}
-		if (tempPosition.z > 900 || tempPosition.z < -900) {
-			tempPosition.z > 900 ? tempPosition.z = 900 : tempPosition.z = -900;
+		if (tempPosition.z > 900 || tempPosition.z < -800) {
+			tempPosition.z > 900 ? tempPosition.z = 900 : tempPosition.z = -800;
 			m_acceleration[2] = 0;
 		}
 
@@ -360,7 +385,7 @@ public:
 			}
 		}
 
-		if (sceneWalls) {
+		if (sceneWalls && (isPointInsideRect(new float[2] { tempPosition.x, tempPosition.z}, new float[5] { -2.0f, 15.0f, 0.0f, 4.0f, 15.0f }) || isPointInsideRect(new float[2] { tempPosition.x, tempPosition.z}, new float[5] { -17.0f, -17.0f, 0.0f, 34.0f, 34.0f }))) {
 			for (int i = 0; i < numWalls; i++) {
 				if (isPointInsideRect(new float[2] { tempPosition.x, tempPosition.z}, sceneWalls[i])) {
 					collided = true;
@@ -369,6 +394,12 @@ public:
 					break;
 				}
 			}
+			isPlacing[activePlacing] = 0;
+		}
+		else if (isPointInsideSphere(new float[2] { tempPosition.x, tempPosition.z}, new float[3] { 0, 0, 30})) {
+			collided = true;
+			m_speed[0] = 0;
+			m_speed[2] = 0;
 		}
 
 		if (velDir[1] != 0) {
@@ -401,7 +432,7 @@ public:
 		if (m_currentCamera == thirdPerson) {
 			if (tempCameraPosition.x > 900 || tempCameraPosition.x < -900)
 				cameraCollidedH = true;
-			if (tempCameraPosition.z > 900 || tempCameraPosition.z < -900)
+			if (tempCameraPosition.z > 900 || tempCameraPosition.z < -800)
 				cameraCollidedH = true;
 
 			if (sceneWalls) {
@@ -599,11 +630,26 @@ public:
 		return playerInfo;
 	}
 
-	void Release() {
-		delete[] playerInfo;
+	//Returns true if there was space in the inventory and item was added
+	bool addItemToInventory(string Name, int model, int shopId) {
+		bool added = false;
+		for (int i = 0; i < totalSlotsInInventory; i++) {
+			if (!inventorySlots[i].isOccupied) {
+				inventorySlots[i].isOccupied = true;
+				inventorySlots[i].item.name = Name;
+				inventorySlots[i].item.model = model;
+				inventorySlots[i].item.shopId = shopId;
+				added = true;
+				break;
+			}
+		}
+		return added;
 	}
 
-
+	void Release() {
+		delete[] playerInfo;
+		delete[] inventorySlots;
+	}
 
 };
 

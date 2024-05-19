@@ -31,6 +31,7 @@ bool F5isPressed = false;
 bool SpaceisPressed = false;
 bool LMBisPressed = false;
 bool RMBisPressed = false;
+bool numberisPressed = false;
 
 void createMouseDevice(HWND hWnd) {
     m_pDirectInput->CreateDevice(GUID_SysMouse, &m_pMouseDevice, 0);
@@ -343,6 +344,29 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
             }
             else
                 F5isPressed = false;
+
+            if (keyboardData[DIK_0] & 0x80) {
+                if (!numberisPressed) {
+                    if (dxrr->isPointInsideSphere(new float[2] {dxrr->player->GetPosition().x, dxrr->player->GetPosition().z}, new float[3] { 0.0f, -7.0f, 10.0f}))
+                        if (dxrr->player->cantLeaves >= dxrr->shopList[0].price && dxrr->player->addItemToInventory(dxrr->shopList[0].name, dxrr->shopList[0].model, 0)) {
+                            dxrr->player->cantLeaves -= dxrr->shopList[0].price;
+                        }
+                    if (dxrr->player->isPlacing[dxrr->player->activePlacing] == 0) {
+                        dxrr->player->isPlacing[dxrr->player->activePlacing] = 1;
+                        dxrr->player->isPlacing[dxrr->player->placingModel] = dxrr->shopList[0].model;
+                    }
+                    else if (dxrr->player->isPlacing[dxrr->player->activePlacing] == 1 && dxrr->player->isPlacing[dxrr->player->placingModel] != dxrr->shopList[0].model) {
+                        dxrr->player->isPlacing[dxrr->player->placingModel] = dxrr->shopList[0].model;
+                    }
+                    else if (dxrr->player->isPlacing[dxrr->player->activePlacing] == 1 && dxrr->player->isPlacing[dxrr->player->placingModel] == dxrr->shopList[0].model) {
+                        dxrr->player->isPlacing[dxrr->player->activePlacing] = 0;
+                    }
+                }
+                numberisPressed = true;
+            }
+            else {
+                numberisPressed = false;
+            }
 
             // Mouse move
             dxrr->izqder = (mouseData.lX / 1000.0f) * SENSIBILITY;
