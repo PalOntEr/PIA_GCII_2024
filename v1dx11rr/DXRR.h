@@ -20,7 +20,7 @@
 #define DAYCYCLESPEED 0.0001f/*0.0001f*/
 #define GRAVITYFORCE -0.03f
 #define GAMEDURATION 180.0f
-#define GAMEENDS true
+#define GAMEENDS false
 #define QUICKLOAD false
 
 //MAX ANDRES ZERTUCHE PEREZ #2003051
@@ -696,7 +696,7 @@ public:
 
 		// Cargar los indeces de los Cues
 		cueIndex = m_XACT3.m_pSoundBank->GetCueIndex("Fondo");
-		//m_XACT3.m_pSoundBank->Play(cueIndex, 0, 0, 0);
+		m_XACT3.m_pSoundBank->Play(cueIndex, 0, 0, 0);
 
 		return true;
 		
@@ -1455,9 +1455,9 @@ public:
 		}
 
 		mountains->Draw(player->GetCamera()->vista, player->GetCamera()->proyeccion, new float[3] { 0.0f, 0.0f, 0.0f }, 1200.0f, 0.0f, 0.0f, 1500, new vector2{ 0.0f, 1.0f }, new vector2{ 0.0f, 0.0f }, new vector2{ 1.0f, 0.0f }, new vector2{ 1.0f, 1.0f }, 0);
-		mountains->Draw(player->GetCamera()->vista, player->GetCamera()->proyeccion, new float[3] { 0.0f, 0.0f, 0.0f }, -1200.0f, 0.0f, 0.0f, 1500, new vector2{ 0.0f, 1.0f }, new vector2{ 0.0f, 0.0f }, new vector2{ 1.0f, 0.0f }, new vector2{ 1.0f, 1.0f }, 0);
-		mountains->Draw(player->GetCamera()->vista, player->GetCamera()->proyeccion, new float[3] { 0.0f, 0.0f, 0.0f }, 0.0f, 1200.0f, 0.0f, 1500, new vector2{ 0.0f, 1.0f }, new vector2{ 0.0f, 0.0f }, new vector2{ 1.0f, 0.0f }, new vector2{ 1.0f, 1.0f }, 0);
-		mountains->Draw(player->GetCamera()->vista, player->GetCamera()->proyeccion, new float[3] { 0.0f, 0.0f, 0.0f }, 0.0f, -1200.0f, 0.0f, 1500, new vector2{ 0.0f, 1.0f }, new vector2{ 0.0f, 0.0f }, new vector2{ 1.0f, 0.0f }, new vector2{ 1.0f, 1.0f }, 0);
+		mountains->Draw(player->GetCamera()->vista, player->GetCamera()->proyeccion, new float[3] { 0.0f, 0.0f, 0.0f }, -1000.0f, 0.0f, 0.0f, 1500, new vector2{ 0.0f, 1.0f }, new vector2{ 0.0f, 0.0f }, new vector2{ 1.0f, 0.0f }, new vector2{ 1.0f, 1.0f }, 0);
+		mountains->Draw(player->GetCamera()->vista, player->GetCamera()->proyeccion, new float[3] { 0.0f, 0.0f, 0.0f }, 0.0f, 1000.0f, 0.0f, 1500, new vector2{ 0.0f, 1.0f }, new vector2{ 0.0f, 0.0f }, new vector2{ 1.0f, 0.0f }, new vector2{ 1.0f, 1.0f }, 0);
+		mountains->Draw(player->GetCamera()->vista, player->GetCamera()->proyeccion, new float[3] { 0.0f, 0.0f, 0.0f }, 0.0f, -1000.0f, 0.0f, 1500, new vector2{ 0.0f, 1.0f }, new vector2{ 0.0f, 0.0f }, new vector2{ 1.0f, 0.0f }, new vector2{ 1.0f, 1.0f }, 0);
 		rustySign->Draw(player->GetCamera()->vista, player->GetCamera()->proyeccion, player->GetCamera()->posCam, 60.0f, 30.0f, 2.0f, 20, new vector2{ 0.0f, 1.0f }, new vector2{ 0.0f, 0.0f }, new vector2{ 1.0f, 0.0f }, new vector2{ 1.0f, 1.0f }, 0);
 		for (int i = 0; i < totalGrass; i++) {
 			if (grassPositions[i].w == 0)

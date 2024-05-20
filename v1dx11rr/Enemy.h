@@ -278,7 +278,7 @@ public:
 	void Attack() {
 		currentTarget[targetHealth][0] -= ENEMYDAMAGE;
 		if(isPointInsideSphere(new float[2] { m_position.x, m_position.z}, new float[3] { possibleTargets[0][targetPosition][0], possibleTargets[0][targetPosition][2], 50.0f})){}
-			//m_XACT3->m_pSoundBank->Play(cueIndex[rand() % 4], 0, 0, 0);
+			m_XACT3->m_pSoundBank->Play(cueIndex[rand() % 4], 0, 0, 0);
 	}
 
 	void killEnemy() {
