@@ -67,7 +67,7 @@ public:
 
 	Enemy(D3DXVECTOR3 startPoint, float*** possibleTargets, int numberOfTargets, CXACT3Util* audioManager, ModeloRR** models = NULL, int animations = 1, int frames = 1) {
 
-		isAlive = true;
+		isAlive = false;
 
 		health = INITIALENEMYHEALTH;
 
@@ -288,6 +288,12 @@ public:
 
 	bool isEnemyAlive() {
 		return isAlive;
+	}
+
+	void reviveEnemy() {
+		health = INITIALENEMYHEALTH;
+		isAlive = true;
+		selectNewTarget();
 	}
 
 	void selectNewTarget() {

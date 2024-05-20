@@ -273,7 +273,7 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
             }
 
             if (keyboardData[DIK_SPACE] & 0x80) {
-                if (!SpaceisPressed && !dxrr->won && !dxrr->lost && !dxrr->player->isJumping) {
+                if (!SpaceisPressed && !dxrr->player->isJumping) {
                     dxrr->velDir[1] += 0.5f;
                     dxrr->player->isJumping = true;
                     SpaceisPressed = true;
@@ -305,7 +305,7 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 
             if (mouseData.rgbButtons[0] & 0x80) {
                 if (!LMBisPressed)
-                    if (!dxrr->won && !dxrr->lost && dxrr->isPointInsideSphere(new float[2] {dxrr->player->GetPosition().x, dxrr->player->GetPosition().z}, new float[3] { dxrr->sceneVehicle[1][0], dxrr->sceneVehicle[1][2], dxrr->sceneVehicle[4][1]})) {
+                    if (dxrr->isPointInsideSphere(new float[2] {dxrr->player->GetPosition().x, dxrr->player->GetPosition().z}, new float[3] { dxrr->sceneVehicle[1][0], dxrr->sceneVehicle[1][2], dxrr->sceneVehicle[4][1]})) {
                         if (!dxrr->player->isDriving) {
                             dxrr->player->SetCurrentVehicle(dxrr->sceneVehicle);
                         }
@@ -318,7 +318,7 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
                 LMBisPressed = false;
 
             if (mouseData.rgbButtons[1] & 0x80) {
-                if (!RMBisPressed && !dxrr->won && !dxrr->lost) {
+                if (!RMBisPressed) {
                     dxrr->DamageEnemies(dxrr->spiderEnemies);
                     dxrr->pickUpLeaves();
                     if (dxrr->player->isPlacing[dxrr->player->placingActive] == 1) {
@@ -351,11 +351,11 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 
             if (keyboardData[DIK_0] & 0x80) {
                 if (!numberisPressed) {
-                    if (!dxrr->won && !dxrr->lost && dxrr->isPointInsideSphere(new float[2] {dxrr->player->GetPosition().x, dxrr->player->GetPosition().z}, new float[3] { 0.0f, -7.0f, 10.0f}))
+                    if (dxrr->isPointInsideSphere(new float[2] {dxrr->player->GetPosition().x, dxrr->player->GetPosition().z}, new float[3] { 0.0f, -7.0f, 10.0f}))
                         if (dxrr->player->cantLeaves >= dxrr->shopList[0].price && dxrr->player->addItemToInventory(dxrr->shopList[0].name, dxrr->shopList[0].model, 0)) {
                             dxrr->player->cantLeaves -= dxrr->shopList[0].price;
                         }
-                    if (!dxrr->won && !dxrr->lost && dxrr->player->playerHasItem(0)) {
+                    if (dxrr->player->playerHasItem(0)) {
                         if (dxrr->player->isPlacing[dxrr->player->placingActive] == 0) {
                             dxrr->player->isPlacing[dxrr->player->placingActive] = 1;
                             dxrr->player->isPlacing[dxrr->player->placingModel] = dxrr->shopList[0].model;

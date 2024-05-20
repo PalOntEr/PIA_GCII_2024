@@ -787,9 +787,8 @@ public:
 	void Render(void)
 	{
 		globalTimer++;
-		if (!won && !lost && globalTimer % 60 == 0) {
+		if (globalTimer % 60 == 0)
 			realTime++;
-		}
 
 		if (!won && (*player->getHealth() <= 0 || sceneAnthole[health][0] <= 0))
 			lost = true;
@@ -1440,6 +1439,15 @@ public:
 
 
 		TurnOnAlphaBlending();
+		text->DrawText(-0.1f, -0.9f, "Bruh como que todo se entrega la primera semana", 0.01f);
+
+		text->DrawText(-0.025f, 0.9f, text->Time(realTime), 0.01f);
+		text->DrawText(-0.15f, 0.8f, "ANTHOLE HEALTH", 0.01f);
+		text->DrawText(-0.4f, 0.6f, "HEALTH: " + to_string(*player->getHealth()), 0.01f);
+
+		if (!player->isDriving && isPointInsideSphere(new float[2] {player->GetPosition().x, player->GetPosition().z}, new float[3] { sceneVehicle[1][0], sceneVehicle[1][2], sceneVehicle[4][1]}))
+			text->DrawText(-0.2f, -0.8f, "Press the LMB to mount", 0.01f);
+
 		if (isPointInsideSphere(new float[2] {player->GetPosition().x, player->GetPosition().z}, new float[3] { 0.0f, -7.0f, 10.0f})) {
 			antSalesman->Draw(player->GetCamera()->vista, player->GetCamera()->proyeccion, player->GetCamera()->posCam, 0.0f, -7.0f, terreno->Superficie(0.0f, -7.0f) - 1.0f, 2, new vector2{ 0.0f, 1.0f }, new vector2{ 0.0f, 0.0f }, new vector2{ 1.0f, 0.0f }, new vector2{ 1.0f, 1.0f }, 0);
 			for (int i = 0; i < totalItemsInShop; i++) {
@@ -1454,27 +1462,18 @@ public:
 			antSalesman->Draw(player->GetCamera()->vista, player->GetCamera()->proyeccion, new float[3] { 0.0f, 0.0f, 0.0f }, 0.0f, -7.0f, terreno->Superficie(0.0f, -7.0f) - 1.0f, 2, new vector2{ 0.0f, 1.0f }, new vector2{ 0.0f, 0.0f }, new vector2{ 1.0f, 0.0f }, new vector2{ 1.0f, 1.0f }, 0);
 		}
 
-		mountains->Draw(player->GetCamera()->vista, player->GetCamera()->proyeccion, new float[3] { 0.0f, 0.0f, 0.0f }, 1200.0f, 0.0f, 0.0f, 1500, new vector2{ 0.0f, 1.0f }, new vector2{ 0.0f, 0.0f }, new vector2{ 1.0f, 0.0f }, new vector2{ 1.0f, 1.0f }, 0);
-		mountains->Draw(player->GetCamera()->vista, player->GetCamera()->proyeccion, new float[3] { 0.0f, 0.0f, 0.0f }, -1200.0f, 0.0f, 0.0f, 1500, new vector2{ 0.0f, 1.0f }, new vector2{ 0.0f, 0.0f }, new vector2{ 1.0f, 0.0f }, new vector2{ 1.0f, 1.0f }, 0);
-		mountains->Draw(player->GetCamera()->vista, player->GetCamera()->proyeccion, new float[3] { 0.0f, 0.0f, 0.0f }, 0.0f, 1200.0f, 0.0f, 1500, new vector2{ 0.0f, 1.0f }, new vector2{ 0.0f, 0.0f }, new vector2{ 1.0f, 0.0f }, new vector2{ 1.0f, 1.0f }, 0);
-		mountains->Draw(player->GetCamera()->vista, player->GetCamera()->proyeccion, new float[3] { 0.0f, 0.0f, 0.0f }, 0.0f, -1200.0f, 0.0f, 1500, new vector2{ 0.0f, 1.0f }, new vector2{ 0.0f, 0.0f }, new vector2{ 1.0f, 0.0f }, new vector2{ 1.0f, 1.0f }, 0);
-		rustySign->Draw(player->GetCamera()->vista, player->GetCamera()->proyeccion, player->GetCamera()->posCam, 60.0f, 30.0f, 2.0f, 20, new vector2{ 0.0f, 1.0f }, new vector2{ 0.0f, 0.0f }, new vector2{ 1.0f, 0.0f }, new vector2{ 1.0f, 1.0f }, 0);
+		mountains->Draw(player->GetCamera()->vista, player->GetCamera()->proyeccion, new float[3] { 0.0f, 0.0f, 0.0f }, 3000.0f, 0.0f, 0.0f, 100, new vector2{0.0f, 1.0f}, new vector2{0.0f, 0.0f}, new vector2{1.0f, 0.0f}, new vector2{1.0f, 1.0f}, 0);
+		mountains->Draw(player->GetCamera()->vista, player->GetCamera()->proyeccion, new float[3] { 0.0f, 0.0f, 0.0f }, -3000.0f, 0.0f, 0.0f, 100, new vector2{0.0f, 1.0f}, new vector2{0.0f, 0.0f}, new vector2{1.0f, 0.0f}, new vector2{1.0f, 1.0f}, 0);
+		mountains->Draw(player->GetCamera()->vista, player->GetCamera()->proyeccion, new float[3] { 0.0f, 0.0f, 0.0f }, 0.0f, 3000.0f, 0.0f, 100, new vector2{0.0f, 1.0f}, new vector2{0.0f, 0.0f}, new vector2{1.0f, 0.0f}, new vector2{1.0f, 1.0f}, 0);
+		mountains->Draw(player->GetCamera()->vista, player->GetCamera()->proyeccion, new float[3] { 0.0f, 0.0f, 0.0f }, 0.0f, -3000.0f, 0.0f, 100, new vector2{0.0f, 1.0f}, new vector2{0.0f, 0.0f}, new vector2{1.0f, 0.0f}, new vector2{1.0f, 1.0f}, 0);
+		rustySign->Draw(player->GetCamera()->vista, player->GetCamera()->proyeccion, player->GetCamera()->posCam, 60.0f, 30.0f, 2.0f, 20, new vector2{0.0f, 1.0f}, new vector2{0.0f, 0.0f}, new vector2{1.0f, 0.0f}, new vector2{1.0f, 1.0f}, 0);
 		for (int i = 0; i < totalGrass; i++) {
-			if (grassPositions[i].w == 0)
-				grass->Draw(player->GetCamera()->vista, player->GetCamera()->proyeccion, player->GetCamera()->posCam, grassPositions[i].x, grassPositions[i].z, grassPositions[i].y, 5, new vector2{ 0.0f, 1.0f }, new vector2{ 0.0f, 0.0f }, new vector2{ 1.0f, 0.0f }, new vector2{ 1.0f, 1.0f }, 0);
+			if(grassPositions[i].w == 0)
+				grass->Draw(player->GetCamera()->vista, player->GetCamera()->proyeccion, player->GetCamera()->posCam, grassPositions[i].x, grassPositions[i].z, grassPositions[i].y, 5, new vector2{0.0f, 1.0f}, new vector2{0.0f, 0.0f}, new vector2{1.0f, 0.0f}, new vector2{1.0f, 1.0f}, 0);
 			else
-				grass->DrawHFlipped(player->GetCamera()->vista, player->GetCamera()->proyeccion, player->GetCamera()->posCam, grassPositions[i].x, grassPositions[i].z, grassPositions[i].y, 5, new vector2{ 0.0f, 1.0f }, new vector2{ 0.0f, 0.0f }, new vector2{ 1.0f, 0.0f }, new vector2{ 1.0f, 1.0f }, 0);
+				grass->DrawHFlipped(player->GetCamera()->vista, player->GetCamera()->proyeccion, player->GetCamera()->posCam, grassPositions[i].x, grassPositions[i].z, grassPositions[i].y, 5, new vector2{0.0f, 1.0f}, new vector2{0.0f, 0.0f}, new vector2{1.0f, 0.0f}, new vector2{1.0f, 1.0f}, 0);
 		}
 		//grass->Draw(player->GetCamera()->vista, player->GetCamera()->proyeccion, player->GetCamera()->posCam, 0.0f, 0.0f, 2.0f, 2, new vector2{0.0f, 1.0f}, new vector2{0.0f, 0.0f}, new vector2{1.0f, 0.0f}, new vector2{1.0f, 1.0f}, 0);
-
-		//text->DrawText(-0.1f, -0.9f, "Bruh como que todo se entrega la primera semana", 0.01f);
-
-		text->DrawText(-0.025f, 0.9f, text->Time(realTime), 0.01f);
-		text->DrawText(-0.15f, 0.8f, "ANTHOLE HEALTH", 0.01f);
-		//text->DrawText(-0.4f, 0.6f, "HEALTH: " + to_string(*player->getHealth()), 0.01f);
-
-		if (!player->isDriving && isPointInsideSphere(new float[2] {player->GetPosition().x, player->GetPosition().z}, new float[3] { sceneVehicle[1][0], sceneVehicle[1][2], sceneVehicle[4][1]}))
-			text->DrawText(-0.2f, -0.8f, "Press the LMB to mount", 0.01f);
 
 		int* itemCount = new int[totalItemsInShop] { 0 };
 		for (int i = 0; i < player->totalSlotsInInventory; i++) {

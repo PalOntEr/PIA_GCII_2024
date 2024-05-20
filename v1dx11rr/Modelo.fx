@@ -84,7 +84,8 @@ float4 PS_Main(PS_Input pix) : SV_TARGET
 	float4 specular;
 	float4 specularMap;
 	float4 finalSpec;
-
+    float isPlacing = timer.w;
+	
 	textureColor = colorMap.Sample(colorSampler, pix.tex0);
 	color = float4(0.2, 0.2, 0.2, 1);// ambient color
 
@@ -122,5 +123,8 @@ float4 PS_Main(PS_Input pix) : SV_TARGET
 
 	color = saturate(color + finalSpec);
 
+    if (isPlacing == 1)
+        return float4(color.x, color.y, color.z, 0.5f);
+	
 	return color;
 }

@@ -35,6 +35,7 @@ private:
 
 	ID3D11ShaderResourceView* colorMap;
 	ID3D11ShaderResourceView* colorMap2;
+	ID3D11ShaderResourceView* colorMap3;
 	ID3D11ShaderResourceView* blendMap;
 	ID3D11SamplerState* colorMapSampler;
 
@@ -250,9 +251,8 @@ public:
 		//crea los accesos de las texturas para los shaders 
 		d3dResult = D3DX11CreateShaderResourceViewFromFile( d3dDevice, diffuseTex, 0, 0, &colorMap, 0 );
 		d3dResult = D3DX11CreateShaderResourceViewFromFile( d3dDevice, L"cespedGood.jpg", 0, 0, &colorMap2, 0 );
+		d3dResult = D3DX11CreateShaderResourceViewFromFile( d3dDevice, L"snow.jpg", 0, 0, &colorMap3, 0 );
 		d3dResult = D3DX11CreateShaderResourceViewFromFile( d3dDevice, L"heightMapReynosaBlur.png", 0, 0, &blendMap, 0 );
-
-
 
 		if( FAILED( d3dResult ) )
 		{
@@ -462,6 +462,7 @@ public:
 		//pasa lo sbuffers al shader
 		d3dContext->PSSetShaderResources( 0, 1, &colorMap );
 		d3dContext->PSSetShaderResources( 1, 1, &colorMap2 );
+		d3dContext->PSSetShaderResources( 3, 1, &colorMap3 );
 		d3dContext->PSSetShaderResources( 2, 1, &blendMap );
 		d3dContext->PSSetSamplers( 0, 1, &colorMapSampler );
 

@@ -1,6 +1,7 @@
 Texture2D colorMap : register(t0);
 Texture2D colorMap2 : register(t1);
 Texture2D blendMap : register(t2);
+Texture2D colorMap3 : register(t3);
 SamplerState colorSampler : register(s0);
 
 cbuffer cbChangerEveryFrame : register(b0)
@@ -67,9 +68,12 @@ float4 PS_Main(PS_Input pix) : SV_TARGET
 
 	float4 text = colorMap.Sample(colorSampler, pix.tex0 * 0.5f);
 	float4 text2 = colorMap2.Sample(colorSampler, pix.tex0 * 0.5f);
+    float4 text3 = colorMap3.Sample(colorSampler, pix.tex0 * 0.5f);
 	float4 alphaBlend = blendMap.Sample(colorSampler, pix.blendTex);
 	float4 textf = (text * alphaBlend) + ((1.0 - alphaBlend) * text2);
     
+    float snowValue = timer.z;
+	
     float3 DiffuseDirection = float3(0.0f, -1.0f, 0.0f);
     if (timer.y > 0)
     {
@@ -86,7 +90,7 @@ float4 PS_Main(PS_Input pix) : SV_TARGET
 	diffuse = saturate(diffuse*DiffuseColor.rgb);
 	diffuse = saturate(diffuse + ambient);
 
-	fColor = float4(textf.rgb * diffuse, 1.0f);
+    fColor = float4(lerp(textf.rgb, text3.rgb, snowValue) * diffuse, 1.0f);
 
 	return fColor;
 }
