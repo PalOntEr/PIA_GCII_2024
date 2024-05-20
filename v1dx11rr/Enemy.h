@@ -32,6 +32,7 @@ private:
 
 	float** currentTarget;
 	float health;
+	float** enemyInfo;
 
 	bool isAlive;
 
@@ -71,6 +72,9 @@ public:
 		health = INITIALENEMYHEALTH;
 
 		m_position = m_startPosition = startPoint;
+
+		enemyInfo = new float* [3];
+		enemyInfo[targetRadius] = new float;
 
 		m_refUp = D3DXVECTOR3(0, 1, 0);
 
@@ -118,6 +122,10 @@ public:
 
 	void MoveEnemy(float vel, float*** sceneModels = NULL, int numModels = 0) {
 		
+		if (health <= 0) {
+			killEnemy();
+		}
+
 		if (!isAlive)
 			return;
 
@@ -159,6 +167,10 @@ public:
 		D3DXVec3Normalize(&tempRefRight2d, &tempRefRight2d);
 
 		//calculamos cuanto nos debemos de mover en cada eje
+
+		if (possibleTargets[3] != nullptr) {
+			//int tempos = possibleTargets[3][targetPosition][0];
+		}
 
 		if (isPointInsideSphere(new float[2] { tempPosition.x, tempPosition.z}, new float[3] { possibleTargets[1][targetPosition][0], possibleTargets[1][targetPosition][2], possibleTargets[1][targetRadius][0]})) {
 			collided = true;
@@ -254,6 +266,13 @@ public:
 
 	float* getHealth() {
 		return &health;
+	}
+
+	float** getEnemyInfo() {
+		enemyInfo[targetHealth] = &health;
+		enemyInfo[targetPosition] = (float*)m_position;
+		enemyInfo[targetRadius][0] = ENEMYRADIUS;
+		return enemyInfo;
 	}
 
 	void Attack() {

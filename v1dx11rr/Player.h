@@ -103,15 +103,19 @@ public:
 	};
 
 	enum placing {
-		activePlacing,
+		placingActive,
 		placingModel,
+		placingX,
+		placingY,
+		placingZ,
+		placingId
 	};
 
 	bool isJumping;
 	bool isRunning;
 	bool isCrouching;
 	bool isDriving;
-	int* isPlacing;
+	float* isPlacing;
 
 	int cantLeaves;
 
@@ -127,9 +131,25 @@ public:
 
 		totalSlotsInInventory = 5;
 		inventorySlots = new inventorySlot[totalSlotsInInventory];
+		inventorySlots[0].isOccupied = true;
+		inventorySlots[0].item.name = "Mantis";
+		inventorySlots[0].item.model = 13;
+		inventorySlots[0].item.shopId = 0;
+		inventorySlots[1].isOccupied = true;
+		inventorySlots[1].item.name = "Mantis";
+		inventorySlots[1].item.model = 13;
+		inventorySlots[1].item.shopId = 0;
+		inventorySlots[2].isOccupied = true;
+		inventorySlots[2].item.name = "Mantis";
+		inventorySlots[2].item.model = 13;
+		inventorySlots[2].item.shopId = 0;
+		inventorySlots[3].isOccupied = true;
+		inventorySlots[3].item.name = "Mantis";
+		inventorySlots[3].item.model = 13;
+		inventorySlots[3].item.shopId = 0;
 
 		playerInfo = new float*[3];
-		playerInfo[targetRadius] = new float;
+		playerInfo[targetRadius] = new float[1];
 
 		m_acceleration[0] = 0.0f;
 		m_acceleration[1] = 0.0f;
@@ -142,7 +162,7 @@ public:
 		isRunning = false;
 		isCrouching = false;
 		isDriving = false;
-		isPlacing = new int[2] { 0 };
+		isPlacing = new float[6] { 0.0f };
 
 		m_position = m_startPosition = startPoint;
 
@@ -394,7 +414,7 @@ public:
 					break;
 				}
 			}
-			isPlacing[activePlacing] = 0;
+			isPlacing[placingActive] = 0;
 		}
 		else if (isPointInsideSphere(new float[2] { tempPosition.x, tempPosition.z}, new float[3] { 0, 0, 30})) {
 			collided = true;
@@ -624,10 +644,11 @@ public:
 	}
 
 	float** getPlayerInfo() {
-		playerInfo[targetHealth] = &health;
-		playerInfo[targetPosition] = (float*)m_position;
-		playerInfo[targetRadius][0] = RADIUS;
-		return playerInfo;
+		float** tempPlayerInfo = new float*[3];
+		tempPlayerInfo[targetRadius] = new float{ RADIUS };
+		tempPlayerInfo[targetHealth] = &health;
+		tempPlayerInfo[targetPosition] = (float*)m_position;
+		return tempPlayerInfo;
 	}
 
 	//Returns true if there was space in the inventory and item was added
@@ -644,6 +665,33 @@ public:
 			}
 		}
 		return added;
+	}
+
+	//Returns true if there was an item removed form the inventory
+	bool removeItemFromInventory(int shopId) {
+		bool removed = false;
+		for (int i = 0; i < totalSlotsInInventory; i++) {
+			if (inventorySlots[i].isOccupied && inventorySlots[i].item.shopId == shopId) {
+				inventorySlots[i].isOccupied = false;
+				inventorySlots[i].item.name = "";
+				inventorySlots[i].item.model = 0;
+				inventorySlots[i].item.shopId = 0;
+				removed = true;
+				break;
+			}
+		}
+		return removed;
+	}
+
+	bool playerHasItem(int shopId) {
+		bool hasIt = false;
+		for (int i = 0; i < totalSlotsInInventory; i++) {
+			if (inventorySlots[i].isOccupied && inventorySlots[i].item.shopId == shopId) {
+				hasIt = true;
+				break;
+			}
+		}
+		return hasIt;
 	}
 
 	void Release() {

@@ -321,6 +321,10 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
                 if (!RMBisPressed) {
                     dxrr->DamageEnemies(dxrr->spiderEnemies);
                     dxrr->pickUpLeaves();
+                    if (dxrr->player->isPlacing[dxrr->player->placingActive] == 1) {
+                        if(dxrr->placeTurret())
+                            dxrr->player->isPlacing[dxrr->player->placingActive] = 0;
+                    }
                 }
                 RMBisPressed = true;
                 //MessageBox(hWnd, L"Right MB pressed", L"INFO", MB_OK | MB_ICONINFORMATION);
@@ -351,16 +355,19 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
                         if (dxrr->player->cantLeaves >= dxrr->shopList[0].price && dxrr->player->addItemToInventory(dxrr->shopList[0].name, dxrr->shopList[0].model, 0)) {
                             dxrr->player->cantLeaves -= dxrr->shopList[0].price;
                         }
-                    if (dxrr->player->isPlacing[dxrr->player->activePlacing] == 0) {
-                        dxrr->player->isPlacing[dxrr->player->activePlacing] = 1;
-                        dxrr->player->isPlacing[dxrr->player->placingModel] = dxrr->shopList[0].model;
-                    }
-                    else if (dxrr->player->isPlacing[dxrr->player->activePlacing] == 1 && dxrr->player->isPlacing[dxrr->player->placingModel] != dxrr->shopList[0].model) {
-                        dxrr->player->isPlacing[dxrr->player->placingModel] = dxrr->shopList[0].model;
-                    }
-                    else if (dxrr->player->isPlacing[dxrr->player->activePlacing] == 1 && dxrr->player->isPlacing[dxrr->player->placingModel] == dxrr->shopList[0].model) {
-                        dxrr->player->isPlacing[dxrr->player->activePlacing] = 0;
-                    }
+                    if(dxrr->player->playerHasItem(0))
+                        if (dxrr->player->isPlacing[dxrr->player->placingActive] == 0) {
+                            dxrr->player->isPlacing[dxrr->player->placingActive] = 1;
+                            dxrr->player->isPlacing[dxrr->player->placingModel] = dxrr->shopList[0].model;
+                            dxrr->player->isPlacing[dxrr->player->placingId] = 0;
+                        }
+                        else if (dxrr->player->isPlacing[dxrr->player->placingActive] == 1 && dxrr->player->isPlacing[dxrr->player->placingModel] != dxrr->shopList[0].model) {
+                            dxrr->player->isPlacing[dxrr->player->placingModel] = dxrr->shopList[0].model;
+                            dxrr->player->isPlacing[dxrr->player->placingId] = 0;
+                        }
+                        else if (dxrr->player->isPlacing[dxrr->player->placingActive] == 1 && dxrr->player->isPlacing[dxrr->player->placingModel] == dxrr->shopList[0].model) {
+                            dxrr->player->isPlacing[dxrr->player->placingActive] = 0;
+                        }
                 }
                 numberisPressed = true;
             }

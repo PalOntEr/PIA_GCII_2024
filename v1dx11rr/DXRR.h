@@ -9,15 +9,17 @@
 #include "Water.h"
 #include "Camara.h"
 #include "Player.h"
+#include "Enemy.h"
+#include "Turret.h"
 #include "SkyDome.h"
 #include "Billboard.h"
 #include "ModeloRR.h"
 #include "XACT3Util.h"
 #include "GUI.h"
 #include "Text.h"
-#include "Enemy.h"
 #define DAYCYCLESPEED 0.0001f/*0.0001f*/
 #define GRAVITYFORCE -0.03f
+#define GAMEDURATION 180
 #define QUICKLOAD false
 
 //MAX ANDRES ZERTUCHE PEREZ #2003051
@@ -65,18 +67,10 @@ public:
 	BillboardRR* antSalesman;
 	Player* player;
 	Enemy** spiderEnemies;
-	ModeloRR* AntModel_Rigged_Smooth = NULL;
-	ModeloRR* Anthole = NULL;
-	ModeloRR* House = NULL;
-	ModeloRR* pilarRoca1 = NULL;
-	ModeloRR* BallRock = NULL;
-	ModeloRR** Crystals = NULL;
-	ModeloRR* Tree1 = NULL;
-	ModeloRR** Hojas = NULL;
-	ModeloRR** Sticks = NULL;
-	ModeloRR* botella = NULL;
-	ModeloRR* Cap = NULL;
-	ModeloRR* model = NULL;
+	Turret*** sceneTurrets;
+	int maxTurrets;
+	int currentTurrets;
+	int TurretTypes;
 	
 	ModeloRR*** sceneAssets;
 	int totalAssets;
@@ -92,13 +86,13 @@ public:
 	int totalWalls;
 	int totalLeaves;
 	float*** sceneLeaves;
-
 	int totalEnemies;
 
 	XMFLOAT4* timer;
 	GUI* vida;
 	GUI* antholeHealth[2];
 	GUI* leafCurrency[2];
+	GUI* greenRightArrow;
 	Text* prueba;
 
 	float izqder;
@@ -113,6 +107,9 @@ public:
 
 	XACTINDEX cueIndex;
 	CXACT3Util m_XACT3;
+
+	bool won;
+	bool lost;
 
 	enum assetArray {
 		asset,
@@ -185,6 +182,9 @@ public:
 		izqder = 0;
 		arriaba = 0;
 		billCargaFuego();
+
+		won = false;
+		lost = false;
 
 		timer = new XMFLOAT4;
 		timer->x = 0.0f;
@@ -264,6 +264,21 @@ public:
 		for (int i = 0; i < totalEnemies; i++) {
 			spiderEnemies[i] = new Enemy(D3DXVECTOR3(rand() % 2 == 0 ? rand() % 701 - 800 : rand() % 701 + 100, 80, rand() % 2 == 0 ? rand() % 701 - 800 : rand() % 701 + 100), sceneTargets, totalTargets, &m_XACT3, sceneAssets[spider], 1, 1);
 			spiderEnemies[i]->SetPosition(2, terreno->Superficie(spiderEnemies[i]->GetPosition().x, spiderEnemies[i]->GetPosition().z));
+		}
+
+		maxTurrets = 10;
+		TurretTypes = 1;
+		currentTurrets = 0;
+
+		sceneTurrets = new Turret**[TurretTypes];
+
+		for (int i = 0; i < TurretTypes; i++) {
+			sceneTurrets[i] = new Turret* [maxTurrets]{ NULL };
+		}
+
+		int count = 0;
+		for (int i = 0; i < maxTurrets; i++) {
+			sceneTurrets[0][i] = new Turret(D3DXVECTOR3(0, 80, 0), getEnemiesInfo(count), count, &m_XACT3, sceneAssets[mantis], 1, 1);
 		}
 
 		totalLeaves = 3000;
@@ -479,8 +494,9 @@ public:
 		//sceneWalls[9][height] = 57.0f;
 
 		vida = new GUI(d3dDevice, d3dContext, 0.3f, 0.3f, L"Assets/GUI/ant_health.png");
-		leafCurrency[0] = new GUI(d3dDevice, d3dContext, 0.3f, 0.25f, L"Assets/GUI/leaf.png");
-		leafCurrency[1] = new GUI(d3dDevice, d3dContext, 0.15f, 0.175f, L"Assets/GUI/leaf.png");
+		greenRightArrow = new GUI(d3dDevice, d3dContext, 0.1f, 0.2f, L"Assets/GUI/greenRightArrow.png");
+		leafCurrency[0] = new GUI(d3dDevice, d3dContext, 0.3f, 0.22f, L"Assets/GUI/leaf.png");
+		leafCurrency[1] = new GUI(d3dDevice, d3dContext, 0.15f, 0.15f, L"Assets/GUI/leaf.png");
 		antholeHealth[0] = new GUI(d3dDevice, d3dContext, 0.1f, 0.05f, L"Assets/GUI/anthole_health.png");
 		antholeHealth[1] = new GUI(d3dDevice, d3dContext, 0.1f, 0.05f, L"Assets/GUI/anthole_missingHealth.png");
 		prueba = new Text(d3dDevice, d3dContext, 3.6f, 1.2f, L"Assets/GUI/font.png", XMFLOAT4(0.7f, 0.7f, 0.7f, 0.0f));
@@ -694,6 +710,14 @@ public:
 		}
 		delete[] sceneModels;
 
+		for (int i = 0; i < TurretTypes; i++) {
+			for (int j = 0; j < maxTurrets; j++) {
+				delete[] sceneTurrets[i][j];
+			}
+			delete[] sceneTurrets[i];
+		}
+		delete[] sceneTurrets;
+
 		for (int i = 0; i < totalAssets; i++) {
 			delete[] sceneAssets[i];
 		}
@@ -704,7 +728,11 @@ public:
 		}
 		delete[] sceneLeaves;
 
+		for (int i = 0; i < totalTargets; i++) {
+			delete[] sceneTargets[i];
+		}
 		delete[] sceneTargets;
+
 		delete[] sceneAnthole;
 		for (int i = 0; i < totalWalls; i++) {
 			delete[] sceneWalls[i];
@@ -726,9 +754,16 @@ public:
 	
 	void Render(void)
 	{
+
+
 		globalTimer++;
 		if (globalTimer % 60 == 0)
 			realTime++;
+
+		if (*player->getHealth() <= 0 || sceneAnthole[health][0] <= 0)
+			lost = true;
+		if (realTime >= 180 && !lost)
+			won = true;
 
 		if (timer->y == 0.0f)
 			timer->x += DAYCYCLESPEED;
@@ -740,12 +775,8 @@ public:
 		else if (timer->x <= 0.0f)
 			timer->y = 0.0f;
 
-		float sphere[3] = { 0,0,0 };
-		float prevPos[3] = { player->GetPosition().x, player->GetPosition().y, player->GetPosition().z };
-		static float angle = 0.0f;
-		angle += 0.005;
-		if (angle >= 360) angle = 0.0f;
-		bool collide = false;
+		prevPos = new float[3]{ player->GetPosition().x, player->GetPosition().y, player->GetPosition().z };
+		
 		if( d3dContext == 0 )
 			return;
 
@@ -763,8 +794,6 @@ public:
 
 		skydome->Update(playerCamera->vista, playerCamera->proyeccion);
 
-		float camPosXZ[2] = { playerCamera->posCam.x, playerCamera->posCam.z };
-
 		TurnOffDepth();
 		skydome->Render(playerCamera->posCam, timer);
 		TurnOnDepth();	
@@ -772,10 +801,13 @@ public:
 
 		player->Draw(timer);
 		for (int i = 0; i < totalEnemies; i++) {
+			spiderEnemies[i]->possibleTargets = sceneTargets;
 			spiderEnemies[i]->Draw(playerCamera->vista, playerCamera->proyeccion, playerCamera->posCam, 1.0f, 5.0f, timer);
 			spiderEnemies[i]->SetPosition(2, terreno->Superficie(spiderEnemies[i]->GetPosition().x, spiderEnemies[i]->GetPosition().z));
 			spiderEnemies[i]->MoveEnemy(0.3f);
 		}
+
+		UpdateTurrets(true);
 
 		int a = sceneVehicle[asset][assetModel];
 		int t = sceneVehicle[asset][type];
@@ -791,17 +823,7 @@ public:
 			sceneAssets[a][t]->Draw(playerCamera->vista, playerCamera->proyeccion, p, playerCamera->posCam, 1.0f, sceneVehicle[rotation][y], 'Y', s, timer);
 		}
 
-		if (realTime % 20 == 0) {
-			respawnLeaves(5);
-		}
-		for (int i = 0; i < totalLeaves; i++) {
-			if (sceneLeaves[i][picked][0] == notPicked) {
-				t = sceneLeaves[i][asset][type];
-				s = sceneLeaves[i][scale][0];
-				p = sceneLeaves[i][position];
-				sceneAssets[leaf][t]->Draw(playerCamera->vista, playerCamera->proyeccion, p, playerCamera->posCam, 1.0f, sceneLeaves[i][rotation][y], 'Y', s, timer);
-			}
-		}
+		UpdateLeaves();
 
 		if (player->isJumping && player->GetPosition().y < terreno->Superficie(player->GetPosition().x, player->GetPosition().z)) {
 			player->isJumping = false;
@@ -816,72 +838,11 @@ public:
 			}
 		}
 
-		if (!player->isDriving) {
-			if (sceneVehicle[position][y] > terreno->Superficie(sceneVehicle[position][x], sceneVehicle[position][z])) {
-				sceneVehicle[position][y]--;
-			}
-			else if (sceneVehicle[position][y] < terreno->Superficie(sceneVehicle[position][x], sceneVehicle[position][z]))
-				sceneVehicle[position][y] = terreno->Superficie(sceneVehicle[position][x], sceneVehicle[position][z]);
-		}
-		else {
-			if(globalTimer % 2 == 0)
-				frameSmoke < 33 ? frameSmoke++ : frameSmoke = 15;
-			if (!player->isJumping && (prevPos[0] != player->GetPosition().x || prevPos[2] != player->GetPosition().z)) {
-				TurnOnAlphaBlending();
-				if (player->getSpeed()[0] > 0) {
-					smoke->Draw(playerCamera->vista, playerCamera->proyeccion, playerCamera->posCam + (player->GetRightReference2D() * -30.0f), sceneVehicle[position][x] + (player->GetFrontReference2D().x * -2.0f) + (player->GetRightReference2D().x * 1.3f), sceneVehicle[position][z] + (player->GetFrontReference2D().z * -2.0f) + (player->GetRightReference2D().z * 1.3f), terreno->Superficie(sceneVehicle[position][x], sceneVehicle[position][z]), 2, uv1, uv2, uv3, uv4, frameSmoke);
-					smoke->DrawHFlipped(playerCamera->vista, playerCamera->proyeccion, playerCamera->posCam + (player->GetRightReference2D() * 30.0f), sceneVehicle[position][x] + (player->GetFrontReference2D().x * -2.0f) + (player->GetRightReference2D().x * -1.3f), sceneVehicle[position][z] + (player->GetFrontReference2D().z * -2.0f) + (player->GetRightReference2D().z * -1.3f), terreno->Superficie(sceneVehicle[position][x], sceneVehicle[position][z]), 2, uv1, uv2, uv3, uv4, frameSmoke);
-				}
-				else {
-					smoke->Draw(playerCamera->vista, playerCamera->proyeccion, playerCamera->posCam + (player->GetRightReference2D() * 30.0f), sceneVehicle[position][x] + (player->GetRightReference2D().x * 1.3f), sceneVehicle[position][z]+ (player->GetRightReference2D().z * 1.3f), terreno->Superficie(sceneVehicle[position][x], sceneVehicle[position][z]), 2, uv1, uv2, uv3, uv4, frameSmoke);
-					smoke->DrawHFlipped(playerCamera->vista, playerCamera->proyeccion, playerCamera->posCam + (player->GetRightReference2D() * -30.0f), sceneVehicle[position][x] + (player->GetRightReference2D().x * -1.3f), sceneVehicle[position][z]+ (player->GetRightReference2D().z * -1.3f), terreno->Superficie(sceneVehicle[position][x], sceneVehicle[position][z]), 2, uv1, uv2, uv3, uv4, frameSmoke);
-				}
-				TurnOffAlphaBlending();
-			}
-		}
+		DrawVehicle();
 
-		//TurnOnAlphaBlending();
-		//billboard->Draw(playerCamera->vista, playerCamera->proyeccion, player->GetPosition(),-11, -78, 4, 5, uv1, uv2, uv3, uv4, frameBillboard);
-		//TurnOffAlphaBlending();
+		DrawStaticModels();
 
-		for (int i = 1; i < totalModels; i++) {
-
-			a = sceneModels[i][asset][assetModel];
-			t = sceneModels[i][asset][type];
-
-			if (sceneAssets[a][t]) {
-				s = sceneModels[i][scale][0];
-				p = sceneModels[i][position];
-
-				if (sceneModels[i][rotation][x] == 0 && sceneModels[i][rotation][y] == 0 && sceneModels[i][rotation][z] == 0)
-					sceneAssets[a][t]->Draw(playerCamera->vista, playerCamera->proyeccion, p, playerCamera->posCam, 1.0f, 0, 'N', s, timer);
-				else {
-					if (sceneModels[i][rotation][x] != 0)
-						sceneAssets[a][t]->Draw(playerCamera->vista, playerCamera->proyeccion, p, playerCamera->posCam, 1.0f, sceneModels[i][rotation][x], 'X', s, timer);
-					else if (sceneModels[i][rotation][y] != 0)
-						sceneAssets[a][t]->Draw(playerCamera->vista, playerCamera->proyeccion, p, playerCamera->posCam, 1.0f, sceneModels[i][rotation][y], 'Y', s, timer);
-					else if (sceneModels[i][rotation][z] != 0)
-						sceneAssets[a][t]->Draw(playerCamera->vista, playerCamera->proyeccion, p, playerCamera->posCam, 1.0f, sceneModels[i][rotation][z], 'Z', s, timer);
-				}
-			}
-			else
-			{
-				sceneModels[i][collision][active] = 0.0f;
-			}
-		}
-
-		if (player->isPlacing[player->activePlacing] == 1) {
-			if (sceneAssets[player->isPlacing[player->placingModel]][0]) {
-				D3DXVECTOR3 playerRef = player->GetFrontReference2D();
-				float rotAngle = playerRef.z > 0 ? atanf(playerRef.x / playerRef.z): atanf(playerRef.x / playerRef.z) - D3DX_PI;
-				s = 1.0f;
-				p = player->GetPosition();
-				p[x] += player->GetFrontReference2D().x * 10.0f;
-				p[z] += player->GetFrontReference2D().z * 10.0f;
-				p[y] = terreno->Superficie(p[x], p[z]);
-				sceneAssets[player->isPlacing[player->placingModel]][0]->Draw(playerCamera->vista, playerCamera->proyeccion, p, playerCamera->posCam, 1.0f, rotAngle, 'Y', s, timer);
-			}
-		}
+		DrawPlacementModel();
 
 		TurnOnAlphaBlending();
 		water->Draw(playerCamera->vista, playerCamera->proyeccion, (float*)timer, new float[4] {(float)globalTimer, 0.0f, 0.0f, 0.0f});
@@ -915,68 +876,7 @@ public:
 		sceneModels[16][position][y] = terreno->Superficie(sceneModels[16][position][x], sceneModels[16][position][z]);
 		sceneAssets[a2][0]->Draw(playerCamera->vista, playerCamera->proyeccion, p2, playerCamera->posCam, 1.0f, 0, 'N', s2, timer);*/
 
-		for (int i = 0; i < *player->getHealth() / 35.0f; i++) {
-			vida->Draw(0.8f, 0.8f - (i * 0.03f));
-		}
-		
-		for (int i = 0; i < getAntholeInfo()[0][0]; i++) {
-			antholeHealth[0]->Draw(-0.5f + (i * 0.01f), 0.7f);
-		}
-		for (int i = 0; i < 100; i++) {
-			antholeHealth[1]->Draw(-0.5f + (i * 0.01f), 0.7f);
-		}
-
-
-		TurnOnAlphaBlending();
-			prueba->DrawText(-0.1f, -0.9f, "Bruh como que todo se entrega la primera semana", 0.01f);
-
-			prueba->DrawText(-0.025f, 0.9f, prueba->Time(realTime), 0.01f);
-			prueba->DrawText(-0.15f, 0.8f, "ANTHOLE HEALTH", 0.01f);
-			prueba->DrawText(-0.4f, 0.6f, "HEALTH: " + to_string(*player->getHealth()), 0.01f);
-
-			if (!player->isDriving && isPointInsideSphere(new float[2] {player->GetPosition().x, player->GetPosition().z}, new float[3] { sceneVehicle[1][0], sceneVehicle[1][2], sceneVehicle[4][1]}))
-				prueba->DrawText(-0.2f, -0.8f, "Press the LMB to mount", 0.01f);
-
-			if (isPointInsideSphere(new float[2] {player->GetPosition().x, player->GetPosition().z}, new float[3] { 0.0f, -7.0f, 10.0f})) {
-				antSalesman->Draw(playerCamera->vista, playerCamera->proyeccion, playerCamera->posCam, 0.0f, -7.0f, terreno->Superficie(0.0f, -7.0f) - 1.0f, 2, new vector2{ 0.0f, 1.0f }, new vector2{ 0.0f, 0.0f }, new vector2{ 1.0f, 0.0f }, new vector2{ 1.0f, 1.0f }, 0);
-				for (int i = 0; i < totalItemsInShop; i++) {
-					leafCurrency[1]->Draw(-0.5f, 0.5f + (i * 0.1f));
-					prueba->DrawText(-0.8f, 0.5f + (i * 0.1f), "Item ID: " + to_string(i) + "        " + to_string(shopList[i].price), 0.01f);
-					shopList[i].icon->Draw(-0.9f, 0.5f + (i * 0.1f));
-					//prueba->DrawText(-0.8f, 0.4f + (i * 0.1f), "Item " + to_string(i) + " price: " + shopList[i].name, 0.01f);
-				}
-			}
-			else {
-				antSalesman->Draw(playerCamera->vista, playerCamera->proyeccion, new float[3]{ 0.0f, 0.0f, 0.0f }, 0.0f, -7.0f, terreno->Superficie(0.0f, -7.0f) - 1.0f, 2, new vector2{0.0f, 1.0f}, new vector2{0.0f, 0.0f}, new vector2{1.0f, 0.0f}, new vector2{1.0f, 1.0f}, 0);
-			}
-
-			int* itemCount = new int[totalItemsInShop] { 0 };
-			for (int i = 0; i < player->totalSlotsInInventory; i++) {
-				if(player->inventorySlots[i].isOccupied)
-					itemCount[player->inventorySlots[i].item.shopId]++;
-			}
-			for (int i = 0; i < totalItemsInShop; i++) {
-				prueba->DrawText(-0.8f, -0.8f, to_string(itemCount[i]), 0.01f);
-				shopList[i].icon->Draw(-0.9f, -0.8f);
-			}
-
-			delete[] itemCount;
-
-			/*prueba->DrawText(-0.6f, 0.7f, "Speed X:" + to_string(player->getSpeed()[0]) + "  Speed Y:" + to_string(player->getSpeed()[1]) + "  Speed Z:" + to_string(player->getSpeed()[2]), 0.01f);
-			prueba->DrawText(-0.1f, 0.6f, "isJumping: " + player->isJumping, 0.01f);
-			prueba->DrawText(-0.6f, 0.5f, "Accel X:" + to_string(player->getAcceleration()[0]) + "  Accel Y:" + to_string(player->getAcceleration()[1]) + "  Accel Z:" + to_string(player->getAcceleration()[2]), 0.01f);
-			prueba->DrawText(-0.05f, 0.4f, "Camera", 0.01f);
-			prueba->DrawText(-0.4f, 0.3f, "X:" + to_string(playerCamera->posCam.x) + "  Y:" + to_string(playerCamera->posCam.y) + "  Z:" + to_string(playerCamera->posCam.z), 0.01f);*/
-			//prueba->DrawText(-0.4f, 0.8f, "X:" + to_string(player->GetPosition().x) + "  Y:" + to_string(player->GetPosition().y) + "  Z:" + to_string(player->GetPosition().z), 0.01f);
-			//for (int i = 0; i < totalEnemies; i++) {				
-			//	prueba->DrawText(-0.8f, 0.7f - (i * 0.1f), "ENEMY " + to_string(i) + ": " + to_string(*spiderEnemies[i]->getHealth()), 0.01f);
-			//	prueba->DrawText(-0.8f, 0.6f - (i * 0.1f), "ENEMY " + to_string(i) + " TARGET X: " + to_string(spiderEnemies[i]->getTarget()[1][0]), 0.01f);
-			//	prueba->DrawText(-0.8f, 0.5f - (i * 0.1f), "ENEMY " + to_string(i) + " TARGET Z: " + to_string(spiderEnemies[i]->getTarget()[1][2]), 0.01f);
-			//}
-			prueba->DrawText(-0.75f, 0.7f, to_string(player->cantLeaves), 0.01f);
-		TurnOffAlphaBlending();
-
-		leafCurrency[0]->Draw(-0.8f, 0.8f);
+		DrawUI();
 
 		swapChain->Present( 1, 0 );
 	}
@@ -1308,6 +1208,266 @@ public:
 		int value;
 		value = rand() % 1601 - 800;
 		return value;
+	}
+
+	bool placeTurret() {
+		bool placed = false;
+		int placingId = player->isPlacing[player->placingId];
+		int count = 0;
+		if (player->isPlacing[player->placingActive] == 1 && player->removeItemFromInventory(placingId)) {
+			for (int i = 0; i < maxTurrets; i++) {
+				if (!sceneTurrets[placingId][i]->isTurretAlive()) {
+					player->isPlacing[player->placingX] += player->GetFrontReference2D().x * 10.0f;
+					player->isPlacing[player->placingZ] += player->GetFrontReference2D().z * 10.0f;
+					player->isPlacing[player->placingY] = terreno->Superficie(player->isPlacing[player->placingX], player->isPlacing[player->placingZ]);
+					sceneTurrets[placingId][i]->reviveTurret();
+					sceneTurrets[placingId][i]->SetPosition(player->GetPosition() + player->GetFrontReference2D() * 10.0f);
+					player->isPlacing[player->placingActive] = 0;
+					currentTurrets++;
+					updatePossibleTargets();
+					placed = true;
+					break;
+				}
+			}
+		}
+		return placed;
+	}
+
+	void UpdateTurrets(bool draw = false) {
+		int count = 0;
+		for (int i = 0; i < TurretTypes; i++) {
+			for (int j = 0; j < maxTurrets; j++) {
+				if (sceneTurrets[i][j]->isTurretAlive()) {
+					if (draw) {
+						sceneTurrets[i][j]->Draw(player->GetCamera()->vista, player->GetCamera()->proyeccion, player->GetCamera()->posCam, 1.0f, 1.0f, timer);
+					}
+					if (!sceneTurrets[i][j]->Update(player->GetPosition(), getEnemiesInfo(count), count)) {
+						currentTurrets--;
+					}
+				}
+			}
+		}
+	}
+
+	void DrawStaticModels() {
+
+		for (int i = 1; i < totalModels; i++) {
+
+			int a = sceneModels[i][asset][assetModel];
+			int t = sceneModels[i][asset][type];
+
+			if (sceneAssets[a][t]) {
+				float s = sceneModels[i][scale][0];
+				float* p = sceneModels[i][position];
+
+				if (sceneModels[i][rotation][x] == 0 && sceneModels[i][rotation][y] == 0 && sceneModels[i][rotation][z] == 0)
+					sceneAssets[a][t]->Draw(player->GetCamera()->vista, player->GetCamera()->proyeccion, p, player->GetCamera()->posCam, 1.0f, 0, 'N', s, timer);
+				else {
+					if (sceneModels[i][rotation][x] != 0)
+						sceneAssets[a][t]->Draw(player->GetCamera()->vista, player->GetCamera()->proyeccion, p, player->GetCamera()->posCam, 1.0f, sceneModels[i][rotation][x], 'X', s, timer);
+					else if (sceneModels[i][rotation][y] != 0)
+						sceneAssets[a][t]->Draw(player->GetCamera()->vista, player->GetCamera()->proyeccion, p, player->GetCamera()->posCam, 1.0f, sceneModels[i][rotation][y], 'Y', s, timer);
+					else if (sceneModels[i][rotation][z] != 0)
+						sceneAssets[a][t]->Draw(player->GetCamera()->vista, player->GetCamera()->proyeccion, p, player->GetCamera()->posCam, 1.0f, sceneModels[i][rotation][z], 'Z', s, timer);
+				}
+			}
+			else
+			{
+				sceneModels[i][collision][active] = 0.0f;
+			}
+		}
+
+	}
+
+	void DrawPlacementModel() {
+
+		if (player->isPlacing[player->placingActive] == 1) {
+			int placingModel = player->isPlacing[player->placingModel];
+			if (sceneAssets[placingModel][0]) {
+				D3DXVECTOR3 playerRef = player->GetFrontReference2D();
+				float rotAngle = playerRef.z > 0 ? atanf(playerRef.x / playerRef.z) : atanf(playerRef.x / playerRef.z) - D3DX_PI;
+				float s = 1.0f;
+				player->isPlacing[player->placingX] = player->GetPosition().x;
+				player->isPlacing[player->placingY] = player->GetPosition().y;
+				player->isPlacing[player->placingZ] = player->GetPosition().z;
+				player->isPlacing[player->placingX] += player->GetFrontReference2D().x * 10.0f;
+				player->isPlacing[player->placingZ] += player->GetFrontReference2D().z * 10.0f;
+				player->isPlacing[player->placingY] = terreno->Superficie(player->isPlacing[player->placingX], player->isPlacing[player->placingZ]);
+				sceneAssets[placingModel][0]->Draw(player->GetCamera()->vista, player->GetCamera()->proyeccion, new float[3] {player->isPlacing[player->placingX], player->isPlacing[player->placingY], player->isPlacing[player->placingZ]}, player->GetCamera()->posCam, 1.0f, rotAngle, 'Y', s, timer);
+			}
+		}
+
+	}
+
+	void DrawVehicle() {
+
+		if (!player->isDriving) {
+			if (sceneVehicle[position][y] > terreno->Superficie(sceneVehicle[position][x], sceneVehicle[position][z])) {
+				sceneVehicle[position][y]--;
+			}
+			else if (sceneVehicle[position][y] < terreno->Superficie(sceneVehicle[position][x], sceneVehicle[position][z]))
+				sceneVehicle[position][y] = terreno->Superficie(sceneVehicle[position][x], sceneVehicle[position][z]);
+		}
+		else {
+			if (globalTimer % 2 == 0)
+				frameSmoke < 33 ? frameSmoke++ : frameSmoke = 15;
+			if (!player->isJumping && (this->prevPos[0] != player->GetPosition().x || this->prevPos[2] != player->GetPosition().z)) {
+				TurnOnAlphaBlending();
+				if (player->getSpeed()[0] > 0) {
+					smoke->Draw(player->GetCamera()->vista, player->GetCamera()->proyeccion, player->GetCamera()->posCam + (player->GetRightReference2D() * -30.0f), sceneVehicle[position][x] + (player->GetFrontReference2D().x * -2.0f) + (player->GetRightReference2D().x * 1.3f), sceneVehicle[position][z] + (player->GetFrontReference2D().z * -2.0f) + (player->GetRightReference2D().z * 1.3f), terreno->Superficie(sceneVehicle[position][x], sceneVehicle[position][z]), 2, uv1, uv2, uv3, uv4, frameSmoke);
+					smoke->DrawHFlipped(player->GetCamera()->vista, player->GetCamera()->proyeccion, player->GetCamera()->posCam + (player->GetRightReference2D() * 30.0f), sceneVehicle[position][x] + (player->GetFrontReference2D().x * -2.0f) + (player->GetRightReference2D().x * -1.3f), sceneVehicle[position][z] + (player->GetFrontReference2D().z * -2.0f) + (player->GetRightReference2D().z * -1.3f), terreno->Superficie(sceneVehicle[position][x], sceneVehicle[position][z]), 2, uv1, uv2, uv3, uv4, frameSmoke);
+				}
+				else {
+					smoke->Draw(player->GetCamera()->vista, player->GetCamera()->proyeccion, player->GetCamera()->posCam + (player->GetRightReference2D() * 30.0f), sceneVehicle[position][x] + (player->GetRightReference2D().x * 1.3f), sceneVehicle[position][z] + (player->GetRightReference2D().z * 1.3f), terreno->Superficie(sceneVehicle[position][x], sceneVehicle[position][z]), 2, uv1, uv2, uv3, uv4, frameSmoke);
+					smoke->DrawHFlipped(player->GetCamera()->vista, player->GetCamera()->proyeccion, player->GetCamera()->posCam + (player->GetRightReference2D() * -30.0f), sceneVehicle[position][x] + (player->GetRightReference2D().x * -1.3f), sceneVehicle[position][z] + (player->GetRightReference2D().z * -1.3f), terreno->Superficie(sceneVehicle[position][x], sceneVehicle[position][z]), 2, uv1, uv2, uv3, uv4, frameSmoke);
+				}
+				TurnOffAlphaBlending();
+			}
+		}
+
+	}
+
+	void DrawUI() {
+		for (int i = 0; i < *player->getHealth() / 35.0f; i++) {
+			vida->Draw(0.8f, 0.8f - (i * 0.03f));
+		}
+
+		for (int i = 0; i < getAntholeInfo()[0][0]; i++) {
+			antholeHealth[0]->Draw(-0.5f + (i * 0.01f), 0.7f);
+		}
+		for (int i = 0; i < 100; i++) {
+			antholeHealth[1]->Draw(-0.5f + (i * 0.01f), 0.7f);
+		}
+
+
+		TurnOnAlphaBlending();
+		prueba->DrawText(-0.1f, -0.9f, "Bruh como que todo se entrega la primera semana", 0.01f);
+
+		prueba->DrawText(-0.025f, 0.9f, prueba->Time(realTime), 0.01f);
+		prueba->DrawText(-0.15f, 0.8f, "ANTHOLE HEALTH", 0.01f);
+		prueba->DrawText(-0.4f, 0.6f, "HEALTH: " + to_string(*player->getHealth()), 0.01f);
+
+		if (!player->isDriving && isPointInsideSphere(new float[2] {player->GetPosition().x, player->GetPosition().z}, new float[3] { sceneVehicle[1][0], sceneVehicle[1][2], sceneVehicle[4][1]}))
+			prueba->DrawText(-0.2f, -0.8f, "Press the LMB to mount", 0.01f);
+
+		if (isPointInsideSphere(new float[2] {player->GetPosition().x, player->GetPosition().z}, new float[3] { 0.0f, -7.0f, 10.0f})) {
+			antSalesman->Draw(player->GetCamera()->vista, player->GetCamera()->proyeccion, player->GetCamera()->posCam, 0.0f, -7.0f, terreno->Superficie(0.0f, -7.0f) - 1.0f, 2, new vector2{ 0.0f, 1.0f }, new vector2{ 0.0f, 0.0f }, new vector2{ 1.0f, 0.0f }, new vector2{ 1.0f, 1.0f }, 0);
+			for (int i = 0; i < totalItemsInShop; i++) {
+				leafCurrency[1]->Draw(-0.9f, 0.5f + (i * 0.1f));
+				prueba->DrawText(-0.83f, 0.48f + (i * 0.1f), to_string(shopList[i].price), 0.01f);
+				greenRightArrow->Draw(-0.7f, 0.5f);
+				shopList[i].icon->Draw(-0.5f, 0.5f + (i * 0.1f));
+				//prueba->DrawText(-0.8f, 0.4f + (i * 0.1f), "Item " + to_string(i) + " price: " + shopList[i].name, 0.01f);
+			}
+		}
+		else {
+			antSalesman->Draw(player->GetCamera()->vista, player->GetCamera()->proyeccion, new float[3] { 0.0f, 0.0f, 0.0f }, 0.0f, -7.0f, terreno->Superficie(0.0f, -7.0f) - 1.0f, 2, new vector2{ 0.0f, 1.0f }, new vector2{ 0.0f, 0.0f }, new vector2{ 1.0f, 0.0f }, new vector2{ 1.0f, 1.0f }, 0);
+		}
+
+		int* itemCount = new int[totalItemsInShop] { 0 };
+		for (int i = 0; i < player->totalSlotsInInventory; i++) {
+			if (player->inventorySlots[i].isOccupied)
+				itemCount[player->inventorySlots[i].item.shopId]++;
+		}
+		for (int i = 0; i < totalItemsInShop; i++) {
+			prueba->DrawText(-0.8f, -0.8f, to_string(itemCount[i]), 0.01f);
+			shopList[i].icon->Draw(-0.9f, -0.8f);
+		}
+
+		delete[] itemCount;
+
+		/*prueba->DrawText(-0.6f, 0.7f, "Speed X:" + to_string(player->getSpeed()[0]) + "  Speed Y:" + to_string(player->getSpeed()[1]) + "  Speed Z:" + to_string(player->getSpeed()[2]), 0.01f);
+		prueba->DrawText(-0.1f, 0.6f, "isJumping: " + player->isJumping, 0.01f);
+		prueba->DrawText(-0.6f, 0.5f, "Accel X:" + to_string(player->getAcceleration()[0]) + "  Accel Y:" + to_string(player->getAcceleration()[1]) + "  Accel Z:" + to_string(player->getAcceleration()[2]), 0.01f);
+		prueba->DrawText(-0.05f, 0.4f, "Camera", 0.01f);
+		prueba->DrawText(-0.4f, 0.3f, "X:" + to_string(player->GetCamera()->posCam.x) + "  Y:" + to_string(player->GetCamera()->posCam.y) + "  Z:" + to_string(player->GetCamera()->posCam.z), 0.01f);*/
+		//prueba->DrawText(-0.4f, 0.8f, "X:" + to_string(player->GetPosition().x) + "  Y:" + to_string(player->GetPosition().y) + "  Z:" + to_string(player->GetPosition().z), 0.01f);
+		//for (int i = 0; i < totalEnemies; i++) {				
+		//	prueba->DrawText(-0.8f, 0.7f - (i * 0.1f), "ENEMY " + to_string(i) + ": " + to_string(*spiderEnemies[i]->getHealth()), 0.01f);
+		//	prueba->DrawText(-0.8f, 0.6f - (i * 0.1f), "ENEMY " + to_string(i) + " TARGET X: " + to_string(spiderEnemies[i]->getTarget()[1][0]), 0.01f);
+		//	prueba->DrawText(-0.8f, 0.5f - (i * 0.1f), "ENEMY " + to_string(i) + " TARGET Z: " + to_string(spiderEnemies[i]->getTarget()[1][2]), 0.01f);
+		//}
+		prueba->DrawText(-0.75f, 0.7f, to_string(player->cantLeaves), 0.01f);
+		TurnOffAlphaBlending();
+
+		leafCurrency[0]->Draw(-0.8f, 0.8f);
+	}
+
+	float*** getEnemiesInfo(int &count)
+	{
+		float*** enemyTargets;
+		count = 0;
+
+		for (int i = 0; i < totalEnemies; i++) {
+			float healthbuffer = *spiderEnemies[i]->getHealth();
+			if (*spiderEnemies[i]->getHealth() > 0) {
+				count++;
+			}
+		}
+
+		enemyTargets = new float** [count];
+		int tempCount = 0;
+
+		for (int i = 0; i < totalEnemies; i++) {
+			if (*spiderEnemies[i]->getHealth() > 0) {
+				enemyTargets[tempCount] = spiderEnemies[i]->getEnemyInfo();
+				tempCount++;
+			}
+		}
+
+		return enemyTargets;
+	}
+
+	void UpdateLeaves() {
+
+		if (realTime % 20 == 0) {
+			respawnLeaves(5);
+		}
+		for (int i = 0; i < totalLeaves; i++) {
+			if (sceneLeaves[i][picked][0] == notPicked) {
+				int t = sceneLeaves[i][asset][type];
+				float s = sceneLeaves[i][scale][0];
+				float* p = sceneLeaves[i][position];
+				sceneAssets[leaf][t]->Draw(player->GetCamera()->vista, player->GetCamera()->proyeccion, p, player->GetCamera()->posCam, 1.0f, sceneLeaves[i][rotation][y], 'Y', s, timer);
+			}
+		}
+	}
+
+	void updatePossibleTargets() {
+
+		int count = 0;
+		for (int i = 0; i < TurretTypes; i++) {
+			for (int j = 0; j < maxTurrets; j++) {
+				if (sceneTurrets[i][j]->isTurretAlive()) {
+					count++;
+				}
+			}
+		}
+
+		totalTargets += count;
+
+		this->sceneTargets = new float** [totalTargets];
+		this->sceneTargets[0] = player->getPlayerInfo();
+		this->sceneTargets[1] = getAntholeInfo();
+
+		int tempCount = 0;
+
+		for (int i = 0; i < TurretTypes; i++) {
+			for (int j = 0; j < maxTurrets; j++) {
+				if (sceneTurrets[i][j]->isTurretAlive()) {
+					this->sceneTargets[i + j + 2] = sceneTurrets[i][j]->getTurretInfo();
+					tempCount++;
+					if (tempCount >= count)
+						break;
+				}
+			}
+		}
+
+		for (int i = 0; i < totalEnemies; i++) {
+			spiderEnemies[i]->possibleTargets = sceneTargets;
+			spiderEnemies[i]->selectNewTarget();
+		}
+		
 	}
 
 };
