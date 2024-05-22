@@ -17,7 +17,7 @@
 #include "XACT3Util.h"
 #include "GUI.h"
 #include "Text.h"
-#define DAYCYCLESPEED 0.0001f/*0.0001f*/
+#define DAYCYCLESPEED 0.0003f/*0.0001f*/
 #define GRAVITYFORCE -0.03f
 #define GAMEDURATION 180.0f
 #define GAMEENDS true
@@ -431,7 +431,7 @@ public:
 		//sceneModels[11][rotation][x] = 45.0f;
 		sceneModels[11][scale][0] = 5.0f;
 		sceneModels[11][collision][active] = 1.0f;
-		sceneModels[11][collision][radius] = 3.0f;
+		sceneModels[11][collision][radius] = 4.0f;
 
 		sceneModels[12][asset][assetModel] = cap;
 		sceneModels[12][position][x] = -24.0f;
@@ -1342,14 +1342,14 @@ public:
 				float* p = sceneModels[i][position];
 
 				if (sceneModels[i][rotation][x] == 0 && sceneModels[i][rotation][y] == 0 && sceneModels[i][rotation][z] == 0)
-					sceneAssets[a][t]->Draw(player->GetCamera()->vista, player->GetCamera()->proyeccion, p, player->GetCamera()->posCam, 1.0f, 0, 'N', s, timer);
+					sceneAssets[a][t]->Draw(player->GetCamera()->vista, player->GetCamera()->proyeccion, p, player->GetCamera()->posCam, 1000000.0f, 0, 'N', s, timer);
 				else {
 					if (sceneModels[i][rotation][x] != 0)
-						sceneAssets[a][t]->Draw(player->GetCamera()->vista, player->GetCamera()->proyeccion, p, player->GetCamera()->posCam, 1.0f, sceneModels[i][rotation][x], 'X', s, timer);
+						sceneAssets[a][t]->Draw(player->GetCamera()->vista, player->GetCamera()->proyeccion, p, player->GetCamera()->posCam, 1000000.0f, sceneModels[i][rotation][x], 'X', s, timer);
 					else if (sceneModels[i][rotation][y] != 0)
-						sceneAssets[a][t]->Draw(player->GetCamera()->vista, player->GetCamera()->proyeccion, p, player->GetCamera()->posCam, 1.0f, sceneModels[i][rotation][y], 'Y', s, timer);
+						sceneAssets[a][t]->Draw(player->GetCamera()->vista, player->GetCamera()->proyeccion, p, player->GetCamera()->posCam, 1000000.0f, sceneModels[i][rotation][y], 'Y', s, timer);
 					else if (sceneModels[i][rotation][z] != 0)
-						sceneAssets[a][t]->Draw(player->GetCamera()->vista, player->GetCamera()->proyeccion, p, player->GetCamera()->posCam, 1.0f, sceneModels[i][rotation][z], 'Z', s, timer);
+						sceneAssets[a][t]->Draw(player->GetCamera()->vista, player->GetCamera()->proyeccion, p, player->GetCamera()->posCam, 1000000.0f, sceneModels[i][rotation][z], 'Z', s, timer);
 				}
 			}
 			else
