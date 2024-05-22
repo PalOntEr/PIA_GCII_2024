@@ -20,7 +20,7 @@
 #define DAYCYCLESPEED 0.0001f/*0.0001f*/
 #define GRAVITYFORCE -0.03f
 #define GAMEDURATION 180.0f
-#define GAMEENDS false
+#define GAMEENDS true
 #define QUICKLOAD false
 
 //MAX ANDRES ZERTUCHE PEREZ #2003051
@@ -355,7 +355,6 @@ public:
 
 		sceneModels[1][asset][assetModel] = anthole;
 		sceneModels[1][position][x] = 0;
-		sceneModels[1][position][y] -= 1.0f;
 		sceneModels[1][position][z] = 0;
 		sceneModels[1][scale][0] = 4.0f;
 		sceneModels[1][collision][active] = 0.0f;
@@ -372,7 +371,7 @@ public:
 		sceneModels[3][position][z] = 6;
 		sceneModels[3][scale][0] = 1.0f;
 		sceneModels[3][collision][active] = 1.0f;
-		sceneModels[3][collision][radius] = 1.0f;
+		sceneModels[3][collision][radius] = 3.0f;
 
 		sceneModels[4][asset][assetModel] = rock;
 		sceneModels[4][position][x] = 5;
@@ -403,55 +402,62 @@ public:
 		sceneModels[7][collision][radius] = 1.0f;
 
 		sceneModels[8][asset][assetModel] = sticks;
-		sceneModels[8][position][x] = -14;
+		sceneModels[8][position][x] = 90;
 		sceneModels[8][position][z] = 62;
+		sceneModels[8][rotation][z] = 90;
 		sceneModels[8][scale][0] = 1.0f;
 		sceneModels[8][collision][active] = 1.0f;
 		sceneModels[8][collision][radius] = 1.0f;
 		sceneModels[9][asset][assetModel] = sticks;
 		sceneModels[9][asset][type] = 1;
-		sceneModels[9][position][x] = -18;
+		sceneModels[9][position][x] = -80;
 		sceneModels[9][position][z] = 88;
-		sceneModels[9][scale][0] = 1.0f;
+		sceneModels[9][scale][0] = 2.0f;
 		sceneModels[9][collision][active] = 1.0f;
-		sceneModels[9][collision][radius] = 1.0f;
+		sceneModels[9][collision][radius] = 1.5f;
+		sceneModels[9][rotation][z] = 90;
 		sceneModels[10][asset][assetModel] = sticks;
 		sceneModels[10][asset][type] = 2;
-		sceneModels[10][position][x] = -39;
-		sceneModels[10][position][z] = 70;
-		sceneModels[10][scale][0] = 1.0f;
+		sceneModels[10][position][x] = 70;
+		sceneModels[10][position][z] = -100;
+		sceneModels[10][scale][0] = 1.5f;
 		sceneModels[10][collision][active] = 1.0f;
-		sceneModels[10][collision][radius] = 1.0f;
+		sceneModels[10][collision][radius] = 1.25f;
+		sceneModels[10][rotation][z] = 90;
 
 		sceneModels[11][asset][assetModel] = bottle;
-		sceneModels[11][position][x] = 10.0f;
-		sceneModels[11][position][y] -= 5.0f;
-		sceneModels[11][position][z] = -60.0f;
-		sceneModels[11][rotation][x] = 45.0f;
-		sceneModels[11][scale][0] = 4.0f;
+		sceneModels[11][position][x] = 80.0f;
+		sceneModels[11][position][z] = -100.0f;
+		//sceneModels[11][rotation][x] = 45.0f;
+		sceneModels[11][scale][0] = 5.0f;
 		sceneModels[11][collision][active] = 1.0f;
-		sceneModels[11][collision][radius] = 1.0f;
+		sceneModels[11][collision][radius] = 3.0f;
 
 		sceneModels[12][asset][assetModel] = cap;
 		sceneModels[12][position][x] = -24.0f;
 		sceneModels[12][position][z] = -28.0f;
 		sceneModels[12][scale][0] = 0.1f;
 		sceneModels[12][collision][active] = 1.0f;
-		sceneModels[12][collision][radius] = 1.0f;
+		sceneModels[12][collision][radius] = 1.5f;
 
-		for (int i = 12; i < totalTrees + 12; i++) {
+		for (int i = 13; i < totalTrees + 13; i++) {
 			sceneModels[i][asset][assetModel] = tree;
 			sceneModels[i][position][x] = generateRandom();
 			sceneModels[i][position][z] = generateRandom();
 			sceneModels[i][scale][0] = (rand() % 3) + 1;
 			sceneModels[i][collision][active] = 1.0f;
-			sceneModels[i][collision][radius] = sceneModels[i][scale][0] * 10.0f;
+			sceneModels[i][collision][radius] = sceneModels[i][scale][0] * 7.0f;
 			sceneModels[i][rotation][y] = rand() % 361;
 		}
 
 		for (int i = 1; i < totalModels; i++) {
 			sceneModels[i][position][y] = terreno->Superficie(sceneModels[i][position][x], sceneModels[i][position][z]);
 		}
+		sceneModels[11][position][y] -= 5.0f;
+		sceneModels[1][position][y] -= 1.0f;
+		sceneModels[8][position][y] -= 1.0f;
+		sceneModels[9][position][y] -= 1.0f;
+		sceneModels[10][position][y] -= 1.0f;
 
 		//scale 5
 		sceneVehicle = new float* [5];
@@ -461,8 +467,8 @@ public:
 
 		sceneVehicle[asset][assetModel] = worm;
 		sceneVehicle[position][x] = 0.0f;
+		sceneVehicle[position][z] = 70.0f;
 		sceneVehicle[position][y] = terreno->Superficie(sceneVehicle[position][x], sceneVehicle[position][z]);
-		sceneVehicle[position][z] = 0.0f;
 		sceneVehicle[scale][0] = 5.0f;
 		sceneVehicle[collision][active] = 0.0f;
 		sceneVehicle[collision][radius] = 5.0f;

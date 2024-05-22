@@ -197,7 +197,7 @@ public:
 
 		m_Camera[thirdPerson] = new Camara(D3DXVECTOR3(m_position.x, m_position.y + height[thirdPerson], m_position.z), front, D3DXVECTOR3(0, 1, 0), Ancho, Alto);
 
-		m_currentCamera = thirdPerson;
+		m_currentCamera = firstPerson;
 
 		height[2] = 4.0f;
 
@@ -405,7 +405,7 @@ public:
 			}
 		}
 
-		if (sceneWalls && (isPointInsideRect(new float[2] { tempPosition.x, tempPosition.z}, new float[5] { -2.0f, 15.0f, 0.0f, 4.0f, 15.0f }) || isPointInsideRect(new float[2] { tempPosition.x, tempPosition.z}, new float[5] { -17.0f, -17.0f, 0.0f, 34.0f, 34.0f }))) {
+		if (!isDriving && sceneWalls && (isPointInsideRect(new float[2] { tempPosition.x, tempPosition.z}, new float[5] { -2.0f, 15.0f, 0.0f, 4.0f, 15.0f }) || isPointInsideRect(new float[2] { tempPosition.x, tempPosition.z}, new float[5] { -17.0f, -17.0f, 0.0f, 34.0f, 34.0f }))) {
 			for (int i = 0; i < numWalls; i++) {
 				if (isPointInsideRect(new float[2] { tempPosition.x, tempPosition.z}, sceneWalls[i])) {
 					collided = true;
