@@ -17,11 +17,14 @@
 #include "XACT3Util.h"
 #include "GUI.h"
 #include "Text.h"
-#define DAYCYCLESPEED 0.0003f/*0.0001f*/
+#define DAYCYCLESPEED 0.0013f/*0.0001f*/
 #define GRAVITYFORCE -0.03f
 #define GAMEDURATION 180.0f
 #define GAMEENDS true
+#define DOENEMYSPAWN true
 #define QUICKLOAD false
+#define RENDERPLAYER true
+#define RENDERGUI true
 
 //MAX ANDRES ZERTUCHE PEREZ #2003051
 //MATEO ZAMORA GRAJEDA #2001215
@@ -292,7 +295,7 @@ public:
 		sceneTargets[1] = getAntholeInfo();
 
 		for (int i = 0; i < totalEnemies; i++) {
-			spiderEnemies[i] = new Enemy(D3DXVECTOR3(rand() % 2 == 0 ? rand() % 701 - 800 : rand() % 701 + 100, 80, rand() % 2 == 0 ? rand() % 701 - 800 : rand() % 701 + 100), sceneTargets, totalTargets, &m_XACT3, sceneAssets[spider], 1, 1);
+			spiderEnemies[i] = new Enemy(D3DXVECTOR3(rand() % 2 == 0 ? rand() % 701 - 800 : rand() % 701 + 100, 80, rand() % 2 == 0 ? rand() % 701 - 800 : rand() % 701 + 100), sceneTargets, totalTargets, &globalTimer, &realTime, timer, &m_XACT3, sceneAssets[spider], 1, 1);
 			spiderEnemies[i]->SetPosition(2, terreno->Superficie(spiderEnemies[i]->GetPosition().x, spiderEnemies[i]->GetPosition().z));
 		}
 
@@ -811,10 +814,14 @@ public:
 		else
 			timer->x -= DAYCYCLESPEED;
 
-		if (timer->x >= 1.0f)
+		if (timer->x >= 1.0f) {
+			timer->x = 1.0f;
 			timer->y = 1.0f;
-		else if (timer->x <= 0.0f)
+		}
+		else if (timer->x <= 0.0f) {
+			timer->x = 0.0f;
 			timer->y = 0.0f;
+		}
 
 		prevPos = new float[3]{ player->GetPosition().x, player->GetPosition().y, player->GetPosition().z };
 		
@@ -846,13 +853,14 @@ public:
 		terreno->Draw(playerCamera->vista, playerCamera->proyeccion, (float*)timer);
 		timer->z = 0.0f;
 
-		player->Draw(timer);
-		if (globalTimer % 600 == 0) {
+		if(RENDERPLAYER)
+			player->Draw(timer);
+		if (DOENEMYSPAWN && globalTimer % 600 == 0) {
 			respawnEnemies(3);
 		}
 		for (int i = 0; i < totalEnemies; i++) {
 			spiderEnemies[i]->possibleTargets = sceneTargets;
-			spiderEnemies[i]->Draw(playerCamera->vista, playerCamera->proyeccion, playerCamera->posCam, 1.0f, 5.0f, timer);
+			spiderEnemies[i]->Draw(playerCamera->vista, playerCamera->proyeccion, playerCamera->posCam, 1.0f, 5.0f);
 			spiderEnemies[i]->SetPosition(2, terreno->Superficie(spiderEnemies[i]->GetPosition().x, spiderEnemies[i]->GetPosition().z));
 			if (!won && !lost)
 				spiderEnemies[i]->MoveEnemy(0.3f);
@@ -1433,27 +1441,31 @@ public:
 	}
 
 	void DrawUI() {
-		for (int i = 0; i < *player->getHealth() / 35.0f; i++) {
-			vida->Draw(0.8f, 0.8f - (i * 0.03f));
-		}
+		if (RENDERGUI) {
+			for (int i = 0; i < *player->getHealth() / 35.0f; i++) {
+				vida->Draw(0.8f, 0.8f - (i * 0.03f));
+			}
 
-		for (int i = 0; i < getAntholeInfo()[0][0]; i++) {
-			antholeHealth[0]->Draw(-0.5f + (i * 0.01f), 0.7f);
-		}
-		for (int i = 0; i < 100; i++) {
-			antholeHealth[1]->Draw(-0.5f + (i * 0.01f), 0.7f);
+			for (int i = 0; i < getAntholeInfo()[0][0]; i++) {
+				antholeHealth[0]->Draw(-0.5f + (i * 0.01f), 0.7f);
+			}
+			for (int i = 0; i < 100; i++) {
+				antholeHealth[1]->Draw(-0.5f + (i * 0.01f), 0.7f);
+			}
 		}
 
 
 		TurnOnAlphaBlending();
 		if (isPointInsideSphere(new float[2] {player->GetPosition().x, player->GetPosition().z}, new float[3] { 0.0f, -7.0f, 10.0f})) {
 			antSalesman->Draw(player->GetCamera()->vista, player->GetCamera()->proyeccion, player->GetCamera()->posCam, 0.0f, -7.0f, terreno->Superficie(0.0f, -7.0f) - 1.0f, 2, new vector2{ 0.0f, 1.0f }, new vector2{ 0.0f, 0.0f }, new vector2{ 1.0f, 0.0f }, new vector2{ 1.0f, 1.0f }, 0);
-			for (int i = 0; i < totalItemsInShop; i++) {
-				leafCurrency[1]->Draw(-0.9f, 0.5f + (i * 0.1f));
-				text->DrawText(-0.83f, 0.48f + (i * 0.1f), to_string(shopList[i].price), 0.01f);
-				greenRightArrow->Draw(-0.7f, 0.5f);
-				shopList[i].icon->Draw(-0.5f, 0.5f + (i * 0.1f));
-				//text->DrawText(-0.8f, 0.4f + (i * 0.1f), "Item " + to_string(i) + " price: " + shopList[i].name, 0.01f);
+			if (RENDERGUI) {
+				for (int i = 0; i < totalItemsInShop; i++) {
+					leafCurrency[1]->Draw(-0.9f, 0.5f + (i * 0.1f));
+					text->DrawText(-0.83f, 0.48f + (i * 0.1f), to_string(shopList[i].price), 0.01f);
+					greenRightArrow->Draw(-0.7f, 0.5f);
+					shopList[i].icon->Draw(-0.5f, 0.5f + (i * 0.1f));
+					//text->DrawText(-0.8f, 0.4f + (i * 0.1f), "Item " + to_string(i) + " price: " + shopList[i].name, 0.01f);
+				}
 			}
 		}
 		else {
@@ -1475,40 +1487,43 @@ public:
 
 		//text->DrawText(-0.1f, -0.9f, "Bruh como que todo se entrega la primera semana", 0.01f);
 
-		text->DrawText(-0.025f, 0.9f, text->Time(realTime), 0.01f);
-		text->DrawText(-0.15f, 0.8f, "ANTHOLE HEALTH", 0.01f);
-		//text->DrawText(-0.4f, 0.6f, "HEALTH: " + to_string(*player->getHealth()), 0.01f);
+		if (RENDERGUI) {
+			text->DrawText(-0.025f, 0.9f, text->Time(realTime), 0.01f);
+			text->DrawText(-0.15f, 0.8f, "ANTHOLE HEALTH", 0.01f);
+			//text->DrawText(-0.4f, 0.6f, "HEALTH: " + to_string(*player->getHealth()), 0.01f);
 
-		if (!player->isDriving && isPointInsideSphere(new float[2] {player->GetPosition().x, player->GetPosition().z}, new float[3] { sceneVehicle[1][0], sceneVehicle[1][2], sceneVehicle[4][1]}))
-			text->DrawText(-0.2f, -0.8f, "Press the LMB to mount", 0.01f);
+			if (!player->isDriving && isPointInsideSphere(new float[2] {player->GetPosition().x, player->GetPosition().z}, new float[3] { sceneVehicle[1][0], sceneVehicle[1][2], sceneVehicle[4][1]}))
+				text->DrawText(-0.2f, -0.8f, "Press the LMB to mount", 0.01f);
 
-		int* itemCount = new int[totalItemsInShop] { 0 };
-		for (int i = 0; i < player->totalSlotsInInventory; i++) {
-			if (player->inventorySlots[i].isOccupied)
-				itemCount[player->inventorySlots[i].item.shopId]++;
+			int* itemCount = new int[totalItemsInShop] { 0 };
+			for (int i = 0; i < player->totalSlotsInInventory; i++) {
+				if (player->inventorySlots[i].isOccupied)
+					itemCount[player->inventorySlots[i].item.shopId]++;
+			}
+			for (int i = 0; i < totalItemsInShop; i++) {
+				text->DrawText(-0.8f, -0.8f, to_string(itemCount[i]), 0.01f);
+				shopList[i].icon->Draw(-0.9f, -0.8f);
+			}
+			delete[] itemCount;
+
+			/*text->DrawText(-0.6f, 0.7f, "Speed X:" + to_string(player->getSpeed()[0]) + "  Speed Y:" + to_string(player->getSpeed()[1]) + "  Speed Z:" + to_string(player->getSpeed()[2]), 0.01f);
+			text->DrawText(-0.1f, 0.6f, "isJumping: " + player->isJumping, 0.01f);
+			text->DrawText(-0.6f, 0.5f, "Accel X:" + to_string(player->getAcceleration()[0]) + "  Accel Y:" + to_string(player->getAcceleration()[1]) + "  Accel Z:" + to_string(player->getAcceleration()[2]), 0.01f);
+			text->DrawText(-0.05f, 0.4f, "Camera", 0.01f);
+			text->DrawText(-0.4f, 0.3f, "X:" + to_string(player->GetCamera()->posCam.x) + "  Y:" + to_string(player->GetCamera()->posCam.y) + "  Z:" + to_string(player->GetCamera()->posCam.z), 0.01f);*/
+			//text->DrawText(-0.4f, 0.8f, "X:" + to_string(player->GetPosition().x) + "  Y:" + to_string(player->GetPosition().y) + "  Z:" + to_string(player->GetPosition().z), 0.01f);
+			//for (int i = 0; i < totalEnemies; i++) {				
+			//	text->DrawText(-0.8f, 0.7f - (i * 0.1f), "ENEMY " + to_string(i) + ": " + to_string(*spiderEnemies[i]->getHealth()), 0.01f);
+			//	text->DrawText(-0.8f, 0.6f - (i * 0.1f), "ENEMY " + to_string(i) + " TARGET X: " + to_string(spiderEnemies[i]->getTarget()[1][0]), 0.01f);
+			//	text->DrawText(-0.8f, 0.5f - (i * 0.1f), "ENEMY " + to_string(i) + " TARGET Z: " + to_string(spiderEnemies[i]->getTarget()[1][2]), 0.01f);
+			//}
+			text->DrawText(-0.75f, 0.7f, to_string(player->cantLeaves), 0.01f);
 		}
-		for (int i = 0; i < totalItemsInShop; i++) {
-			text->DrawText(-0.8f, -0.8f, to_string(itemCount[i]), 0.01f);
-			shopList[i].icon->Draw(-0.9f, -0.8f);
-		}
-
-		delete[] itemCount;
-
-		/*text->DrawText(-0.6f, 0.7f, "Speed X:" + to_string(player->getSpeed()[0]) + "  Speed Y:" + to_string(player->getSpeed()[1]) + "  Speed Z:" + to_string(player->getSpeed()[2]), 0.01f);
-		text->DrawText(-0.1f, 0.6f, "isJumping: " + player->isJumping, 0.01f);
-		text->DrawText(-0.6f, 0.5f, "Accel X:" + to_string(player->getAcceleration()[0]) + "  Accel Y:" + to_string(player->getAcceleration()[1]) + "  Accel Z:" + to_string(player->getAcceleration()[2]), 0.01f);
-		text->DrawText(-0.05f, 0.4f, "Camera", 0.01f);
-		text->DrawText(-0.4f, 0.3f, "X:" + to_string(player->GetCamera()->posCam.x) + "  Y:" + to_string(player->GetCamera()->posCam.y) + "  Z:" + to_string(player->GetCamera()->posCam.z), 0.01f);*/
-		//text->DrawText(-0.4f, 0.8f, "X:" + to_string(player->GetPosition().x) + "  Y:" + to_string(player->GetPosition().y) + "  Z:" + to_string(player->GetPosition().z), 0.01f);
-		//for (int i = 0; i < totalEnemies; i++) {				
-		//	text->DrawText(-0.8f, 0.7f - (i * 0.1f), "ENEMY " + to_string(i) + ": " + to_string(*spiderEnemies[i]->getHealth()), 0.01f);
-		//	text->DrawText(-0.8f, 0.6f - (i * 0.1f), "ENEMY " + to_string(i) + " TARGET X: " + to_string(spiderEnemies[i]->getTarget()[1][0]), 0.01f);
-		//	text->DrawText(-0.8f, 0.5f - (i * 0.1f), "ENEMY " + to_string(i) + " TARGET Z: " + to_string(spiderEnemies[i]->getTarget()[1][2]), 0.01f);
-		//}
-		text->DrawText(-0.75f, 0.7f, to_string(player->cantLeaves), 0.01f);
 		TurnOffAlphaBlending();
 
-		leafCurrency[0]->Draw(-0.8f, 0.8f);
+		if (RENDERGUI) {
+			leafCurrency[0]->Draw(-0.8f, 0.8f);
+		}
 	}
 
 	float*** getEnemiesInfo(int &count)

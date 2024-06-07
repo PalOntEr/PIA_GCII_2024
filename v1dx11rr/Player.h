@@ -12,6 +12,7 @@
 #define INITIALHEALTH 100.0f
 #define DAMAGE 10.0f
 #define COLLIDING_CAMERA_STOPS_MOVEMENT false
+#define CAMERA_COLLIDES_WITH_STRUCTURES false
 
 //Clase camara hecha por Rafael Rosas para los UltraLMADs
 //Videojuegos
@@ -455,7 +456,7 @@ public:
 			if (tempCameraPosition.z > 900 || tempCameraPosition.z < -800)
 				cameraCollidedH = true;
 
-			if (sceneWalls) {
+			if (CAMERA_COLLIDES_WITH_STRUCTURES && sceneWalls) {
 				for (int i = 0; i < numWalls; i++) {
 					if (isPointInsideRect(new float[2] { tempCameraPosition.x, tempCameraPosition.z}, sceneWalls[i])) {
 						cameraCollidedH = true;

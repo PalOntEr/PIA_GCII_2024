@@ -35,6 +35,12 @@ private:
 	float** enemyInfo;
 
 	bool isAlive;
+	bool isPlayingSound;
+
+	XMFLOAT4* dayCycleTimer;
+	int lastTimeSoundWasPlayed;
+	int* globalTimer;
+	int* realTime;
 
 	bool isPointInsideSphere(float* point, float* sphere) {
 		bool collition = false;
@@ -65,9 +71,13 @@ public:
 
 	D3DXVECTOR3 m_startPosition;
 
-	Enemy(D3DXVECTOR3 startPoint, float*** possibleTargets, int numberOfTargets, CXACT3Util* audioManager, ModeloRR** models = NULL, int animations = 1, int frames = 1) {
+	Enemy(D3DXVECTOR3 startPoint, float*** possibleTargets, int numberOfTargets, int* globalTimer, int* realTime, XMFLOAT4* dayCycleTimer, CXACT3Util* audioManager, ModeloRR** models = NULL, int animations = 1, int frames = 1) {
 
 		isAlive = false;
+		isPlayingSound = false;
+		this->realTime = realTime;
+		this->globalTimer = globalTimer;
+		this->dayCycleTimer = dayCycleTimer;
 
 		health = INITIALENEMYHEALTH;
 
@@ -221,13 +231,13 @@ public:
 
 	}
 
-	void Draw(D3DXMATRIX vista, D3DXMATRIX proyeccion, D3DXVECTOR3 posCam, float specForce, float scale, XMFLOAT4* timer) {
+	void Draw(D3DXMATRIX vista, D3DXMATRIX proyeccion, D3DXVECTOR3 posCam, float specForce, float scale) {
 
 		if (!isAlive)
 			return;
 		float rotAngle = atan2f(currentTarget[targetPosition][0] - m_position.x, currentTarget[targetPosition][2] - m_position.z) + D3DX_PI;
 
-		m_enemyModels[m_currentAnimation][m_currentFrame].Draw(vista, proyeccion, m_position, posCam, specForce, rotAngle, 'Y', scale, timer);
+		m_enemyModels[m_currentAnimation][m_currentFrame].Draw(vista, proyeccion, m_position, posCam, specForce, rotAngle, 'Y', scale, dayCycleTimer);
 	}
 
 	D3DXVECTOR3 GetPosition() {
@@ -277,8 +287,14 @@ public:
 
 	void Attack() {
 		currentTarget[targetHealth][0] -= ENEMYDAMAGE;
-		if(isPointInsideSphere(new float[2] { m_position.x, m_position.z}, new float[3] { possibleTargets[0][targetPosition][0], possibleTargets[0][targetPosition][2], 50.0f})){}
+		if(!isPlayingSound && isPointInsideSphere(new float[2] { m_position.x, m_position.z}, new float[3] { possibleTargets[0][targetPosition][0], possibleTargets[0][targetPosition][2], 50.0f})){
+			lastTimeSoundWasPlayed = *realTime;
+			isPlayingSound = true;
 			m_XACT3->m_pSoundBank->Play(cueIndex[rand() % 4], 0, 0, 0);
+		}
+		if (isPlayingSound && *realTime - lastTimeSoundWasPlayed >= 1) {
+			isPlayingSound = false;
+		}
 	}
 
 	void killEnemy() {
