@@ -10,10 +10,12 @@
 #define MAXFALLSPEED 1.0f
 #define RADIUS 10.0f
 #define VEHICLE_RADIUS 3.0f
-#define INITIALHEALTH 100.0f
+#define INITIALHEALTH 15.0f
 #define DAMAGE 10.0f
 #define COLLIDING_CAMERA_STOPS_MOVEMENT false
 #define CAMERA_COLLIDES_WITH_STRUCTURES false
+#define INITIALMANTISININVENTORY 2
+
 
 //Clase camara hecha por Rafael Rosas para los UltraLMADs
 //Videojuegos
@@ -133,22 +135,8 @@ public:
 
 		totalSlotsInInventory = 5;
 		inventorySlots = new inventorySlot[totalSlotsInInventory];
-		inventorySlots[0].isOccupied = true;
-		inventorySlots[0].item.name = "Mantis";
-		inventorySlots[0].item.model = 13;
-		inventorySlots[0].item.shopId = 0;
-		inventorySlots[1].isOccupied = true;
-		inventorySlots[1].item.name = "Mantis";
-		inventorySlots[1].item.model = 13;
-		inventorySlots[1].item.shopId = 0;
-		inventorySlots[2].isOccupied = true;
-		inventorySlots[2].item.name = "Mantis";
-		inventorySlots[2].item.model = 13;
-		inventorySlots[2].item.shopId = 0;
-		inventorySlots[3].isOccupied = true;
-		inventorySlots[3].item.name = "Mantis";
-		inventorySlots[3].item.model = 13;
-		inventorySlots[3].item.shopId = 0;
+
+		setUpInitialInventory(INITIALMANTISININVENTORY);
 
 		playerInfo = new float*[3];
 		playerInfo[targetRadius] = new float[1];
@@ -413,6 +401,7 @@ public:
 		float antholeInnerHitBox[5]{ -17.0f, -17.0f, 0.0f, 34.0f, 34.0f };
 		float playerRadius[3]{ 0, 0, 30 + (isDriving ? VEHICLE_RADIUS : 0) };
 		if (!isDriving && sceneWalls && (isPointInsideRect(tempPositionXZ, antholeEntranceHitBox) || isPointInsideRect(tempPositionXZ, antholeInnerHitBox))) {
+			isJumping = false;
 			for (int i = 0; i < numWalls; i++) {
 				if (isPointInsideRect(tempPositionXZ, sceneWalls[i])) {
 					collided = true;
@@ -700,6 +689,47 @@ public:
 			}
 		}
 		return hasIt;
+	}
+
+	void setUpInitialInventory(int cant) {
+
+		cant > totalSlotsInInventory ? cant = totalSlotsInInventory : cant = cant;
+
+		for (int i = 0; i < cant; i++) {
+			inventorySlots[i].isOccupied = true;
+			inventorySlots[i].item.name = "Mantis";
+			inventorySlots[i].item.model = 13;
+			inventorySlots[i].item.shopId = 0;
+		}
+
+	}
+
+	void restartPlayer() {
+		health = INITIALHEALTH;
+		SetPosition(m_startPosition);
+
+		totalSlotsInInventory = 5;
+
+		delete[] inventorySlots;
+
+		inventorySlots = new inventorySlot[totalSlotsInInventory];
+
+		setUpInitialInventory(INITIALMANTISININVENTORY);
+
+		cantLeaves = 0;
+
+		SetAcceleration(0, 0);
+		SetAcceleration(1, 0);
+		SetAcceleration(2, 0);
+
+		SetSpeed(0, 0);
+		SetSpeed(1, 0);
+		SetSpeed(2, 0);
+
+		isJumping = false;
+		isRunning = false;
+		isCrouching = false;
+		isDriving = false;
 	}
 
 	void Release() {

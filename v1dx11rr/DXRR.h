@@ -19,9 +19,9 @@
 #include "Text.h"
 #define DAYCYCLESPEED 0.0007f/*0.0001f*/
 #define GRAVITYFORCE -0.03f
-#define GAMEDURATION 140.0f
+#define GAMEDURATION 70.0f
 #define DOENEMYSPAWN true
-#define TIMEBETWEENENEMYWAVES 10
+#define TIMEBETWEENENEMYWAVES 5
 #define ENEMIESSPAWNED 5
 #define GAMEENDS true
 #define QUICKLOAD false
@@ -836,18 +836,20 @@ public:
 			won = false;
 		}
 
-		if (timer->y == 0.0f)
-			timer->x += DAYCYCLESPEED;
-		else
-			timer->x -= DAYCYCLESPEED;
+		if (!won && !lost) {
+			if (timer->y == 0.0f)
+				timer->x += DAYCYCLESPEED;
+			else
+				timer->x -= DAYCYCLESPEED;
 
-		if (timer->x >= 1.0f) {
-			timer->x = 1.0f;
-			timer->y = 1.0f;
-		}
-		else if (timer->x <= 0.0f) {
-			timer->x = 0.0f;
-			timer->y = 0.0f;
+			if (timer->x >= 1.0f) {
+				timer->x = 1.0f;
+				timer->y = 1.0f;
+			}
+			else if (timer->x <= 0.0f) {
+				timer->x = 0.0f;
+				timer->y = 0.0f;
+			}
 		}
 
 		prevPos = new float[3]{ player->GetPosition().x, player->GetPosition().y, player->GetPosition().z };
@@ -1406,7 +1408,7 @@ public:
 						sceneTurrets[i][j]->SetPosition(2, terreno->Superficie(sceneTurrets[i][j]->GetPosition().x, sceneTurrets[i][j]->GetPosition().z));
 						sceneTurrets[i][j]->Draw(player->GetCamera()->vista, player->GetCamera()->proyeccion, player->GetCamera()->posCam, 1.0f, 1.0f);
 					}
-					if (!sceneTurrets[i][j]->Update(player->GetPosition(), getEnemiesInfo(count), count, sceneModels, totalModels)) {
+					if (!won && !lost && !sceneTurrets[i][j]->Update(player->GetPosition(), getEnemiesInfo(count), count, sceneModels, totalModels)) {
 						currentTurrets--;
 					}
 				}
@@ -1519,7 +1521,12 @@ public:
 
 	void DrawUI() {
 		if (RENDERGUI) {
-			for (int i = 0; i < *player->getHealth() / 35.0f; i++) {
+
+			float percentageHealth = (*player->getHealth() * 100) / INITIALHEALTH;
+
+			int lifeShown = percentageHealth > 70 ? 3 : (percentageHealth > 30 ? 2 : 1);
+
+			for (int i = 0; i < lifeShown; i++) {
 				vida->Draw(0.8f, 0.8f - (i * 0.03f));
 			}
 
@@ -1688,6 +1695,41 @@ public:
 			spiderEnemies[i]->selectNewTarget();
 		}
 		
+	}
+
+	void restartGame() {
+
+		timer->x = 0.0f;
+		timer->y = 0.0f;
+		timer->z = 0.0f;
+		timer->w = 0.0f;
+
+		globalTimer = 0;
+		realTime = 0;
+
+		player->restartPlayer();
+
+		sceneAnthole[health][0] = 100.0f;
+
+		sceneVehicle[position][x] = 0.0f;
+		sceneVehicle[position][z] = 70.0f;
+
+		for (int i = 0; i < totalEnemies; i++) {
+			spiderEnemies[i]->killEnemy();
+		}
+
+		int placingId = player->isPlacing[player->placingId];
+		for (int i = 0; i < maxTurrets; i++) {
+			sceneTurrets[placingId][i]->killTurret();
+		}
+
+		for (int i = 0; i < totalLeaves; i++) {
+				sceneLeaves[i][picked][0] = pickedUp;
+		}
+
+		won = false;
+		lost = false;
+
 	}
 
 };

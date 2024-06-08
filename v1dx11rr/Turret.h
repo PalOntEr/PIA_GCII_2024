@@ -1,6 +1,6 @@
 #ifndef _turret
 #define _turret
-#define TURRETDAMAGE 10.0f
+#define TURRETDAMAGE 1.0f
 #define TURRETRADIUS 10.0f
 #define INITIALTURRETHEALTH 100.0f
 #define TURRETLOOKRADIUS 5.0f

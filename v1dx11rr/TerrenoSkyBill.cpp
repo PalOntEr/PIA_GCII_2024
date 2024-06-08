@@ -32,6 +32,7 @@ bool SpaceisPressed = false;
 bool LMBisPressed = false;
 bool RMBisPressed = false;
 bool numberisPressed = false;
+bool F2isPressed = false;
 
 void createMouseDevice(HWND hWnd) {
     m_pDirectInput->CreateDevice(GUID_SysMouse, &m_pMouseDevice, 0);
@@ -286,6 +287,15 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
             if (keyboardData[DIK_B] & 0x80) {
                 dxrr->breakpoint = true;
             }
+
+            if (keyboardData[DIK_F2] & 0x80) {
+                if (!F2isPressed) {
+                    dxrr->restartGame();
+                }
+                F2isPressed = true;
+            }
+            else
+                F2isPressed = false;
 
             //if (keyboardData[DIK_Q] & 0x80) {
             //    //wstringstream wss;
