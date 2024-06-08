@@ -204,11 +204,6 @@ public:
 						break;
 					}
 			}
-			float antholeInfoArray[3]{ antholeInfo[1][0], antholeInfo[1][2], antholeInfo[2][0] - 10 };
-			if (isPointInsideSphere(tempPositionXZ, antholeInfoArray)) {
-				m_position.x += frontDistance;
-				m_position.z -= rightDistance;
-			}
 		}
 		else if (isMovingBackwards && *realTime - startedMovingBackwards >= 1) {
 			isMovingBackwards = false;

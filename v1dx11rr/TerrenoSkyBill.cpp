@@ -287,13 +287,13 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
                 dxrr->breakpoint = true;
             }
 
-            if (keyboardData[DIK_Q] & 0x80) {
-                wstringstream wss;
-                wss << "X: " << dxrr->player->GetPosition().x << endl;
-                wss << "Y: " << dxrr->player->GetPosition().y << endl;
-                wss << "Z: " << dxrr->player->GetPosition().z << endl;
-                MessageBox(hWnd, wss.str().c_str(), L"Coordinates", MB_OK);
-            }
+            //if (keyboardData[DIK_Q] & 0x80) {
+            //    //wstringstream wss;
+            //    //wss << "X: " << dxrr->player->GetPosition().x << endl;
+            //    //wss << "Y: " << dxrr->player->GetPosition().y << endl;
+            //    //wss << "Z: " << dxrr->player->GetPosition().z << endl;
+            //    //MessageBox(hWnd, wss.str().c_str(), L"Coordinates", MB_OK);
+            //}
 
             if (keyboardData[DIK_ESCAPE] & 0x80) {
                 KillTimer(hWnd, 100);
@@ -304,9 +304,11 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
             DIMOUSESTATE mouseData;
             m_pMouseDevice->GetDeviceState(sizeof(mouseData), (void*)&mouseData);
 
+            float playerPosition[2]{ dxrr->player->GetPosition().x, dxrr->player->GetPosition().z };
+            float vehiclePosition[3]{ dxrr->sceneVehicle[1][0], dxrr->sceneVehicle[1][2], dxrr->sceneVehicle[4][1] };
             if (mouseData.rgbButtons[0] & 0x80) {
                 if (!LMBisPressed)
-                    if (!dxrr->won && !dxrr->lost && dxrr->isPointInsideSphere(new float[2] {dxrr->player->GetPosition().x, dxrr->player->GetPosition().z}, new float[3] { dxrr->sceneVehicle[1][0], dxrr->sceneVehicle[1][2], dxrr->sceneVehicle[4][1]})) {
+                    if (!dxrr->won && !dxrr->lost && dxrr->isPointInsideSphere(playerPosition, vehiclePosition)) {
                         if (!dxrr->player->isDriving) {
                             dxrr->player->SetCurrentVehicle(dxrr->sceneVehicle);
                         }
@@ -350,9 +352,10 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
             else
                 F5isPressed = false;
 
-            if (keyboardData[DIK_0] & 0x80) {
+            if (keyboardData[DIK_0] & 0x80 || keyboardData[DIK_Q] & 0x80) {
                 if (!numberisPressed) {
-                    if (!dxrr->won && !dxrr->lost && dxrr->isPointInsideSphere(new float[2] {dxrr->player->GetPosition().x, dxrr->player->GetPosition().z}, new float[3] { 0.0f, -7.0f, 10.0f}))
+                    float antSalesmanPosition[3]{ 0.0f, -7.0f, 10.0f };
+                    if (!dxrr->won && !dxrr->lost && dxrr->isPointInsideSphere(playerPosition, antSalesmanPosition))
                         if (dxrr->player->cantLeaves >= dxrr->shopList[0].price && dxrr->player->addItemToInventory(dxrr->shopList[0].name, dxrr->shopList[0].model, 0)) {
                             dxrr->player->cantLeaves -= dxrr->shopList[0].price;
                         }

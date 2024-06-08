@@ -131,7 +131,9 @@ public:
 		D3DXVECTOR3 tempPosition = m_position;
 		bool collided = false;
 
-		if (isPointInsideSphere(new float[2] { tempPosition.x, tempPosition.z}, new float[3] { currentTarget[targetPosition][0], currentTarget[targetPosition][2], ENEMYLOOKRADIUS}))
+		float tempPositionXZ[2]{ tempPosition.x, tempPosition.z };
+		float targetInfo[3]{ currentTarget[targetPosition][0], currentTarget[targetPosition][2], ENEMYLOOKRADIUS };
+		if (isPointInsideSphere(tempPositionXZ, targetInfo))
 			selectNewTarget();
 
 		D3DXVECTOR3 lookAt = { currentTarget[targetPosition][0] - m_position[0],  0.0f, currentTarget[targetPosition][2] - m_position[2]};
@@ -144,16 +146,19 @@ public:
 			//int tempos = possibleTargets[3][targetPosition][0];
 		}
 
-		if (isPointInsideSphere(new float[2] { tempPosition.x, tempPosition.z}, new float[3] { possibleTargets[1][targetPosition][0], possibleTargets[1][targetPosition][2], possibleTargets[1][targetRadius][0]})) {
+		float antholeInfo[3]{ possibleTargets[1][targetPosition][0], possibleTargets[1][targetPosition][2], possibleTargets[1][targetRadius][0] };
+		float currentTargetInfo[3]{ currentTarget[targetPosition][0], currentTarget[targetPosition][2], currentTarget[targetRadius][0] };
+		if (isPointInsideSphere(tempPositionXZ, antholeInfo)) {
 			collided = true;
 			currentTarget = possibleTargets[1];
 			isMovingBackwards = false;
 		}
-		if (isPointInsideSphere(new float[2] { tempPosition.x, tempPosition.z}, new float[3] { currentTarget[targetPosition][0], currentTarget[targetPosition][2], currentTarget[targetRadius][0]})) {
+		antholeInfo[2] += 0.5f;
+		if (isPointInsideSphere(tempPositionXZ, currentTargetInfo)) {
 			collided = true;
 			Attack();
 		}
-		else if (isPointInsideSphere(new float[2] { tempPosition.x, tempPosition.z}, new float[3] { possibleTargets[1][targetPosition][0], possibleTargets[1][targetPosition][2], possibleTargets[1][targetRadius][0] + 0.5f})) {
+		else if (isPointInsideSphere(tempPositionXZ, antholeInfo)) {
 			collided = false;
 		}
 
@@ -172,8 +177,9 @@ public:
 
 		if (sceneModels && !collided) {
 			for (int i = 1; i < numModels; i++) {
+				float sceneModelInfo[3]{ sceneModels[i][1][0], sceneModels[i][1][2], sceneModels[i][4][1] };
 				if (sceneModels[i][4][0] == 1.0f)
-					if (isPointInsideSphere(new float[2] { tempPosition.x, tempPosition.z}, new float[3] { sceneModels[i][1][0], sceneModels[i][1][2], sceneModels[i][4][1]})) {
+					if (isPointInsideSphere(tempPositionXZ, sceneModelInfo)) {
 						collided = true;
 						isMovingBackwards = true;
 						startedMovingBackwards = *realTime;
@@ -184,8 +190,18 @@ public:
 
 		m_position.y = tempPosition.y;
 		if (isMovingBackwards && *realTime - startedMovingBackwards < 1) {
-			m_position.x += -frontDistance + (rand() % 2 - 0.5f) * (0.5f);
-			m_position.z += rightDistance + (rand() % 2 - 0.5f) * (0.5f);
+			m_position.x += -frontDistance + (rand() % 2 - 0.5f) * (0.25f);
+			m_position.z += rightDistance + (rand() % 2 - 0.5f) * (0.25f);
+			float currentPositionXZ[2]{ m_position.x, m_position.z };
+			for (int i = 1; i < numModels; i++) {
+				float sceneModelInfo[3]{ sceneModels[i][1][0], sceneModels[i][1][2], sceneModels[i][4][1] };
+				if (sceneModels[i][4][0] == 1.0f)
+					if (isPointInsideSphere(currentPositionXZ, sceneModelInfo)) {
+						m_position.x += frontDistance + (rand() % 2 - 0.5f) * (0.25f);
+						m_position.z += -rightDistance + (rand() % 2 - 0.5f) * (0.25f);
+						break;
+					}
+			}
 		}
 		else if (isMovingBackwards && *realTime - startedMovingBackwards >= 2) {
 			isMovingBackwards = false;
@@ -205,7 +221,6 @@ public:
 		if (!isAlive)
 			return;
 		float rotAngle = atan2f(currentTarget[targetPosition][0] - m_position.x, currentTarget[targetPosition][2] - m_position.z) + D3DX_PI;
-
 		m_enemyModels[m_currentAnimation][m_currentFrame].Draw(vista, proyeccion, m_position, posCam, specForce, rotAngle, 'Y', scale, dayCycleTimer);
 	}
 
@@ -248,7 +263,9 @@ public:
 
 	void Attack() {
 		currentTarget[targetHealth][0] -= ENEMYDAMAGE;
-		if(!isPlayingSound && isPointInsideSphere(new float[2] { m_position.x, m_position.z}, new float[3] { possibleTargets[0][targetPosition][0], possibleTargets[0][targetPosition][2], 50.0f})){
+		float currentPosition[2]{ m_position.x, m_position.z };
+		float audioRange[3]{ possibleTargets[0][targetPosition][0], possibleTargets[0][targetPosition][2], 50.0f };
+		if(!isPlayingSound && isPointInsideSphere(currentPosition, audioRange)){
 			lastTimeSoundWasPlayed = *realTime;
 			isPlayingSound = true;
 			m_XACT3->m_pSoundBank->Play(cueIndex[rand() % 4], 0, 0, 0);
@@ -261,7 +278,11 @@ public:
 	void killEnemy() {
 		health = 0.0f;
 		isAlive = false;
-		m_XACT3->m_pSoundBank->Play(cueIndex[4], 0, 0, 0);
+		float currentPosition[2]{ m_position.x, m_position.z };
+		float audioRange[3]{ possibleTargets[0][targetPosition][0], possibleTargets[0][targetPosition][2], 50.0f };
+		if (isPointInsideSphere(currentPosition, audioRange)) {
+			m_XACT3->m_pSoundBank->Play(cueIndex[4], 0, 0, 0);
+		}
 	}
 
 	bool isEnemyAlive() {

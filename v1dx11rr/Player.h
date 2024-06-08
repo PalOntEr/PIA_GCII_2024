@@ -395,10 +395,12 @@ public:
 			m_acceleration[2] = 0;
 		}
 
+		float tempPositionXZ[2]{ tempPosition.x, tempPosition.z };
 		if (!collided && sceneModels) {
 			for (int i = 1; i < numModels; i++) {
+				float sceneModelInfo[3]{ sceneModels[i][1][0], sceneModels[i][1][2], sceneModels[i][4][1] + (isDriving ? VEHICLE_RADIUS : 0) };
 				if (sceneModels[i][4][0] == 1.0f)
-					if (isPointInsideSphere(new float[2] { tempPosition.x, tempPosition.z}, new float[3] { sceneModels[i][1][0], sceneModels[i][1][2], sceneModels[i][4][1] + (isDriving ? VEHICLE_RADIUS : 0) })) {
+					if (isPointInsideSphere(tempPositionXZ, sceneModelInfo)) {
 						collided = true;
 						m_speed[0] = 0;
 						m_speed[2] = 0;
@@ -407,9 +409,12 @@ public:
 			}
 		}
 
-		if (!isDriving && sceneWalls && (isPointInsideRect(new float[2] { tempPosition.x, tempPosition.z}, new float[5] { -2.0f, 15.0f, 0.0f, 4.0f, 15.0f }) || isPointInsideRect(new float[2] { tempPosition.x, tempPosition.z}, new float[5] { -17.0f, -17.0f, 0.0f, 34.0f, 34.0f }))) {
+		float antholeEntranceHitBox[5]{ -2.0f, 15.0f, 0.0f, 4.0f, 15.0f };
+		float antholeInnerHitBox[5]{ -17.0f, -17.0f, 0.0f, 34.0f, 34.0f };
+		float playerRadius[3]{ 0, 0, 30 + (isDriving ? VEHICLE_RADIUS : 0) };
+		if (!isDriving && sceneWalls && (isPointInsideRect(tempPositionXZ, antholeEntranceHitBox) || isPointInsideRect(tempPositionXZ, antholeInnerHitBox))) {
 			for (int i = 0; i < numWalls; i++) {
-				if (isPointInsideRect(new float[2] { tempPosition.x, tempPosition.z}, sceneWalls[i])) {
+				if (isPointInsideRect(tempPositionXZ, sceneWalls[i])) {
 					collided = true;
 					m_speed[0] = 0;
 					m_speed[2] = 0;
@@ -418,7 +423,7 @@ public:
 			}
 			isPlacing[placingActive] = 0;
 		}
-		else if (isPointInsideSphere(new float[2] { tempPosition.x, tempPosition.z}, new float[3] { 0, 0, 30 + (isDriving ? VEHICLE_RADIUS : 0) })) {
+		else if (isPointInsideSphere(tempPositionXZ, playerRadius)) {
 			collided = true;
 			m_speed[0] = 0;
 			m_speed[2] = 0;
@@ -457,9 +462,10 @@ public:
 			if (tempCameraPosition.z > 900 || tempCameraPosition.z < -800)
 				cameraCollidedH = true;
 
+			float tempCameraPositionXZ[2]{ tempCameraPosition.x, tempCameraPosition.z };
 			if (CAMERA_COLLIDES_WITH_STRUCTURES && sceneWalls) {
 				for (int i = 0; i < numWalls; i++) {
-					if (isPointInsideRect(new float[2] { tempCameraPosition.x, tempCameraPosition.z}, sceneWalls[i])) {
+					if (isPointInsideRect(tempCameraPositionXZ, sceneWalls[i])) {
 						cameraCollidedH = true;
 						if(COLLIDING_CAMERA_STOPS_MOVEMENT)
 							collided = true;
