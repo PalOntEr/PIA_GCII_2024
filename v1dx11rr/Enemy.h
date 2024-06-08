@@ -27,7 +27,7 @@ private:
 	D3DXVECTOR3 m_refRight2d;
 	D3DXVECTOR3 m_refFront2d;
 
-	XACTINDEX cueIndex[4];
+	XACTINDEX cueIndex[5];
 	CXACT3Util* m_XACT3;
 
 	float** currentTarget;
@@ -121,6 +121,7 @@ public:
 		cueIndex[1] = m_XACT3->m_pSoundBank->GetCueIndex("spider_attack_2");
 		cueIndex[2] = m_XACT3->m_pSoundBank->GetCueIndex("spider_attack_3");
 		cueIndex[3] = m_XACT3->m_pSoundBank->GetCueIndex("spider_attack_4");
+		cueIndex[4] = m_XACT3->m_pSoundBank->GetCueIndex("spider_death");
 
 		selectNewTarget();
 
@@ -132,7 +133,7 @@ public:
 
 	void MoveEnemy(float vel, float*** sceneModels = NULL, int numModels = 0) {
 		
-		if (health <= 0) {
+		if (isAlive && health <= 0) {
 			killEnemy();
 		}
 
@@ -300,6 +301,7 @@ public:
 	void killEnemy() {
 		health = 0.0f;
 		isAlive = false;
+		m_XACT3->m_pSoundBank->Play(cueIndex[4], 0, 0, 0);
 	}
 
 	bool isEnemyAlive() {

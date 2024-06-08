@@ -276,6 +276,7 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
                 if (!SpaceisPressed && !dxrr->won && !dxrr->lost && !dxrr->player->isJumping) {
                     dxrr->velDir[1] += 0.5f;
                     dxrr->player->isJumping = true;
+                    dxrr->m_XACT3.m_pSoundBank->Play(dxrr->jumpCueIndex, 0, 0, 0);
                     SpaceisPressed = true;
                 }
             }

@@ -20,8 +20,10 @@
 #define DAYCYCLESPEED 0.0013f/*0.0001f*/
 #define GRAVITYFORCE -0.03f
 #define GAMEDURATION 180.0f
-#define GAMEENDS true
 #define DOENEMYSPAWN true
+#define TIMEBETWEENENEMYWAVES 10
+#define ENEMIESSPAWNED 5
+#define GAMEENDS false
 #define QUICKLOAD false
 #define RENDERPLAYER true
 #define RENDERGUI true
@@ -116,6 +118,13 @@ public:
 	vector2 uv4[34];
 
 	XACTINDEX cueIndex;
+	XACTINDEX attackCueIndex;
+	XACTINDEX missCueIndex;
+	XACTINDEX walkCueIndex;
+	XACTINDEX runningVehicleCueIndex;
+	XACTINDEX jumpCueIndex;
+	XACTINDEX fallCueIndex;
+	XACTINDEX leafPickUpCueIndex;
 	CXACT3Util m_XACT3;
 
 	bool won;
@@ -705,6 +714,13 @@ public:
 
 		// Cargar los indeces de los Cues
 		cueIndex = m_XACT3.m_pSoundBank->GetCueIndex("Fondo");
+		attackCueIndex = m_XACT3.m_pSoundBank->GetCueIndex("ant_attack");
+		missCueIndex = m_XACT3.m_pSoundBank->GetCueIndex("ant_miss");
+		walkCueIndex = m_XACT3.m_pSoundBank->GetCueIndex("ant_walk");
+		runningVehicleCueIndex = m_XACT3.m_pSoundBank->GetCueIndex("running_vehicle");
+		jumpCueIndex = m_XACT3.m_pSoundBank->GetCueIndex("jump");
+		fallCueIndex = m_XACT3.m_pSoundBank->GetCueIndex("fall");
+		leafPickUpCueIndex = m_XACT3.m_pSoundBank->GetCueIndex("leaf_pickup");
 		m_XACT3.m_pSoundBank->Play(cueIndex, 0, 0, 0);
 
 		return true;
@@ -841,6 +857,21 @@ public:
 		else
 			player->MovePlayer(0, velDir, 0, 0, sceneModels, totalModels, sceneWalls, totalWalls);
 
+		if (!player->isJumping && (prevPos[x] != player->GetPosition().x || prevPos[z] != player->GetPosition().z)) {
+			if (!player->isDriving) {
+				m_XACT3.m_pSoundBank->Play(walkCueIndex, 0, 0, 0);
+				m_XACT3.m_pSoundBank->Stop(runningVehicleCueIndex, 0);
+			}
+			else {
+				m_XACT3.m_pSoundBank->Play(runningVehicleCueIndex, 0, 1.5, 0);
+				m_XACT3.m_pSoundBank->Stop(walkCueIndex, 0);
+			}
+		}
+		else {
+			m_XACT3.m_pSoundBank->Stop(walkCueIndex, 0);
+			m_XACT3.m_pSoundBank->Stop(runningVehicleCueIndex, 0);
+		}
+
 		Camara* playerCamera = player->GetCamera();
 
 		skydome->Update(playerCamera->vista, playerCamera->proyeccion);
@@ -855,8 +886,8 @@ public:
 
 		if(RENDERPLAYER)
 			player->Draw(timer);
-		if (DOENEMYSPAWN && globalTimer % 600 == 0) {
-			respawnEnemies(3);
+		if (DOENEMYSPAWN && globalTimer % (TIMEBETWEENENEMYWAVES * 60) == 0) {
+			respawnEnemies(ENEMIESSPAWNED);
 		}
 		for (int i = 0; i < totalEnemies; i++) {
 			spiderEnemies[i]->possibleTargets = sceneTargets;
@@ -886,6 +917,7 @@ public:
 
 		if (player->isJumping && player->GetPosition().y < terreno->Superficie(player->GetPosition().x, player->GetPosition().z)) {
 			player->isJumping = false;
+			m_XACT3.m_pSoundBank->Play(fallCueIndex, 0, 0, 0);
 		}
 
 		if (!player->isJumping) {
@@ -1202,12 +1234,23 @@ public:
 
 	void DamageEnemies(Enemy** Enemies) {
 
+		bool hit = false;
+
 		for (int i = 0; i < totalEnemies; i++) {
 			if (Enemies[i]->isEnemyAlive() && isPointInsideSphere(new float[2] { player->GetPosition().x, player->GetPosition().z}, new float[3] { Enemies[i]->GetPosition().x, Enemies[i]->GetPosition().z, Enemies[i]->getRadius()})) {
 				*Enemies[i]->getHealth() -= DAMAGE;
+				hit = true;
+
 				if (*Enemies[i]->getHealth() <= 0)
 					Enemies[i]->killEnemy();
 			}
+		}
+
+		if (hit) {
+			m_XACT3.m_pSoundBank->Play(attackCueIndex, 0, 0, 0);
+		}
+		else {
+			m_XACT3.m_pSoundBank->Play(missCueIndex, 0, 0, 0);
 		}
 
 	}
@@ -1283,13 +1326,19 @@ public:
 
 	void pickUpLeaves() {
 
+		bool succesful = false;
+
 		for (int i = 0; i < totalLeaves; i++) {
 			if (sceneLeaves[i][picked][0] == notPicked && isPointInsideSphere(new float[2] { player->GetPosition().x, player->GetPosition().z}, new float[3] { sceneLeaves[i][position][x], sceneLeaves[i][position][z], sceneLeaves[i][collision][radius]})) {
 				sceneLeaves[i][picked][0] = pickedUp;
 				player->cantLeaves++;
+				succesful = true;
 			}
 		}
 
+		if (succesful) {
+			m_XACT3.m_pSoundBank->Play(leafPickUpCueIndex, 0, 0, 0);
+		}
 	}
 
 	int generateRandom()
