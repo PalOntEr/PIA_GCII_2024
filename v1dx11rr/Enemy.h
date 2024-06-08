@@ -167,9 +167,9 @@ public:
 			collided = true;
 			Attack();
 		}
-		else if (isPointInsideSphere(tempPositionXZ, antholeInfo)) {
+		/*else if (isPointInsideSphere(tempPositionXZ, antholeInfo)) {
 			collided = false;
-		}
+		}*/
 
 		float frontDistance = 0.0f;
 		float rightDistance = 0.0f;
