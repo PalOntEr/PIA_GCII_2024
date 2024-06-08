@@ -305,7 +305,7 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
             //    //MessageBox(hWnd, wss.str().c_str(), L"Coordinates", MB_OK);
             //}
 
-            if (keyboardData[DIK_ESCAPE] & 0x80) {
+            if (dxrr->realTime >= ULTIMATEGAMEDURATION || keyboardData[DIK_ESCAPE] & 0x80) {
                 KillTimer(hWnd, 100);
                 PostQuitMessage(0);
                 return 0;
