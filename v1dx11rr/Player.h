@@ -9,6 +9,7 @@
 #define MAXFALLACCELERATION 1.0f
 #define MAXFALLSPEED 1.0f
 #define RADIUS 10.0f
+#define VEHICLE_RADIUS 3.0f
 #define INITIALHEALTH 100.0f
 #define DAMAGE 10.0f
 #define COLLIDING_CAMERA_STOPS_MOVEMENT false
@@ -397,7 +398,7 @@ public:
 		if (!collided && sceneModels) {
 			for (int i = 1; i < numModels; i++) {
 				if (sceneModels[i][4][0] == 1.0f)
-					if (isPointInsideSphere(new float[2] { tempPosition.x, tempPosition.z}, new float[3] { sceneModels[i][1][0], sceneModels[i][1][2], sceneModels[i][4][1]})) {
+					if (isPointInsideSphere(new float[2] { tempPosition.x, tempPosition.z}, new float[3] { sceneModels[i][1][0], sceneModels[i][1][2], sceneModels[i][4][1] + (isDriving ? VEHICLE_RADIUS : 0) })) {
 						collided = true;
 						m_speed[0] = 0;
 						m_speed[2] = 0;
@@ -417,7 +418,7 @@ public:
 			}
 			isPlacing[placingActive] = 0;
 		}
-		else if (isPointInsideSphere(new float[2] { tempPosition.x, tempPosition.z}, new float[3] { 0, 0, 30})) {
+		else if (isPointInsideSphere(new float[2] { tempPosition.x, tempPosition.z}, new float[3] { 0, 0, 30 + (isDriving ? VEHICLE_RADIUS : 0) })) {
 			collided = true;
 			m_speed[0] = 0;
 			m_speed[2] = 0;
