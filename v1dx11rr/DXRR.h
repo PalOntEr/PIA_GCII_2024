@@ -879,7 +879,7 @@ public:
 				float rotAngle = playerRef.z > 0 ? atanf(playerRef.x / playerRef.z) - (D3DX_PI / 2) : atanf(playerRef.x / playerRef.z) + (D3DX_PI / 2);
 				sceneVehicle[rotation][y] = rotAngle;
 			}
-			sceneAssets[a][t]->Draw(playerCamera->vista, playerCamera->proyeccion, p, playerCamera->posCam, 1.0f, sceneVehicle[rotation][y], 'Y', s, timer);
+			sceneAssets[a][t]->Draw(playerCamera->vista, playerCamera->proyeccion, p, playerCamera->posCam, 32.0f, sceneVehicle[rotation][y], 'Y', s, timer);
 		}
 
 		UpdateLeaves();
@@ -1350,14 +1350,14 @@ public:
 				float* p = sceneModels[i][position];
 
 				if (sceneModels[i][rotation][x] == 0 && sceneModels[i][rotation][y] == 0 && sceneModels[i][rotation][z] == 0)
-					sceneAssets[a][t]->Draw(player->GetCamera()->vista, player->GetCamera()->proyeccion, p, player->GetCamera()->posCam, 1000000.0f, 0, 'N', s, timer);
+					sceneAssets[a][t]->Draw(player->GetCamera()->vista, player->GetCamera()->proyeccion, p, player->GetCamera()->posCam, 100.0f, 0, 'N', s, timer);
 				else {
 					if (sceneModels[i][rotation][x] != 0)
-						sceneAssets[a][t]->Draw(player->GetCamera()->vista, player->GetCamera()->proyeccion, p, player->GetCamera()->posCam, 1000000.0f, sceneModels[i][rotation][x], 'X', s, timer);
+						sceneAssets[a][t]->Draw(player->GetCamera()->vista, player->GetCamera()->proyeccion, p, player->GetCamera()->posCam, 100.0f, sceneModels[i][rotation][x], 'X', s, timer);
 					else if (sceneModels[i][rotation][y] != 0)
-						sceneAssets[a][t]->Draw(player->GetCamera()->vista, player->GetCamera()->proyeccion, p, player->GetCamera()->posCam, 1000000.0f, sceneModels[i][rotation][y], 'Y', s, timer);
+						sceneAssets[a][t]->Draw(player->GetCamera()->vista, player->GetCamera()->proyeccion, p, player->GetCamera()->posCam, 100.0f, sceneModels[i][rotation][y], 'Y', s, timer);
 					else if (sceneModels[i][rotation][z] != 0)
-						sceneAssets[a][t]->Draw(player->GetCamera()->vista, player->GetCamera()->proyeccion, p, player->GetCamera()->posCam, 1000000.0f, sceneModels[i][rotation][z], 'Z', s, timer);
+						sceneAssets[a][t]->Draw(player->GetCamera()->vista, player->GetCamera()->proyeccion, p, player->GetCamera()->posCam, 100.0f, sceneModels[i][rotation][z], 'Z', s, timer);
 				}
 			}
 			else

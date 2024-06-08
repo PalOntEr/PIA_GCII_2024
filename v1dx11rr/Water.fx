@@ -77,14 +77,8 @@ float4 PS_Main(PS_Input pix) : SV_TARGET
 	float4 text = colorMap.Sample(colorSampler, pix.tex0 * 0.5f);
     
     float3 DiffuseDirection = float3(0.0f, -1.0f, 0.0f);
-    if (timer.y > 0)
-    {
-        DiffuseDirection = float3(timer.x, -1.0f, 0.0f);
-    }
-    else
-    {
-        DiffuseDirection = float3(timer.x * -1, -1.0f, 0.0f);
-    }
+
+    DiffuseDirection = float3(timer.y > 0 ? timer.x : -timer.x, -1.0f, 0.0f);
 	
     float4 DiffuseColor = float4((timer.x - 1) * -1, (timer.x - 1) * -1, (timer.x - 1) * -1, (timer.x - 1) * -1);
 

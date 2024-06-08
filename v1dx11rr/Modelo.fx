@@ -94,13 +94,13 @@ float4 PS_Main(PS_Input pix) : SV_TARGET
 	    
     lightDir = float3(0.5f, -1.0f, 0.0f); // lightDirection
 
-    lightDir = float3(timer.y > 0 ? timer.x : -timer.x, 1.0f, 0.0f);
+    lightDir = float3(timer.y > 0 ? timer.x : -timer.x, 2.0f, 0.0f);
 
-    lightIntensity = saturate(float4((timer.x - 1) * -1, (timer.x - 1) * -1, (timer.x - 1) * -1, (timer.x - 1) * -1) * dot(pix.normal, lightDir));
+    lightIntensity = saturate(dot(pix.normal, lightDir));
 
 	if (lightIntensity > 0) {
 		// Determine the final diffuse color based on the diffuse color and the amount of light intensity.
-        color += (float4 (1.0f, 1.0f, 1.0f, 1.0f) /*diffuse color*/ * lightIntensity);
+        color += (float4((timer.x - 1) * -1, (timer.x - 1) * -1, (timer.x - 1) * -1, (timer.x - 1) * -1) /*diffuse color*/ * lightIntensity);
 
 		// Saturate the ambient and diffuse color.
 		color = saturate(color);
