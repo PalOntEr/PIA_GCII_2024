@@ -23,7 +23,7 @@
 #define DOENEMYSPAWN true
 #define TIMEBETWEENENEMYWAVES 10
 #define ENEMIESSPAWNED 5
-#define GAMEENDS false
+#define GAMEENDS true
 #define QUICKLOAD false
 #define RENDERPLAYER true
 #define RENDERGUI true
@@ -246,6 +246,16 @@ public:
 		}
 		sceneAssets[worm][0] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/wormVehicle.obj", L"Assets/Textures/worm.jpg", L"Assets/Textures/worm_Specular.png", 0, 0);
 		sceneAssets[spider][0] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/spider.obj", L"Assets/Textures/AntModel_Rigged_Smooth.png", L"Assets/Textures/NoSpecular.png", 0, 0);
+		/*sceneAssets[spider][1] = new ModeloRR[10]{	ModeloRR(d3dDevice, d3dContext, "Assets/Models/spider.obj", L"Assets/Textures/AntModel_Rigged_Smooth.png", L"Assets/Textures/NoSpecular.png", 0, 0),
+													ModeloRR(d3dDevice, d3dContext, "Assets/Models/Spider_Walk_2.obj", L"Assets/Textures/AntModel_Rigged_Smooth.png", L"Assets/Textures/NoSpecular.png", 0, 0),
+													ModeloRR(d3dDevice, d3dContext, "Assets/Models/Spider_Walk_3.obj", L"Assets/Textures/AntModel_Rigged_Smooth.png", L"Assets/Textures/NoSpecular.png", 0, 0),
+													ModeloRR(d3dDevice, d3dContext, "Assets/Models/Spider_Walk_4.obj", L"Assets/Textures/AntModel_Rigged_Smooth.png", L"Assets/Textures/NoSpecular.png", 0, 0),
+													ModeloRR(d3dDevice, d3dContext, "Assets/Models/Spider_Walk_5.obj", L"Assets/Textures/AntModel_Rigged_Smooth.png", L"Assets/Textures/NoSpecular.png", 0, 0),
+													ModeloRR(d3dDevice, d3dContext, "Assets/Models/Spider_Walk_6.obj", L"Assets/Textures/AntModel_Rigged_Smooth.png", L"Assets/Textures/NoSpecular.png", 0, 0),
+													ModeloRR(d3dDevice, d3dContext, "Assets/Models/Spider_Walk_7.obj", L"Assets/Textures/AntModel_Rigged_Smooth.png", L"Assets/Textures/NoSpecular.png", 0, 0),
+													ModeloRR(d3dDevice, d3dContext, "Assets/Models/Spider_Walk_8.obj", L"Assets/Textures/AntModel_Rigged_Smooth.png", L"Assets/Textures/NoSpecular.png", 0, 0),
+													ModeloRR(d3dDevice, d3dContext, "Assets/Models/Spider_Walk_9.obj", L"Assets/Textures/AntModel_Rigged_Smooth.png", L"Assets/Textures/NoSpecular.png", 0, 0),
+													ModeloRR(d3dDevice, d3dContext, "Assets/Models/Spider_Walk_10.obj", L"Assets/Textures/AntModel_Rigged_Smooth.png", L"Assets/Textures/NoSpecular.png", 0, 0) };*/
 		sceneAssets[mantis][0] = new ModeloRR(d3dDevice, d3dContext, "Assets/Models/mantis.obj", L"Assets/Textures/Hoja.png", L"Assets/Textures/NoSpecular.png", 0, 0);
 
 		//billboard = new BillboardRR(L"Assets/Billboards/fuego-anim.png",L"Assets/Billboards/fuego-anim-normal.png", d3dDevice, d3dContext, 5);
@@ -304,6 +314,7 @@ public:
 		sceneTargets[1] = getAntholeInfo();
 
 		for (int i = 0; i < totalEnemies; i++) {
+			//spiderEnemies[i] = new Enemy(D3DXVECTOR3(rand() % 2 == 0 ? rand() % 701 - 800 : rand() % 701 + 100, 80, rand() % 2 == 0 ? rand() % 701 - 800 : rand() % 701 + 100), sceneTargets, totalTargets, &globalTimer, &realTime, timer, &m_XACT3, sceneAssets[spider], 1, 10);
 			spiderEnemies[i] = new Enemy(D3DXVECTOR3(rand() % 2 == 0 ? rand() % 701 - 800 : rand() % 701 + 100, 80, rand() % 2 == 0 ? rand() % 701 - 800 : rand() % 701 + 100), sceneTargets, totalTargets, &globalTimer, &realTime, timer, &m_XACT3, sceneAssets[spider], 1, 1);
 			spiderEnemies[i]->SetPosition(2, terreno->Superficie(spiderEnemies[i]->GetPosition().x, spiderEnemies[i]->GetPosition().z));
 		}

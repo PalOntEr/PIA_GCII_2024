@@ -23,6 +23,7 @@ private:
 	int m_currentAnimation;
 	int m_currentFrame;
 	D3DXVECTOR3 m_position;
+	D3DXVECTOR3 m_prevPosition;
 
 	XACTINDEX cueIndex[5];
 	CXACT3Util* m_XACT3;
@@ -34,10 +35,12 @@ private:
 	bool isAlive;
 	bool isPlayingSound;
 	bool isMovingBackwards;
+	bool isMoving;
 
 	XMFLOAT4* dayCycleTimer;
 	int lastTimeSoundWasPlayed;
 	int startedMovingBackwards;
+	int lastTimeFrameChanged;
 	int* globalTimer;
 	int* realTime;
 
@@ -79,6 +82,8 @@ public:
 		this->globalTimer = globalTimer;
 		this->dayCycleTimer = dayCycleTimer;
 
+		m_prevPosition = m_position;
+
 		health = INITIALENEMYHEALTH;
 
 		m_position = m_startPosition = startPoint;
@@ -98,6 +103,8 @@ public:
 			
 		m_currentAnimation = 0;
 		m_currentFrame = 0;
+
+		lastTimeFrameChanged = *globalTimer;
 
 		this->possibleTargets = possibleTargets;
 		this->numberOfTargets = numberOfTargets;
@@ -127,6 +134,8 @@ public:
 
 		if (!isAlive)
 			return;
+
+		m_prevPosition = m_position;
 
 		D3DXVECTOR3 tempPosition = m_position;
 		bool collided = false;
@@ -212,6 +221,8 @@ public:
 			//m_position.y += (rand() % 5);
 		}
 
+		m_prevPosition != m_position ? isMoving = true : isMoving = false;
+
 		return;
 
 	}
@@ -220,8 +231,19 @@ public:
 
 		if (!isAlive)
 			return;
-		float rotAngle = atan2f(currentTarget[targetPosition][0] - m_position.x, currentTarget[targetPosition][2] - m_position.z) + D3DX_PI;
-		m_enemyModels[m_currentAnimation][m_currentFrame].Draw(vista, proyeccion, m_position, posCam, specForce, rotAngle, 'Y', scale, dayCycleTimer);
+ 		float rotAngle = atan2f(currentTarget[targetPosition][0] - m_position.x, currentTarget[targetPosition][2] - m_position.z) + D3DX_PI;
+		m_enemyModels[m_currentAnimation][0].Draw(vista, proyeccion, m_position, posCam, specForce, rotAngle, 'Y', scale, dayCycleTimer);
+		//if (!isMoving)
+		//else {
+		//	if (*globalTimer - lastTimeFrameChanged >= 3) {
+		//		m_currentFrame++;
+		//		lastTimeFrameChanged = *globalTimer;
+		//	}
+		//	if (!&m_enemyModels[m_currentAnimation][m_currentFrame] || m_currentFrame > m_frames)
+		//		m_currentFrame = 0;
+
+		//	m_enemyModels[m_currentAnimation][m_currentFrame].Draw(vista, proyeccion, m_position, posCam, specForce, rotAngle, 'Y', scale, dayCycleTimer);
+		//}
 	}
 
 	D3DXVECTOR3 GetPosition() {
