@@ -42,10 +42,12 @@ public:
 	ID3D11Buffer* worldCB;
 	D3DXMATRIX viewMatrix;
 	D3DXMATRIX projMatrix;
+	ID3D11Buffer* timerBufferCB;
 
 	float posx, posz;
 	float escalx, escaly;
 
+	XMFLOAT4* dayCycleTimer;
 	UINT* indices;
 	VertexComponent* vertices;
 	VertexCollide* vertcol;
@@ -56,12 +58,14 @@ public:
 	D3DXVECTOR3 frontal;
 
 public:
-	BillboardRR(WCHAR* billb, WCHAR* normal, ID3D11Device* D3DDevice, ID3D11DeviceContext* D3DContext, float escala)
+	BillboardRR(WCHAR* billb, WCHAR* normal, ID3D11Device* D3DDevice, ID3D11DeviceContext* D3DContext, float escala, XMFLOAT4* dayCycleTimer)
 	{
 		//copiamos el device y el device context a la clase terreno
 		d3dContext = D3DContext;
 		d3dDevice = D3DDevice;
 		//este es el ancho y el alto del terreno en su escala
+
+		this->dayCycleTimer = dayCycleTimer;
 		
 		float escal = escala;
 		frontal = D3DXVECTOR3(0, 0, 1);
@@ -273,6 +277,15 @@ public:
 			return false;
 		}
 
+		constDesc.ByteWidth = sizeof(XMFLOAT4);
+
+		d3dResult = d3dDevice->CreateBuffer(&constDesc, 0, &timerBufferCB);
+
+		if (FAILED(d3dResult))
+		{
+			return false;
+		}
+
 
 		return true;
 	}
@@ -302,6 +315,8 @@ public:
 			projCB->Release();
 		if (worldCB)
 			worldCB->Release();
+		if (timerBufferCB)
+			timerBufferCB->Release();
 
 
 		colorMapSampler = 0;
@@ -416,6 +431,9 @@ public:
 		d3dContext->VSSetConstantBuffers(2, 1, &projCB);
 		//cantidad de trabajos
 
+		d3dContext->UpdateSubresource(timerBufferCB, 0, 0, dayCycleTimer, sizeof(XMFLOAT4), 0);
+		d3dContext->PSSetConstantBuffers(3, 1, &timerBufferCB);
+
 		d3dContext->DrawIndexed(6, 0, 0);
 
 
@@ -518,6 +536,9 @@ public:
 		d3dContext->VSSetConstantBuffers(1, 1, &viewCB);
 		d3dContext->VSSetConstantBuffers(2, 1, &projCB);
 		//cantidad de trabajos
+
+		d3dContext->UpdateSubresource(timerBufferCB, 0, 0, dayCycleTimer, sizeof(XMFLOAT4), 0);
+		d3dContext->PSSetConstantBuffers(3, 1, &timerBufferCB);
 
 		d3dContext->DrawIndexed(6, 0, 0);
 

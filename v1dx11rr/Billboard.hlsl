@@ -17,6 +17,11 @@ cbuffer cbChangeOnResize : register(b2)
 	matrix projMatrix;
 };
 
+cbuffer TimerBuffer : register(b3)
+{
+    float4 timer;
+};
+
 struct VS_Input
 {
 	float4 pos : POSITION;
@@ -68,7 +73,7 @@ float4 PS_Main(PS_Input pix) : SV_TARGET
 		//aqui se desarrolla el elemento difuso //
 		//////////////////////////////////////////
 		float3 DirLuz = float3(30, 10, 30);
-		float4 LuzDifusa = float4(1, 1, 1, 1);
+        float4 LuzDifusa = float4((timer.x - 1) * -1, (timer.x - 1) * -1, (timer.x - 1) * -1, (timer.x - 1) * -1);
 		float FAD = 1;
 	
 		float3 bump = normalize(2.0 * textnorm - 1.0);

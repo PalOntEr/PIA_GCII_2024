@@ -241,13 +241,13 @@ public:
 
 		//billboard = new BillboardRR(L"Assets/Billboards/fuego-anim.png",L"Assets/Billboards/fuego-anim-normal.png", d3dDevice, d3dContext, 5);
 		frameSmoke = 15;
-		smoke = new BillboardRR(L"Assets/Billboards/smoke-anim.png",L"Assets/Billboards/smoke-anim-normal.png", d3dDevice, d3dContext, 5);
+		smoke = new BillboardRR(L"Assets/Billboards/smoke-anim.png",L"Assets/Billboards/smoke-anim-normal.png", d3dDevice, d3dContext, 5, timer);
 		billCargaHumo();
-		antSalesman = new BillboardRR(L"Assets/Billboards/antSalesman.png",L"Assets/Billboards/antSalesman-normal.png", d3dDevice, d3dContext, 5);
-		rustySign = new BillboardRR(L"Assets/Billboards/rustySign.png",L"Assets/Billboards/rustySign-normal.png", d3dDevice, d3dContext, 5);
-		mountains = new BillboardRR(L"Assets/Billboards/mountains.png",L"Assets/Billboards/mountains-normal.png", d3dDevice, d3dContext, 10);
+		antSalesman = new BillboardRR(L"Assets/Billboards/antSalesman.png",L"Assets/Billboards/antSalesman-normal.png", d3dDevice, d3dContext, 5, timer);
+		rustySign = new BillboardRR(L"Assets/Billboards/rustySign.png",L"Assets/Billboards/rustySign-normal.png", d3dDevice, d3dContext, 5, timer);
+		mountains = new BillboardRR(L"Assets/Billboards/mountains.png",L"Assets/Billboards/mountains-normal.png", d3dDevice, d3dContext, 10, timer);
 
-		grass = new BillboardRR(L"Assets/Billboards/grass.png",L"Assets/Billboards/grass-normal.png", d3dDevice, d3dContext, 5);
+		grass = new BillboardRR(L"Assets/Billboards/grass.png",L"Assets/Billboards/grass-normal.png", d3dDevice, d3dContext, 5, timer);
 		totalGrass = 1000;
 		grassPositions = new XMFLOAT4[totalGrass];
 		int tries = 0;
