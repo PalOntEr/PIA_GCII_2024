@@ -4,6 +4,7 @@
 #define TURRETRADIUS 10.0f
 #define INITIALTURRETHEALTH 100.0f
 #define TURRETLOOKRADIUS 5.0f
+#define TURRETVELOCITY 0.01f
 
 #include <d3d11.h>
 #include <D3DX11.h>
@@ -116,12 +117,15 @@ public:
 		Release();
 	}
 
-	bool Update(float* playerPos, float*** possibleTargets, int numberOfTargets) {
-		if (health <= 0)
+	bool Update(float* playerPos, float*** possibleTargets, int numberOfTargets, float*** sceneModels = NULL, int numModels = 0) {
+		if (health <= 0 && isAlive)
 			isAlive = false;
 
 		if (!isAlive)
 			return isAlive;
+
+		D3DXVECTOR3 tempPosition = m_position;
+		bool collided = false;
 
 		this->possibleTargets = possibleTargets;
 		this->numberOfTargets = numberOfTargets;
@@ -129,6 +133,36 @@ public:
 
 		if (!isPointInsideSphere(new float[2] { m_position.x, m_position.z}, new float[3] { currentTarget[targetPosition][0], currentTarget[targetPosition][2], TURRETLOOKRADIUS}) || currentTarget[targetHealth][0] <= 0)
 			selectNewTarget();
+
+		D3DXVECTOR3 lookAt = { currentTarget[targetPosition][0] - m_position[0],  0.0f, currentTarget[targetPosition][2] - m_position[2] };
+
+		float frontDistance = 0.0f;
+		float rightDistance = 0.0f;
+
+		if (lookAt.x != 0) {
+			frontDistance = lookAt.x * TURRETVELOCITY;
+		}
+		if (lookAt.z != 0) {
+			rightDistance = (lookAt.z * TURRETVELOCITY);
+		}
+
+		tempPosition.x += frontDistance;
+		tempPosition.z += rightDistance;
+
+		if (sceneModels && !collided) {
+			for (int i = 1; i < numModels; i++) {
+				if (sceneModels[i][4][0] == 1.0f)
+					if (isPointInsideSphere(new float[2] { tempPosition.x, tempPosition.z}, new float[3] { sceneModels[i][1][0], sceneModels[i][1][2], sceneModels[i][4][1]})) {
+						collided = true;
+						break;
+					}
+			}
+		}
+
+		if (!collided) {
+			m_position.x = tempPosition.x;
+			m_position.z = tempPosition.z;
+		}
 
 		if (isPointInsideSphere(new float[2] { m_position.x, m_position.z}, new float[3] { currentTarget[targetPosition][0], currentTarget[targetPosition][2], currentTarget[targetRadius][0]})) {
 			Attack();

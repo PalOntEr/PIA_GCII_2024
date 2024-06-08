@@ -17,13 +17,13 @@
 #include "XACT3Util.h"
 #include "GUI.h"
 #include "Text.h"
-#define DAYCYCLESPEED 0.0013f/*0.0001f*/
+#define DAYCYCLESPEED 0.0007f/*0.0001f*/
 #define GRAVITYFORCE -0.03f
 #define GAMEDURATION 180.0f
 #define DOENEMYSPAWN true
 #define TIMEBETWEENENEMYWAVES 10
 #define ENEMIESSPAWNED 5
-#define GAMEENDS false
+#define GAMEENDS true
 #define QUICKLOAD false
 #define RENDERPLAYER true
 #define RENDERGUI true
@@ -894,7 +894,7 @@ public:
 			spiderEnemies[i]->Draw(playerCamera->vista, playerCamera->proyeccion, playerCamera->posCam, 1.0f, 5.0f);
 			spiderEnemies[i]->SetPosition(2, terreno->Superficie(spiderEnemies[i]->GetPosition().x, spiderEnemies[i]->GetPosition().z));
 			if (!won && !lost)
-				spiderEnemies[i]->MoveEnemy(0.3f);
+				spiderEnemies[i]->MoveEnemy(0.3f, sceneModels, totalModels);
 		}
 
 		UpdateTurrets(true);
@@ -1379,7 +1379,7 @@ public:
 					if (draw) {
 						sceneTurrets[i][j]->Draw(player->GetCamera()->vista, player->GetCamera()->proyeccion, player->GetCamera()->posCam, 1.0f, 1.0f, timer);
 					}
-					if (!sceneTurrets[i][j]->Update(player->GetPosition(), getEnemiesInfo(count), count)) {
+					if (!sceneTurrets[i][j]->Update(player->GetPosition(), getEnemiesInfo(count), count, sceneModels, totalModels)) {
 						currentTurrets--;
 					}
 				}

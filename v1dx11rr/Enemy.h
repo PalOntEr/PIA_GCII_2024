@@ -23,9 +23,6 @@ private:
 	int m_currentAnimation;
 	int m_currentFrame;
 	D3DXVECTOR3 m_position;
-	D3DXVECTOR3 m_refUp;
-	D3DXVECTOR3 m_refRight2d;
-	D3DXVECTOR3 m_refFront2d;
 
 	XACTINDEX cueIndex[5];
 	CXACT3Util* m_XACT3;
@@ -36,9 +33,11 @@ private:
 
 	bool isAlive;
 	bool isPlayingSound;
+	bool isMovingBackwards;
 
 	XMFLOAT4* dayCycleTimer;
 	int lastTimeSoundWasPlayed;
+	int startedMovingBackwards;
 	int* globalTimer;
 	int* realTime;
 
@@ -75,6 +74,7 @@ public:
 
 		isAlive = false;
 		isPlayingSound = false;
+		isMovingBackwards = false;
 		this->realTime = realTime;
 		this->globalTimer = globalTimer;
 		this->dayCycleTimer = dayCycleTimer;
@@ -85,18 +85,6 @@ public:
 
 		enemyInfo = new float* [3];
 		enemyInfo[targetRadius] = new float;
-
-		m_refUp = D3DXVECTOR3(0, 1, 0);
-
-		D3DXVec3Normalize(&m_refUp, &m_refUp);
-
-		D3DXVECTOR3 front = D3DXVECTOR3(m_position.x, m_position.y, m_position.z - 6);
-
-		m_refFront2d = D3DXVECTOR3(front.x - m_position.x, front.y - m_position.y, front.z - m_position.z);
-		D3DXVec3Normalize(&m_refFront2d, &m_refFront2d);
-
-		D3DXVec3Cross(&m_refRight2d, &m_refFront2d, &m_refUp);
-		D3DXVec3Normalize(&m_refRight2d, &m_refRight2d);
 
 		m_enemyModels = models;
 
@@ -140,13 +128,7 @@ public:
 		if (!isAlive)
 			return;
 
-		D3DXVECTOR4 tempo;
-		D3DXQUATERNION quatern; //quaternion temporal para la camara
-		D3DXMATRIX giraUp; //matrices temporales para los giros
 		D3DXVECTOR3 tempPosition = m_position;
-		D3DXVECTOR3 tempRefUp = m_refUp;
-		D3DXVECTOR3 tempRefRight2d = m_refRight2d;
-		D3DXVECTOR3 tempRefFront2d = m_refFront2d;
 		bool collided = false;
 
 		if (isPointInsideSphere(new float[2] { tempPosition.x, tempPosition.z}, new float[3] { currentTarget[targetPosition][0], currentTarget[targetPosition][2], ENEMYLOOKRADIUS}))
@@ -158,27 +140,6 @@ public:
 
 		long double radians = atan2f(lookAt.z, lookAt.x);
 
-		float angle = radians * (180 / D3DX_PI);
-
-		//creamos al quaternion segun el vector up
-		D3DXQuaternionRotationAxis(&quatern, &tempRefUp, angle);
-		//lo normalizamos para que no acumule error
-		D3DXQuaternionNormalize(&quatern, &quatern);
-		//creamos la matriz de rotacion basados en el quaternion
-		D3DXMatrixRotationQuaternion(&giraUp, &quatern);
-
-		//transformamos a los vectores ded la camara
-		D3DXVec3Transform(&tempo, &tempRefFront2d, &giraUp);
-		//como el resultado de la operacion anterior es Vec4 lo casteamos para hacerlo vec3
-		tempRefFront2d = (D3DXVECTOR3)tempo;
-		//normalizamos para no acumular error
-		D3DXVec3Normalize(&tempRefFront2d, &tempRefFront2d);
-		//Con el vector de referencia y el nuevo front calculamos right de nuevo
-		D3DXVec3Cross(&tempRefRight2d, &tempRefFront2d, &tempRefUp);
-		D3DXVec3Normalize(&tempRefRight2d, &tempRefRight2d);
-
-		//calculamos cuanto nos debemos de mover en cada eje
-
 		if (possibleTargets[3] != nullptr) {
 			//int tempos = possibleTargets[3][targetPosition][0];
 		}
@@ -186,6 +147,7 @@ public:
 		if (isPointInsideSphere(new float[2] { tempPosition.x, tempPosition.z}, new float[3] { possibleTargets[1][targetPosition][0], possibleTargets[1][targetPosition][2], possibleTargets[1][targetRadius][0]})) {
 			collided = true;
 			currentTarget = possibleTargets[1];
+			isMovingBackwards = false;
 		}
 		if (isPointInsideSphere(new float[2] { tempPosition.x, tempPosition.z}, new float[3] { currentTarget[targetPosition][0], currentTarget[targetPosition][2], currentTarget[targetRadius][0]})) {
 			collided = true;
@@ -213,16 +175,22 @@ public:
 				if (sceneModels[i][4][0] == 1.0f)
 					if (isPointInsideSphere(new float[2] { tempPosition.x, tempPosition.z}, new float[3] { sceneModels[i][1][0], sceneModels[i][1][2], sceneModels[i][4][1]})) {
 						collided = true;
+						isMovingBackwards = true;
+						startedMovingBackwards = *realTime;
 						break;
 					}
 			}
 		}
 
-		m_refUp = tempRefUp;
-		m_refRight2d = tempRefRight2d;
-		m_refFront2d = tempRefFront2d;
 		m_position.y = tempPosition.y;
-		if (!collided) {
+		if (isMovingBackwards && *realTime - startedMovingBackwards < 1) {
+			m_position.x += -frontDistance + (rand() % 2 - 0.5f) * (0.5f);
+			m_position.z += rightDistance + (rand() % 2 - 0.5f) * (0.5f);
+		}
+		else if (isMovingBackwards && *realTime - startedMovingBackwards >= 2) {
+			isMovingBackwards = false;
+		}
+		else if (!collided) {
 			m_position.x = tempPosition.x + (rand() % 2 - 0.5f)*(0.5f);
 			m_position.z = tempPosition.z + (rand() % 2 - 0.5f)*(0.5f);
 			//m_position.y += (rand() % 5);
@@ -243,14 +211,6 @@ public:
 
 	D3DXVECTOR3 GetPosition() {
 		return m_position;
-	}
-
-	D3DXVECTOR3 GetFrontReference2D() {
-		return m_refFront2d;
-	}
-
-	D3DXVECTOR3 GetRightReference2D() {
-		return m_refRight2d;
 	}
 
 	void SetPosition(D3DXVECTOR3 position) {
