@@ -109,7 +109,7 @@ float4 PS_Main(PS_Input pix) : SV_TARGET
 		reflection = normalize(2 * lightIntensity * pix.normal - lightDir);
 
 		// Determine the amount of specular light based on the reflection vector, viewing direction, and specular power.
-		specular = pow(saturate(dot(reflection, pix.campos)), pix.specForce);
+		specular = pow(saturate(float4((timer.x - 1) * -1, (timer.x - 1) * -1, (timer.x - 1) * -1, (timer.x - 1) * -1) * dot(reflection, pix.campos)), pix.specForce);
 		finalSpec = specular * specularMap;
 	}
 
